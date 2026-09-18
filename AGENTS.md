@@ -5,6 +5,7 @@
 - Default branch: main
 - Integration branch: develop
 - Member branches:
+  - Dat (DatTran26) -> develop-dat
   - Bao (NgoQuocBao24405) -> develop-bao
   - Kim (HoangKim72) -> develop-kim
 - PR target: develop (personal/feature). Never personal -> main.
