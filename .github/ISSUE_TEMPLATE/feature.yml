@@ -1,0 +1,19 @@
+name: Feature
+description: Propose a feature
+title: "feat: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What done means.
+    validations:
+      required: true
+  - type: textarea
+    id: accept
+    attributes:
+      label: Acceptance
+      description: Checklist of observable checks.
+    validations:
+      required: true

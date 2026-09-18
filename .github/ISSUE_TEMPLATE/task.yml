@@ -1,0 +1,16 @@
+name: Task
+description: Track a unit of work
+title: "chore: "
+labels: ["type:task"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Repo, branch, files, constraints.
