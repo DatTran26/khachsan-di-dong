@@ -5,8 +5,8 @@
 - Default branch: main
 - Integration branch: develop
 - Member branches:
-  - Bao -> develop/bao
-  - Kim -> develop/kim
+  - Bao (NgoQuocBao24405) -> develop-bao
+  - Kim (HoangKim72) -> develop-kim
 - PR target: develop (personal/feature). Never personal -> main.
 - release/x.y.z -> main. hotfix/* from main.
 - Git ops:
