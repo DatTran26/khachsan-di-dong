@@ -13,13 +13,13 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 
 ### Phạm vi
 
-- **In scope:** xác thực (đăng nhập/đăng xuất bằng SĐT+MK); quản lý phiên (12h, 1 TK 1 thiết bị); quản lý tài khoản bởi quản lý (tạo/sửa/khóa/mở/đặt lại MK); đổi MK self-service + bắt đổi MK tạm; phân quyền RBAC 3 vai trò thực thi server-side cho mọi thao tác ghi; nhật ký audit phía server; màn xem nhật ký cho quản lý.
+- **In scope:** xác thực (đăng nhập/đăng xuất bằng SĐT+MK); quản lý phiên (12h, 1 TK 1 thiết bị); quản lý tài khoản bởi quản lý và lễ tân (tạo/sửa/khóa/mở/đặt lại MK — lễ tân không thao tác trên TK quản lý); đổi MK self-service + bắt đổi MK tạm; phân quyền RBAC 3 vai trò thực thi server-side cho mọi thao tác ghi; nhật ký audit phía server; màn xem nhật ký cho quản lý.
 - **Out of scope:** self-register, OTP/SSO, xóa cứng tài khoản, phân quyền tùy biến, tách vai trò buồng phòng/bảo trì (OQ-2 resolved — giữ 1 vai trò gộp MVP), tài khoản khách.
 
 ### Actors
 
 - **Quản lý** — quản lý tài khoản, xem nhật ký, giám sát; KHÔNG nhận/trả phòng.
-- **Lễ tân** — nhận/trả phòng, xem trạng thái + dashboard.
+- **Lễ tân** — nhận/trả phòng, xem trạng thái + dashboard; quản lý tài khoản nhân viên không phải quản lý (chốt 23/09/2026).
 - **Nhân viên buồng phòng–bảo trì** — xem việc được giao tường minh tới cá nhân (OQ-3 resolved), cập nhật vệ sinh/bảo trì.
 - **Hệ thống** — lockout tự động, hủy phiên, ghi nhật ký.
 
@@ -31,12 +31,12 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 | FR-auth-roles-002 | Khi nhân viên chọn đăng xuất, hệ thống hủy phiên hiện tại và đưa về màn đăng nhập | P0 | CAP-auth-roles-01 |
 | FR-auth-roles-003 | Khi phiên đạt 12 giờ, hệ thống hủy phiên; thao tác tiếp theo bị từ chối và yêu cầu đăng nhập lại | P0 | CAP-auth-roles-02 |
 | FR-auth-roles-004 | Với mọi thao tác thay đổi dữ liệu, hệ thống kiểm tra quyền theo vai trò tại máy chủ trước khi thực hiện; vai trò không có quyền → từ chối | P0 | CAP-auth-roles-03, BR-auth-roles-001/002/003 |
-| FR-auth-roles-005 | Khi quản lý tạo tài khoản (họ tên, SĐT, vai trò) và SĐT chưa tồn tại, hệ thống sinh mật khẩu tạm, đặt trạng thái "Chờ kích hoạt" và hiển thị MK tạm một lần | P0 | CAP-auth-roles-04 |
+| FR-auth-roles-005 | Khi quản lý hoặc lễ tân tạo tài khoản (họ tên, SĐT, vai trò) và SĐT chưa tồn tại, hệ thống sinh mật khẩu tạm, đặt trạng thái "Chờ kích hoạt" và hiển thị MK tạm một lần | P0 | CAP-auth-roles-04 |
 | FR-auth-roles-006 | Khi nhân viên đăng nhập bằng MK tạm, hệ thống bắt buộc đặt mật khẩu mới trước khi vào chức năng nào khác; sau khi đổi, TK chuyển "Hoạt động" | P0 | CAP-auth-roles-05 |
 | FR-auth-roles-007 | Khi nhân viên đổi MK (nhập đúng MK cũ + MK mới đạt rule), hệ thống cập nhật MK và giữ phiên hiện tại | P0 | CAP-auth-roles-05 |
-| FR-auth-roles-008 | Khi quản lý đặt lại MK của một TK, hệ thống sinh MK tạm mới và đặt TK về "Chờ kích hoạt" | P0 | CAP-auth-roles-04 |
-| FR-auth-roles-009 | Khi quản lý khóa một TK (không phải QL cuối cùng), hệ thống chuyển TK sang "Bị khóa" và hủy ngay mọi phiên đang mở của TK đó | P0 | CAP-auth-roles-04 |
-| FR-auth-roles-010 | Khi quản lý mở khóa một TK, hệ thống sinh MK tạm mới, đặt TK về "Chờ kích hoạt" và đếm sai MK về 0 | P0 | CAP-auth-roles-04 |
+| FR-auth-roles-008 | Khi quản lý hoặc lễ tân đặt lại MK của một TK, hệ thống sinh MK tạm mới và đặt TK về "Chờ kích hoạt" | P0 | CAP-auth-roles-04 |
+| FR-auth-roles-009 | Khi quản lý hoặc lễ tân khóa một TK (không phải QL cuối cùng), hệ thống chuyển TK sang "Bị khóa" và hủy ngay mọi phiên đang mở của TK đó | P0 | CAP-auth-roles-04 |
+| FR-auth-roles-010 | Khi quản lý hoặc lễ tân mở khóa một TK, hệ thống sinh MK tạm mới, đặt TK về "Chờ kích hoạt" và đếm sai MK về 0 | P0 | CAP-auth-roles-04 |
 | FR-auth-roles-011 | Nếu nhập sai MK 5 lần liên tiếp trên cùng một TK, hệ thống tự động chuyển TK sang "Bị khóa" và ghi nhật ký | P0 | CAP-auth-roles-06, BR-auth-roles-004 |
 | FR-auth-roles-012 | Khi một TK đăng nhập thành công trên thiết bị mới, hệ thống hủy mọi phiên cũ của TK đó (1 TK 1 thiết bị) | P0 | CAP-auth-roles-02, BR-auth-roles-007 |
 | FR-auth-roles-013 | Hệ thống ghi nhật ký phía máy chủ cho mọi thay đổi dữ liệu và sự kiện auth (đăng nhập/đăng xuất/hết phiên/khóa/mở/đổi MK), mỗi dòng gồm: người thực hiện, vai trò, hành động, đối tượng, thời điểm | P0 | CAP-auth-roles-07 |
@@ -50,7 +50,7 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 
 - `Chờ kích hoạt` — TK mới tạo/vừa reset/vừa mở khóa, đang giữ MK tạm; đăng nhập được nhưng bắt đổi MK.
 - `Hoạt động` — dùng bình thường.
-- `Bị khóa` — không đăng nhập; phiên đang mở bị hủy; chỉ quản lý mở.
+- `Bị khóa` — không đăng nhập; phiên đang mở bị hủy; quản lý mở (lễ tân mở được TK không phải quản lý).
 - Không có trạng thái "đã xóa".
 
 ## 3. Non-Functional Requirements
@@ -70,10 +70,10 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 
 | ID | Quy tắc | Implements |
 |---|---|---|
-| BR-auth-roles-001 | Chỉ quản lý được quản lý tài khoản | FR-auth-roles-005/008/009/010/016 |
+| BR-auth-roles-001 | Quản lý và lễ tân được quản lý tài khoản (tạo/sửa/khóa/mở/đặt lại MK); lễ tân chỉ thao tác trên TK không phải quản lý và không gán vai trò quản lý (chốt nhóm 23/09/2026) | FR-auth-roles-005/008/009/010/016 |
 | BR-auth-roles-002 | Chỉ lễ tân được nhận/trả phòng | FR-auth-roles-004 |
 | BR-auth-roles-003 | Buồng phòng–bảo trì chỉ cập nhật vệ sinh/bảo trì trong việc được giao tường minh tới cá nhân (không theo khu vực/tầng) | FR-auth-roles-004 |
-| BR-auth-roles-004 | Sai MK 5 lần liên tiếp → khóa, chỉ quản lý mở | FR-auth-roles-011 |
+| BR-auth-roles-004 | Sai MK 5 lần liên tiếp → khóa; quản lý/lễ tân mở theo BR-auth-roles-001 | FR-auth-roles-011 |
 | BR-auth-roles-005 | Tài khoản không xóa cứng — chỉ khóa/mở | FR-auth-roles-017 |
 | BR-auth-roles-006 | Không khóa/đổi vai trò QL cuối cùng | FR-auth-roles-016 |
 | BR-auth-roles-007 | 1 TK 1 phiên thiết bị; phiên ≤12 giờ | FR-auth-roles-003/012 |

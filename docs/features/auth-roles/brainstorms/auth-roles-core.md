@@ -123,7 +123,7 @@ Quản lý                          Hệ thống
 | Vai trò | Nhận/trả phòng | Cập nhật vệ sinh/bảo trì | Xem trạng thái + dashboard | Quản lý tài khoản | Xem nhật ký | Xem AI advisor |
 |---|---|---|---|---|---|---|
 | Quản lý | ❌ (chỉ lễ tân) | ❌ | ✅ toàn bộ | ✅ | ✅ | ✅ |
-| Lễ tân | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Lễ tân | ✅ | ❌ | ✅ | ✅ TK không phải quản lý (chốt 23/09) | ❌ | ❌ |
 | Buồng phòng–bảo trì | ❌ | ✅ (việc được giao) | ✅ danh sách việc | ❌ | ❌ | ❌ |
 
 ### 6.3 State machine — trạng thái tài khoản
