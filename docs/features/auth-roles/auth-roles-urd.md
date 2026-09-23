@@ -2,7 +2,7 @@
 type: urd
 feature: auth-roles
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 author: "@Tran Tan Dat"
 links: ["docs/features/auth-roles/brainstorms/auth-roles-core.md", "docs/_shared/project-profile.md"]
 ---
@@ -79,7 +79,7 @@ Hiện tại việc cập nhật trạng thái phòng rời rạc giữa các th
 
 ## 8. Constraints & Assumptions
 
-- Constraints: toàn bộ tiếng Việt; chạy web + mobile (Flutter); ~10 phiên đồng thời; máy chung tại quầy là tình huống phổ biến; mọi quyết định quyền ở phía server (tôn chỉ).
+- Constraints: toàn bộ tiếng Việt; chạy web + mobile (Flutter); 30 phiên đồng thời; máy chung tại quầy là tình huống phổ biến; mọi quyết định quyền ở phía server (tôn chỉ).
 - Assumptions: SĐT chỉ là định danh, không OTP; MK tạm dùng 1 lần, không hết hạn; buồng phòng–bảo trì là 1 vai trò gộp trong MVP.
 
 ## 9. User Success Criteria

@@ -2,7 +2,7 @@
 type: urd
 feature: realtime-sync
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/realtime-sync/brainstorms/co-che-dong-bo-realtime.md|Brainstorm: Cơ chế đồng bộ thời gian thực]]"
   - "[[Ton_Chi_Du_An_WPCTeam.txt|Tôn chỉ dự án]]"
@@ -119,7 +119,7 @@ links:
 
 - Ngôn ngữ: thông báo tiếng Việt.
 - Kênh/thiết bị: Flutter Web + Android; áp dụng đồng nhất cho cả hai.
-- Quy mô: 50 phòng, tối đa ~10 phiên đồng thời (tôn chỉ) — không thiết kế cho tải lớn hơn.
+- Quy mô: 50 phòng, tối đa 30 phiên đồng thời (tôn chỉ) — không thiết kế cho tải lớn hơn.
 - Điều kiện sử dụng: phải đăng nhập; mất kết nối chỉ được xem, không được ghi.
 - Chỉ có một máy chủ là nguồn sự thật (MVP).
 
@@ -127,7 +127,7 @@ links:
 
 | Assumption | Impact if Wrong | Validation Status | Next Action |
 |------------|-----------------|-------------------|-------------|
-| ~10 phiên đồng thời là tải đỉnh | Nếu nhiều hơn → độ trễ và ổn định phải đo lại | Confirmed theo tôn chỉ | Đo trong nghiệm thu đúng quy mô |
+| 30 phiên đồng thời là tải đỉnh | Nếu nhiều hơn → độ trễ và ổn định phải đo lại | Confirmed theo tôn chỉ | Đo trong nghiệm thu đúng quy mô |
 | Mất mạng vẫn cho xem dữ liệu cuối (chỉ khóa ghi) | Nếu phải chặn luôn xem → UX đổi | Assumption hợp lý — chưa chốt | Xác nhận khi demo |
 | Tải lại trạng thái khi kết nối lại đủ bù sự kiện lỡ (không cần hàng đợi sự kiện) | Nếu thiếu → trạng thái hiển thị sai sót | Assumption đơn giản nhất đảm bảo đúng | Kiểm chứng kiểm thử J3 |
 | Kênh realtime của stack chọn (Socket.IO theo tôn chỉ) đạt ≤3s ở quy mô này | Nếu không → phải đổi cơ chế | Assumption theo tôn chỉ | Mốc kiểm chứng sprint 1 |
@@ -136,7 +136,7 @@ links:
 
 | ID | User Outcome | Baseline | Target | Measurement | Review Period |
 |----|--------------|----------|--------|-------------|---------------|
-| USC-001 | Thiết bị khác thấy cập nhật kịp thời | Chưa có | ≥95% trong 100 lượt ≤3 giây (50 phòng, 10 phiên) | Đo theo tiêu chí nghiệm thu PRD | Nghiệm thu |
+| USC-001 | Thiết bị khác thấy cập nhật kịp thời | Chưa có | ≥95% trong 100 lượt ≤3 giây (50 phòng, 30 phiên) | Đo theo tiêu chí nghiệm thu PRD | Nghiệm thu |
 | USC-002 | Không ghi đè lặng lẽ | Chưa có | 0 ca ghi đè do xung đột | Kịch bản xung đột trong kiểm thử | Nghiệm thu |
 | USC-003 | Người dùng biết rõ khi mất kết nối | Chưa có | 100% thời điểm offline hiển thị cảnh báo + khóa ghi | Kiểm thử tắt/bật mạng | Sprint 1–4 |
 | USC-004 | Tự đồng bộ khi có mạng lại | Chưa có | 100% lần reconnect tự tải trạng thái mới, không đăng nhập lại (phiên còn hạn) | Kiểm thử tắt/bật mạng | Sprint 1–4 |

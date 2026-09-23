@@ -2,7 +2,7 @@
 type: brd
 feature: room-dashboard
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-dashboard/room-dashboard-urd.md|Room Dashboard URD]]"
   - "[[docs/features/room-dashboard/brainstorms/giam-sat-ba-truc-trang-thai.md|Brainstorm: Giám sát 3 trục trạng thái]]"
@@ -69,7 +69,7 @@ Một dashboard web realtime: quản lý mở lên là thấy lưới 50 phòng 
 |----|-----------|----------|--------|-----------|-----------------|
 | BO-room-dashboard-01 | Có một cái nhìn tổng realtime tin cậy cho toàn bộ phòng | Chưa có — quản lý hỏi từng người | 100% chỉ số dashboard khớp dữ liệu đối soát; cập nhật ≤3 giây | Sprint 3 → nghiệm thu | Đối soát chỉ số với dữ liệu nguồn trong nghiệm thu |
 | BO-room-dashboard-02 | Công việc quá hạn luôn lộ diện để can thiệp kịp trong ca | Chưa có | 100% việc có cờ quá hạn được tô cờ + đếm trên dashboard | Sprint 3 | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" |
-| BO-room-dashboard-03 | Mọi vai trò giám sát thấy cùng một trạng thái mới nhất | Chưa có | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây (50 phòng, ~10 phiên) | Nghiệm thu | Đo theo tiêu chí tôn chỉ |
+| BO-room-dashboard-03 | Mọi vai trò giám sát thấy cùng một trạng thái mới nhất | Chưa có | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây (50 phòng, 30 phiên) | Nghiệm thu | Đo theo tiêu chí tôn chỉ |
 
 ## 6. Business Scope
 
@@ -94,7 +94,7 @@ Một dashboard web realtime: quản lý mở lên là thấy lưới 50 phòng 
 ### 6.4 Constraints
 
 - MVP 8 tuần, nhóm 3 người ~20 giờ/người/tuần (tôn chỉ); dashboard chạy Sprint 3.
-- Tiếng Việt, dữ liệu giả lập, 1 khách sạn 50 phòng, ~10 phiên đồng thời.
+- Tiếng Việt, dữ liệu giả lập, 1 khách sạn 50 phòng, 30 phiên đồng thời.
 - Cảnh báo quá hạn bằng quy tắc, không phụ thuộc AI (tôn chỉ).
 - 3 trục trạng thái tách riêng — ràng buộc lõi tôn chỉ.
 - Kiểm tra quyền ở máy chủ cho quyền xem theo vai trò.

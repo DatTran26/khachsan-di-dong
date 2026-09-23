@@ -3,7 +3,7 @@ type: brainstorm
 feature: auth-roles
 slug: auth-roles-core
 status: draft
-updated: 2026-09-15
+updated: 2026-09-23
 author: "@Tran Tan Dat"
 links: []
 ---
@@ -19,7 +19,7 @@ links: []
 - Phần mềm theo dõi trạng thái phòng khách sạn realtime + dashboard; MVP 8 tuần (08/09–02/11/2026), 1 khách sạn ~50 phòng, tiếng Việt, dữ liệu giả lập (tôn chỉ).
 - `auth-roles` nằm Sprint 1 (08/09–21/09) — là nền tảng: mọi feature sau (room-catalog, check-in-out, housekeeping, dashboard) đều phải biết ai đang thao tác và có quyền gì.
 - Pain hiện tại: cập nhật rời rạc giữa thiết bị/ca, không ai chịu trách nhiệm với dữ liệu trung tâm; cần biết ai đã sửa gì.
-- ~10 phiên đăng nhập đồng thời; ≥95% cập nhật lan sang thiết bị khác trong ≤3 giây (tiêu chí nghiệm thu tôn chỉ).
+- 30 phiên đăng nhập đồng thời; ≥95% cập nhật lan sang thiết bị khác trong ≤3 giây (tiêu chí nghiệm thu tôn chỉ).
 - Vai trò quản lý xem toàn bộ và có thể xuất báo cáo định kỳ; AI advisor (nếu làm) chỉ cho quản lý.
 
 ## 3. User Types

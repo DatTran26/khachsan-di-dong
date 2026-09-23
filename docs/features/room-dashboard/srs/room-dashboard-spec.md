@@ -2,7 +2,7 @@
 type: srs-spec
 feature: room-dashboard
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-dashboard/room-dashboard-prd.md|Room Dashboard PRD]]"
   - "[[docs/features/housekeeping/srs/housekeeping-spec.md|Housekeeping Spec]]"
@@ -45,7 +45,7 @@ links:
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| NFR-room-dashboard-001 | Performance: ≥95% trong 100 lượt cập nhật trạng thái phải hiển thị trên dashboard trong ≤3 giây (50 phòng, tối đa ~10 phiên đồng thời). | Đo theo tiêu chí nghiệm thu tôn chỉ | Must |
+| NFR-room-dashboard-001 | Performance: ≥95% trong 100 lượt cập nhật trạng thái phải hiển thị trên dashboard trong ≤3 giây (50 phòng, tối đa 30 phiên đồng thời). | Đo theo tiêu chí nghiệm thu tôn chỉ | Must |
 | NFR-room-dashboard-002 | Accuracy: 100% chỉ số dashboard khớp dữ liệu đối soát trong nghiệm thu; sai lệch chỉ số là lỗi chặn luồng. | Đối soát chỉ số vs dữ liệu nguồn | Must |
 | NFR-room-dashboard-003 | Reliability: mất kết nối không được để dashboard im lặng hiển thị dữ liệu cũ như thể còn mới; khi phục hồi phải tải trạng thái mới nhất. | Test: ngắt/nối mạng trong kịch bản "khôi phục kết nối" | Must |
 | NFR-room-dashboard-004 | Security: quyền xem dashboard kiểm tra ở máy chủ theo vai trò (quản lý, lễ tân); vai trò khác bị từ chối. | Test bằng tài khoản từng vai trò | Must |
@@ -78,7 +78,7 @@ links:
 | ID | Criterion | Đo lường |
 |----|-----------|----------|
 | SC-room-dashboard-01 | 100% chỉ số dashboard khớp dữ liệu đối soát | Đối soát trong nghiệm thu (tôn chỉ/PRD đo thành công) |
-| SC-room-dashboard-02 | ≥95% trong 100 lượt cập nhật trạng thái hiển thị trên dashboard ≤3 giây (50 phòng, ~10 phiên đồng thời) | Đo theo tiêu chí nghiệm thu tôn chỉ |
+| SC-room-dashboard-02 | ≥95% trong 100 lượt cập nhật trạng thái hiển thị trên dashboard ≤3 giây (50 phòng, 30 phiên đồng thời) | Đo theo tiêu chí nghiệm thu tôn chỉ |
 | SC-room-dashboard-03 | 100% công việc có cờ quá hạn (do feature nguồn đánh) được tô cờ và đếm trên dashboard | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" |
 | SC-room-dashboard-04 | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + đang phục vụ; 0 màn hình trộn 3 trục thành 1 trạng thái | Đối chiếu trạng thái nguồn trong test |
 
@@ -108,7 +108,7 @@ links:
 
 ### Constraints
 
-- MVP 8 tuần, 1 khách sạn 50 phòng, tiếng Việt, dữ liệu giả lập, ~10 phiên đồng thời (tôn chỉ).
+- MVP 8 tuần, 1 khách sạn 50 phòng, tiếng Việt, dữ liệu giả lập, 30 phiên đồng thời (tôn chỉ).
 - 3 trục trạng thái tách riêng — ràng buộc lõi tôn chỉ; "sẵn sàng" là composite không phải trạng thái lưu.
 - Cảnh báo/hiển thị quá hạn bằng quy tắc, không phụ thuộc AI (tôn chỉ).
 - Kiểm tra quyền ở máy chủ cho quyền xem theo vai trò (tôn chỉ).

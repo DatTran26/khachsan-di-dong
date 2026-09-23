@@ -2,7 +2,7 @@
 type: srs-spec
 feature: auth-roles
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 author: "@Tran Tan Dat"
 links: ["docs/features/auth-roles/auth-roles-prd.md"]
 ---
@@ -61,7 +61,7 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 | NFR-auth-roles-002 | Toàn bộ giao tiếp qua HTTPS | Tôn chỉ |
 | NFR-auth-roles-003 | Quyết định phân quyền chỉ thực thi ở máy chủ; client chỉ hiển thị theo vai trò | Tôn chỉ, CAP-auth-roles-03 |
 | NFR-auth-roles-004 | Đăng nhập phản hồi ≤3 giây trên mạng thử nghiệm | Suy từ tiêu chí tôn chỉ (95% cập nhật ≤3s) — xem OQ-1 |
-| NFR-auth-roles-005 | Hỗ trợ ≥10 phiên đăng nhập đồng thời hoạt động bình thường | Tôn chỉ (tiêu chí nghiệm thu) |
+| NFR-auth-roles-005 | Hỗ trợ ≥30 phiên đăng nhập đồng thời hoạt động bình thường | Tôn chỉ (tiêu chí nghiệm thu) |
 | NFR-auth-roles-006 | Mất kết nối → ứng dụng báo trạng thái và khóa thao tác ghi; có mạng lại → cho thử lại, không tự lưu bù | Tôn chỉ |
 | NFR-auth-roles-007 | Nhật ký hoạt động giữ toàn bộ thời gian MVP, không tự xóa | Đã chốt brainstorm |
 | NFR-auth-roles-008 | Toàn bộ giao diện và thông báo tiếng Việt | Tôn chỉ |
@@ -114,7 +114,7 @@ Ma trận vai trò × hành động đầy đủ: xem brainstorm mục 6.2 (bả
 
 ## 8. Constraints & Assumptions
 
-- Constraints: HTTPS + băm MK + phân quyền server-side + nhật ký máy chủ (ràng buộc tôn chỉ); Flutter web + Android; ~10 phiên đồng thời; tiếng Việt; 1 khách sạn ~50 phòng.
+- Constraints: HTTPS + băm MK + phân quyền server-side + nhật ký máy chủ (ràng buộc tôn chỉ); Flutter web + Android; 30 phiên đồng thời; tiếng Việt; 1 khách sạn ~50 phòng.
 - Assumptions: SĐT không OTP; MK tạm không hết hạn, dùng 1 lần; đổi MK giữ phiên; MK tạm truyền tay ngoài app.
 - Dependencies (business): danh sách vai trò/quyền đã chốt trong brainstorm; hạ tầng VPS/DB sẵn đầu Sprint 1 (team WPCTeam).
 
