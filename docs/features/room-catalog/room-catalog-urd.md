@@ -2,7 +2,7 @@
 type: urd
 feature: room-catalog
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-catalog/brainstorms/danh-muc-phong.md|Brainstorm — Danh mục phòng]]"
   - "[[docs/_product/prd.md|PRD sản phẩm — Mục 7.2]]"
@@ -109,7 +109,7 @@ Tài liệu này ghi nhận nhu cầu phía người dùng cho feature `room-cat
 ## 8. User-side Constraints
 
 - Thiết bị: web (quản lý, lễ tân) và Android (nhân viên) — tiếng Việt.
-- ~10 phiên đồng thời; realtime là kỳ vọng mặc định, không phải "thỉnh thoảng kiểm tra lại".
+- 30 phiên đồng thời; realtime là kỳ vọng mặc định, không phải "thỉnh thoảng kiểm tra lại".
 - Dữ liệu giả lập 50 phòng — không dữ liệu khách thật.
 - Lễ tân dùng trên quầy trong ca làm việc; nhân viên dùng trên mobile khi di chuyển.
 

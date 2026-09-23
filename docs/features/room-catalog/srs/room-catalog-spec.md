@@ -2,7 +2,7 @@
 type: srs-spec
 feature: room-catalog
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-catalog/room-catalog-prd.md|PRD — Room Catalog]]"
   - "[[docs/features/room-catalog/room-catalog-brd.md|BRD — Room Catalog]]"
@@ -48,7 +48,7 @@ links:
 | NFR-room-catalog-001 | Cập nhật danh mục hiển thị trên thiết bị khác trong ≤3 giây | ≥95% lượt (tôn chỉ) | BREQ-06 |
 | NFR-room-catalog-002 | Kiểm tra quyền và ghi nhật ký ở máy chủ — không tin client | Tôn chỉ | BREQ-05 |
 | NFR-room-catalog-003 | Giao diện tiếng Việt; web cho quản lý/lễ tân, Android cho nhân viên | Tôn chỉ | Scope |
-| NFR-room-catalog-004 | ~10 phiên đồng thời; cập nhật đồng thời bị chặn bằng kiểm tra trạng thái | Tôn chỉ | BRD Risk |
+| NFR-room-catalog-004 | 30 phiên đồng thời; cập nhật đồng thời bị chặn bằng kiểm tra trạng thái | Tôn chỉ | BRD Risk |
 
 ## 5. Business Rules
 
@@ -108,7 +108,7 @@ links:
 
 - Phụ thuộc `auth-roles` cho đăng nhập + phân quyền.
 - Là dependency của `check-in-out`, `housekeeping`, `maintenance`, `room-dashboard`.
-- Ràng buộc tôn chỉ: 3 trục riêng; kiểm quyền + nhật ký ở máy chủ; realtime ≤3s; ~10 phiên; tiếng Việt; dữ liệu giả lập.
+- Ràng buộc tôn chỉ: 3 trục riêng; kiểm quyền + nhật ký ở máy chủ; realtime ≤3s; 30 phiên; tiếng Việt; dữ liệu giả lập.
 
 ## 12. Assumptions
 

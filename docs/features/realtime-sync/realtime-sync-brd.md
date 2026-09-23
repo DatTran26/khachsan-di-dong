@@ -2,7 +2,7 @@
 type: brd
 feature: realtime-sync
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/realtime-sync/realtime-sync-urd.md|Realtime-sync URD]]"
   - "[[docs/features/realtime-sync/brainstorms/co-che-dong-bo-realtime.md|Brainstorm: Cơ chế đồng bộ thời gian thực]]"
@@ -57,7 +57,7 @@ Mọi thay đổi ghi tại máy chủ rồi lan tới mọi thiết bị trong 
 | Stakeholder Role | Interest | Influence | Stakeholder Requirement / Expectation |
 |------------------|----------|-----------|----------------------------------------|
 | Mọi vai trò (lễ tân, nv buồng phòng–bảo trì, quản lý) | Màn hình luôn mới, thao tác không mất | Cao (người dùng cuối) | Cập nhật ≤3s; báo rõ khi offline; không ghi đè lẫn nhau |
-| WPCTeam (dev) | Một cơ chế đồng bộ dùng chung, kiểm chứng được | Cao | Cơ chế đơn giản đủ cho 10 phiên; có số liệu đo nghiệm thu |
+| WPCTeam (dev) | Một cơ chế đồng bộ dùng chung, kiểm chứng được | Cao | Cơ chế đơn giản đủ cho 30 phiên; có số liệu đo nghiệm thu |
 | Quản lý | Dashboard realtime đáng tin | Trung bình | Dữ liệu dashboard không trễ quá 3s so với thay đổi thật |
 | Giảng viên hướng dẫn | Đánh giá theo tiêu chí môn học | Cao | Tiêu chí nghiệm thu đo được: ≥95% ≤3s, 0 ghi đè |
 
@@ -65,7 +65,7 @@ Mọi thay đổi ghi tại máy chủ rồi lan tới mọi thiết bị trong 
 
 | ID | Objective | Baseline | Target | Timeframe | Success Measure |
 |----|-----------|----------|--------|-----------|-----------------|
-| BO-realtime-sync-01 | Một nguồn sự thật realtime giữa các thiết bị | Chưa có | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 10 phiên) | Nghiệm thu | Đo trực tiếp theo tiêu chí PRD |
+| BO-realtime-sync-01 | Một nguồn sự thật realtime giữa các thiết bị | Chưa có | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 30 phiên) | Nghiệm thu | Đo trực tiếp theo tiêu chí PRD |
 | BO-realtime-sync-02 | Không mất dữ liệu do ghi đè | Chưa có | 0 ca ghi đè do xung đột phiên bản | Nghiệm thu | Kịch bản kiểm thử xung đột |
 | BO-realtime-sync-03 | Không mất thao tác lặng lẽ khi mất mạng | Chưa có | 100% thời điểm offline có cảnh báo + khóa ghi; 100% reconnect tự tải trạng thái mới | Sprint 1–4 | Kiểm thử tắt/bật mạng |
 
@@ -86,7 +86,7 @@ Mọi thay đổi ghi tại máy chủ rồi lan tới mọi thiết bị trong 
 
 ### 6.3 Assumptions
 
-- Một máy chủ duy nhất là nguồn sự thật; ~10 phiên đồng thời là tải đỉnh.
+- Một máy chủ duy nhất là nguồn sự thật; 30 phiên đồng thời là tải đỉnh.
 - Kênh realtime của stack đã chọn (Socket.IO theo tôn chỉ) đáp ứng được mục tiêu.
 - Mất kết nối vẫn cho xem dữ liệu cuối; chỉ khóa ghi.
 

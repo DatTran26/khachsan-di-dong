@@ -2,7 +2,7 @@
 type: srs-spec
 feature: realtime-sync
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/realtime-sync/realtime-sync-prd.md|Realtime-sync PRD]]"
   - "[[docs/features/realtime-sync/realtime-sync-brd.md|Realtime-sync BRD]]"
@@ -55,12 +55,12 @@ links:
 
 | Category | Requirement | Target |
 |----------|-------------|--------|
-| Performance | Độ trễ máy chủ lưu → thiết bị khác hiển thị | ≤3 giây, ≥95% trong 100 lượt (50 phòng, 10 phiên đồng thời) |
+| Performance | Độ trễ máy chủ lưu → thiết bị khác hiển thị | ≤3 giây, ≥95% trong 100 lượt (50 phòng, 30 phiên đồng thời) |
 | Reliability | Ca ghi đè do xung đột phiên bản | 0 |
 | Availability | Thời điểm offline được báo + khóa ghi | 100% |
 | Consistency | Thiết bị chỉ áp dụng sự kiện do máy chủ phát; không tự đổi trạng thái khi chưa được xác nhận | Bắt buộc |
 | Usability | Cảnh báo kết nối/thông báo xung đột bằng tiếng Việt, thống nhất mọi màn | Bắt buộc |
-| Scalability | Đáp ứng quy mô chốt: 50 phòng, ~10 phiên đồng thời | Không thiết kế quá mức |
+| Scalability | Đáp ứng quy mô chốt: 50 phòng, 30 phiên đồng thời | Không thiết kế quá mức |
 
 ## 5. Business Rules (system enforced)
 
@@ -85,7 +85,7 @@ links:
 
 | ID | Criterion | Target |
 |----|-----------|--------|
-| SC-realtime-sync-01 | Lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | ≥95% trong 100 lượt (50 phòng, 10 phiên) |
+| SC-realtime-sync-01 | Lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | ≥95% trong 100 lượt (50 phòng, 30 phiên) |
 | SC-realtime-sync-02 | Ca ghi đè do xung đột phiên bản | 0 |
 | SC-realtime-sync-03 | Thời điểm offline có cảnh báo + khóa ghi | 100% |
 | SC-realtime-sync-04 | Lần reconnect tự tải trạng thái mới, không đăng nhập lại (phiên còn hạn) | 100% |
@@ -120,7 +120,7 @@ links:
 ## 11. Constraints
 
 - MVP 8 tuần, nhóm 3 người; kiểm chứng ngay Sprint 1 (mốc 21/09).
-- 1 khách sạn 50 phòng; ~10 phiên đồng thời; dữ liệu giả lập; tiếng Việt.
+- 1 khách sạn 50 phòng; 30 phiên đồng thời; dữ liệu giả lập; tiếng Việt.
 - Một máy chủ duy nhất là nguồn sự thật.
 - Stack theo tôn chỉ: Node.js/Express + Socket.IO (kênh realtime), Flutter Web + Android (triển khai — chi tiết Tầng 2+).
 
@@ -137,7 +137,7 @@ links:
 
 ## 13. Assumptions
 
-- Kênh realtime của stack chọn (Socket.IO theo tôn chỉ) đạt mục tiêu ở quy mô 10 phiên.
+- Kênh realtime của stack chọn (Socket.IO theo tôn chỉ) đạt mục tiêu ở quy mô 30 phiên.
 - Mất kết nối vẫn cho xem dữ liệu cuối — chỉ khóa ghi.
 - Thiết bị lỡ sự kiện được bù bằng "tải trạng thái mới" khi kết nối lại — không cần hàng đợi sự kiện lưu trữ.
 - Kiểm tra phiên bản áp theo đối tượng trạng thái, không khóa toàn bộ phòng.

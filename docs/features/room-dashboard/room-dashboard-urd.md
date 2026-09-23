@@ -2,7 +2,7 @@
 type: urd
 feature: room-dashboard
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-dashboard/brainstorms/giam-sat-ba-truc-trang-thai.md|Brainstorm: Giám sát 3 trục trạng thái]]"
   - "[[docs/_product/prd.md|Product PRD]]"
@@ -138,7 +138,7 @@ Dashboard trạng thái phòng giúp quản lý biết ngay tình trạng toàn 
 
 - Ngôn ngữ: tiếng Việt toàn bộ nhãn và thông báo.
 - Kênh/thiết bị: dashboard trên web cho quản lý + lễ tân (phạm vi Android xem OQ-3); nhân viên dùng mobile trong feature nghiệp vụ riêng.
-- Môi trường: 1 khách sạn 50 phòng, ~10 phiên đăng nhập đồng thời, dữ liệu giả lập (tôn chỉ).
+- Môi trường: 1 khách sạn 50 phòng, 30 phiên đăng nhập đồng thời, dữ liệu giả lập (tôn chỉ).
 - Điều kiện sử dụng: phải đăng nhập đúng vai trò quản lý hoặc lễ tân; dashboard chỉ đọc — không cho đổi trạng thái từ màn hình này.
 - Ràng buộc hiển thị lõi: 3 trục trạng thái luôn tách riêng, không trộn thành 1 trạng thái.
 
@@ -156,7 +156,7 @@ Dashboard trạng thái phòng giúp quản lý biết ngay tình trạng toàn 
 | ID | User Outcome | Baseline | Target | Measurement | Review Period |
 |----|--------------|----------|--------|-------------|---------------|
 | USC-001 | Quản lý có cái nhìn tổng tin cậy | Chưa có — phải hỏi từng người | 100% chỉ số dashboard khớp dữ liệu đối soát | Đối soát trong nghiệm thu | Nghiệm thu (02/11/2026) |
-| USC-002 | Mọi thiết bị thấy cùng trạng thái mới nhất | Chưa có — cập nhật thủ công qua lễ tân | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | Đo theo tiêu chí tôn chỉ (50 phòng, ~10 phiên) | Nghiệm thu |
+| USC-002 | Mọi thiết bị thấy cùng trạng thái mới nhất | Chưa có — cập nhật thủ công qua lễ tân | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | Đo theo tiêu chí tôn chỉ (50 phòng, 30 phiên) | Nghiệm thu |
 | USC-003 | Việc trễ không còn lặng lẽ | Chưa có — quá hạn phải tự phát hiện | 100% công việc có cờ quá hạn được tô cờ và đếm trên dashboard | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" | Sprint 3 |
 | USC-004 | Nhãn "sẵn sàng" luôn đáng tin | Chưa có | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + đang phục vụ | Đối chiếu trạng thái nguồn trong test | Nghiệm thu |
 

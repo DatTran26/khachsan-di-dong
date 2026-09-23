@@ -2,7 +2,7 @@
 type: srs-spec
 feature: check-in-out
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/check-in-out/check-in-out-prd.md|PRD — Check-in-out]]"
   - "[[docs/features/check-in-out/check-in-out-brd.md|BRD — Check-in-out]]"
@@ -46,7 +46,7 @@ links:
 | NFR-check-in-out-001 | Cập nhật trạng thái hiển thị trên thiết bị khác ≤3 giây | ≥95% lượt (tôn chỉ) | BREQ-07 |
 | NFR-check-in-out-002 | Kiểm tra quyền + nhật ký ở máy chủ — không tin client | Tôn chỉ | BREQ-06/07 |
 | NFR-check-in-out-003 | Nhận/trả phòng 1–2 bước xác nhận — nhanh tại quầy | URD §8 | UN-01/03 |
-| NFR-check-in-out-004 | ~10 phiên đồng thời; đồng thời bị chặn bằng kiểm tra điều kiện khi ghi | Tôn chỉ | BREQ-05 |
+| NFR-check-in-out-004 | 30 phiên đồng thời; đồng thời bị chặn bằng kiểm tra điều kiện khi ghi | Tôn chỉ | BREQ-05 |
 | NFR-check-in-out-005 | Tiếng Việt; web cho lễ tân/quản lý | Tôn chỉ | Scope |
 
 ## 5. Business Rules

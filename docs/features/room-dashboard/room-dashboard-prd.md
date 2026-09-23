@@ -2,7 +2,7 @@
 type: prd
 feature: room-dashboard
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/room-dashboard/room-dashboard-brd.md|Room Dashboard BRD]]"
   - "[[docs/features/room-dashboard/room-dashboard-urd.md|Room Dashboard URD]]"
@@ -77,7 +77,7 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 | Metric | Baseline | Target | Measurement | Timeframe |
 |--------|----------|--------|-------------|-----------|
 | Chỉ số dashboard khớp dữ liệu đối soát | Chưa có | 100% | Đối soát chỉ số với dữ liệu nguồn trong nghiệm thu | Nghiệm thu (02/11/2026) |
-| Độ trễ cập nhật realtime lên dashboard | Chưa có | ≥95% trong 100 lượt ≤3 giây | Đo theo tiêu chí tôn chỉ (50 phòng, ~10 phiên đồng thời) | Nghiệm thu |
+| Độ trễ cập nhật realtime lên dashboard | Chưa có | ≥95% trong 100 lượt ≤3 giây | Đo theo tiêu chí tôn chỉ (50 phòng, 30 phiên đồng thời) | Nghiệm thu |
 | Việc quá hạn được lộ diện | Chưa có — tự phát hiện muộn | 100% việc có cờ quá hạn được tô cờ + đếm | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" | Sprint 3 |
 | Phòng hiển thị "sẵn sàng" sai | Chưa có | 0 phòng "sẵn sàng" khi chưa đủ trống + sạch + phục vụ | Đối chiếu trạng thái nguồn trong test | Nghiệm thu |
 

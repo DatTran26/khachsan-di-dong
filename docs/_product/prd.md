@@ -1,7 +1,7 @@
 ---
 type: prd-product
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links: []
 ---
 
@@ -187,7 +187,7 @@ Cơ chế nền khiến "một nguồn sự thật" thành hiện thực: thay �
 3) Hai thiết bị sửa cùng lúc → kiểm tra phiên bản, từ chối ghi đè.
 4) Thiết bị mất mạng → báo offline, khóa ghi; có mạng lại → đồng bộ lại.
 
-**Rủi ro chính:** xung đột/mất kết nối gây ghi đè trạng thái → dữ liệu sai trên toàn hệ thống. · **Đo thành công:** ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 10 phiên đồng thời); 0 ca ghi đè do xung đột.
+**Rủi ro chính:** xung đột/mất kết nối gây ghi đè trạng thái → dữ liệu sai trên toàn hệ thống. · **Đo thành công:** ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 30 phiên đồng thời); 0 ca ghi đè do xung đột.
 **OQ riêng:** —
 
 ### 7.7 Dashboard trạng thái phòng — `room-dashboard`
@@ -247,7 +247,7 @@ Cuối ca hoặc cuối ngày, quản lý bấm tạo bản tóm tắt: hệ th�
 
 | Vai trò | Chỉ số | Baseline | Target | Mốc thời gian |
 |---|---|---|---|---|
-| North Star | % thay đổi trạng thái phòng hiển thị đúng trên thiết bị khác trong ≤3 giây | 0% — hiện cập nhật thủ công qua lễ tân, trễ hàng chục phút | ≥95% trong 100 lượt (50 phòng, 10 phiên đồng thời) | 02/11/2026 |
+| North Star | % thay đổi trạng thái phòng hiển thị đúng trên thiết bị khác trong ≤3 giây | 0% — hiện cập nhật thủ công qua lễ tân, trễ hàng chục phút | ≥95% trong 100 lượt (50 phòng, 30 phiên đồng thời) | 02/11/2026 |
 | Input | % kịch bản nghiệp vụ bắt buộc pass trên Flutter Web + Android | — | 100% | 02/11/2026 |
 | Input | Chỉ số dashboard khớp dữ liệu đối soát | — | 100% | 02/11/2026 |
 | Input | AI tóm tắt đúng (số liệu đúng, không bịa sự kiện, nêu đúng việc cần chú ý) | — | ≥18/20 tình huống | 02/11/2026 |
