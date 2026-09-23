@@ -1,0 +1,416 @@
+// =====================================================================
+// KhachSanDiDong — schema CSDL (BẢN NHÁP để review, chưa migrate)
+// Gộp từ 9 file docs/features/*/srs/*-erd.md.
+// Thiết kế & lý do: docs/_shared/database-design.md
+//
+// Quy ước:
+// - Tên model/field tiếng Anh (camelCase) cho code; bảng/cột trong DB là snake_case (@@map/@map).
+// - Mỗi comment "//" ghi thuật ngữ tiếng Việt tương ứng trong docs.
+// - Bảng có trạng thái bị nhiều người sửa cùng lúc mang cột `version` (chống ghi đè).
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------
+// ENUM — giá trị trạng thái
+// ---------------------------------------------------------------------
+
+/// Vai trò (auth-roles). Buồng phòng + bảo trì gộp 1 vai trò trong MVP.
+enum Role {
+  MANAGER // quản lý
+  RECEPTIONIST // lễ tân
+  STAFF // nhân viên buồng phòng–bảo trì
+
+  @@map("role")
+}
+
+/// Trạng thái tài khoản (auth-roles)
+enum AccountStatus {
+  PENDING_ACTIVATION // chờ kích hoạt — đang giữ MK tạm, bắt đổi MK
+  ACTIVE // hoạt động
+  LOCKED // bị khóa
+
+  @@map("account_status")
+}
+
+/// Trục lưu trú
+enum OccupancyStatus {
+  VACANT // trống
+  OCCUPIED // đang ở
+
+  @@map("occupancy_status")
+}
+
+/// Trục vệ sinh
+enum CleaningStatus {
+  DIRTY // cần dọn
+  CLEANING // đang dọn
+  PENDING_INSPECTION // chờ kiểm tra (chờ quản lý xác nhận)
+  CLEAN // sạch
+
+  @@map("cleaning_status")
+}
+
+/// Trục bảo trì
+enum ServiceStatus {
+  IN_SERVICE // bình thường / đang phục vụ
+  OUT_OF_SERVICE // ngừng phục vụ
+
+  @@map("service_status")
+}
+
+/// Lượt lưu trú (check-in-out)
+enum StayStatus {
+  OPEN // mở — khách đang ở
+  CLOSED // đóng — đã trả phòng
+  CANCELLED // hủy — nhận phòng nhầm
+
+  @@map("stay_status")
+}
+
+/// Việc dọn phòng (housekeeping)
+enum HousekeepingTaskStatus {
+  UNASSIGNED // chờ giao
+  ASSIGNED // đã giao
+  IN_PROGRESS // đang làm
+  PENDING_CONFIRM // chờ xác nhận (nhân viên báo xong, chờ quản lý)
+  DONE // hoàn tất
+
+  @@map("housekeeping_task_status")
+}
+
+/// Việc bảo trì (maintenance)
+enum MaintenanceTaskStatus {
+  OPEN // chờ nhận
+  IN_PROGRESS // đang sửa
+  DONE // hoàn tất
+  CANCELLED // đã hủy
+
+  @@map("maintenance_task_status")
+}
+
+/// Loại đối tượng được ghi nhật ký (audit-log)
+enum AuditEntityType {
+  ROOM
+  ROOM_TYPE
+  STAY
+  HOUSEKEEPING_TASK
+  MAINTENANCE_TASK
+  OUT_OF_SERVICE_HOLD
+  USER
+  AI_SUMMARY
+
+  @@map("audit_entity_type")
+}
+
+/// Kỳ tóm tắt AI (ai-ops-summary) — định nghĩa "ca" còn mở (OQ-1)
+enum SummaryPeriod {
+  CURRENT_SHIFT // ca hiện tại
+  PREVIOUS_SHIFT // ca trước
+  TODAY // hôm nay
+
+  @@map("summary_period")
+}
+
+/// Nguồn bản tóm tắt
+enum SummarySource {
+  AI // do LLM tạo
+  FALLBACK // báo cáo mẫu khi AI lỗi / hết hạn mức
+
+  @@map("summary_source")
+}
+
+// ---------------------------------------------------------------------
+// auth-roles — tài khoản & phiên đăng nhập
+// ---------------------------------------------------------------------
+
+/// Tài khoản nhân viên. Không bao giờ xóa, chỉ khóa (BR-auth-roles-005).
+model User {
+  id                 String        @id @default(uuid()) @db.Uuid
+  phone              String        @unique @db.VarChar(10) // số điện thoại — dùng để đăng nhập
+  fullName           String        @map("full_name") // họ tên
+  role               Role // vai trò
+  status             AccountStatus @default(PENDING_ACTIVATION)
+  passwordHash       String        @map("password_hash") // MK đã băm (bcrypt/argon2) — không bao giờ lưu MK thô
+  mustChangePassword Boolean       @default(true) @map("must_change_password") // cờ MK tạm
+  failedLoginCount   Int           @default(0) @map("failed_login_count") // đếm sai MK — đủ 5 → khóa
+  onDuty             Boolean       @default(false) @map("on_duty") // đang trực — dùng để tự giao việc dọn (OQ-1 housekeeping)
+  version            Int           @default(1) // chống ghi đè khi 2 người cùng sửa 1 tài khoản
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  session                 Session?
+  stayCheckIns            Stay[]             @relation("StayCheckedInBy")
+  stayCheckOuts           Stay[]             @relation("StayCheckedOutBy")
+  housekeepingTasks       HousekeepingTask[] @relation("HousekeepingAssignee")
+  housekeepingConfirms    HousekeepingTask[] @relation("HousekeepingConfirmer")
+  maintenanceReports      MaintenanceTask[]  @relation("MaintenanceReporter")
+  maintenanceAssignments  MaintenanceTask[]  @relation("MaintenanceAssignee")
+  outOfServiceHoldsPlaced OutOfServiceHold[] @relation("HoldPlacedBy")
+  outOfServiceHoldsLifted OutOfServiceHold[] @relation("HoldLiftedBy")
+  auditLogs               AuditLog[]
+  aiSummaries             AiSummary[]
+
+  @@map("users")
+}
+
+/// Phiên đăng nhập. 1 tài khoản tối đa 1 phiên (userId unique) — đăng nhập máy mới thì thay phiên cũ.
+/// Client giữ token ngẫu nhiên; CSDL chỉ lưu SHA-256 của token → lộ CSDL cũng không dùng được token.
+/// Xóa dòng = hủy phiên ngay (đăng xuất, bị khóa, đăng nhập nơi khác, hết 12 giờ).
+model Session {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @unique @map("user_id") @db.Uuid
+  tokenHash  String   @unique @map("token_hash") @db.Char(64)
+  deviceInfo String?  @map("device_info") // thiết bị (web/android + user agent)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz // tạo lúc + 12 giờ
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}
+
+// ---------------------------------------------------------------------
+// room-catalog — loại phòng & phòng (mang 3 trục trạng thái)
+// ---------------------------------------------------------------------
+
+/// Loại phòng (P1). Tắt thay vì xóa.
+model RoomType {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique // tên loại
+  isActive  Boolean  @default(true) @map("is_active") // dùng | ngừng
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  rooms Room[]
+
+  @@map("room_types")
+}
+
+/// Phòng. Là "nguồn sự thật" của 3 trục trạng thái.
+/// "Sẵn sàng" = VACANT + CLEAN + IN_SERVICE — suy ra khi đọc, không lưu (BR-housekeeping-003).
+model Room {
+  id         String          @id @default(uuid()) @db.Uuid
+  number     String          @unique // số phòng (quy ước đánh số còn mở — OQ-3 room-catalog)
+  floor      Int // tầng, số nguyên dương
+  roomTypeId String          @map("room_type_id") @db.Uuid
+  occupancy  OccupancyStatus @default(VACANT) // trục lưu trú
+  cleaning   CleaningStatus  @default(CLEAN) // trục vệ sinh
+  service    ServiceStatus   @default(IN_SERVICE) // trục bảo trì — OUT_OF_SERVICE khi có hold hoặc việc bảo trì đang mở
+  version    Int             @default(1) // chống ghi đè: tăng 1 mỗi lần sửa
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+
+  roomType          RoomType           @relation(fields: [roomTypeId], references: [id])
+  stays             Stay[]
+  housekeepingTasks HousekeepingTask[]
+  maintenanceTasks  MaintenanceTask[]
+  outOfServiceHolds OutOfServiceHold[]
+  auditLogs         AuditLog[]
+
+  @@index([floor])
+  @@map("rooms")
+}
+
+// ---------------------------------------------------------------------
+// check-in-out — lượt lưu trú
+// ---------------------------------------------------------------------
+
+/// Lượt lưu trú. Mỗi phòng tối đa 1 lượt OPEN (ràng buộc bằng partial unique index trong migration SQL).
+model Stay {
+  id               String     @id @default(uuid()) @db.Uuid
+  roomId           String     @map("room_id") @db.Uuid
+  guestName        String     @map("guest_name") // tên khách (giả lập) — thông tin tối thiểu còn mở (OQ-1 check-in-out)
+  guestCount       Int        @default(1) @map("guest_count") // số người
+  status           StayStatus @default(OPEN)
+  checkedInAt      DateTime   @default(now()) @map("checked_in_at") @db.Timestamptz // mốc nhận
+  checkedOutAt     DateTime?  @map("checked_out_at") @db.Timestamptz // mốc trả
+  expectedCheckout DateTime?  @map("expected_checkout") @db.Timestamptz // ngày dự kiến trả (P1)
+  note             String?    @db.VarChar(500) // ghi chú (P1)
+  checkedInById    String     @map("checked_in_by_id") @db.Uuid
+  checkedOutById   String?    @map("checked_out_by_id") @db.Uuid
+  version          Int        @default(1)
+
+  room              Room               @relation(fields: [roomId], references: [id])
+  checkedInBy       User               @relation("StayCheckedInBy", fields: [checkedInById], references: [id])
+  checkedOutBy      User?              @relation("StayCheckedOutBy", fields: [checkedOutById], references: [id])
+  housekeepingTasks HousekeepingTask[]
+
+  @@index([roomId, status])
+  @@map("stays")
+}
+
+// ---------------------------------------------------------------------
+// housekeeping — việc dọn phòng
+// ---------------------------------------------------------------------
+
+/// Việc dọn phòng. Tạo tự động khi trả phòng (stayId) hoặc tạo tay (stayId null).
+/// Quá hạn: 60 phút từ lúc tạo mà chưa DONE (FR-housekeeping-008).
+model HousekeepingTask {
+  id               String                 @id @default(uuid()) @db.Uuid
+  roomId           String                 @map("room_id") @db.Uuid
+  stayId           String?                @unique @map("stay_id") @db.Uuid // lượt lưu trú sinh ra việc này — mỗi lượt trả phòng tạo ĐÚNG 1 việc (FR-housekeeping-001)
+  assigneeId       String?                @map("assignee_id") @db.Uuid // nhân viên phụ trách
+  status           HousekeepingTaskStatus @default(UNASSIGNED)
+  returnNote       String?                @map("return_note") @db.VarChar(500) // ghi chú khi quản lý trả lại — bắt buộc, ≤500 ký tự (BR-housekeeping-005)
+  dueAt            DateTime               @map("due_at") @db.Timestamptz // hạn = createdAt + 60 phút
+  overdueFlaggedAt DateTime?              @map("overdue_flagged_at") @db.Timestamptz // job đánh cờ quá hạn (null = chưa quá hạn)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  assignedAt       DateTime?              @map("assigned_at") @db.Timestamptz // giao lúc — để ưu tiên người lâu chưa được giao (BR-housekeeping-004)
+  startedAt        DateTime?              @map("started_at") @db.Timestamptz // nhận lúc
+  completedAt      DateTime?              @map("completed_at") @db.Timestamptz // nhân viên báo xong
+  confirmedAt      DateTime?              @map("confirmed_at") @db.Timestamptz // quản lý xác nhận
+  confirmedById    String?                @map("confirmed_by_id") @db.Uuid
+  version          Int                    @default(1)
+
+  room        Room  @relation(fields: [roomId], references: [id])
+  stay        Stay? @relation(fields: [stayId], references: [id])
+  assignee    User? @relation("HousekeepingAssignee", fields: [assigneeId], references: [id])
+  confirmedBy User? @relation("HousekeepingConfirmer", fields: [confirmedById], references: [id])
+
+  @@index([status, dueAt])
+  @@index([assigneeId, status])
+  @@map("housekeeping_tasks")
+}
+
+// ---------------------------------------------------------------------
+// maintenance — báo hỏng & ngừng phục vụ
+// ---------------------------------------------------------------------
+
+/// Việc bảo trì (báo hỏng). Ai cũng báo được; nhân viên nhận và sửa.
+model MaintenanceTask {
+  id               String                @id @default(uuid()) @db.Uuid
+  roomId           String                @map("room_id") @db.Uuid
+  description      String                @db.VarChar(500) // mô tả hỏng — bắt buộc, ≤500 ký tự (FR-maintenance-001)
+  location         String?               @db.VarChar(100) // vị trí / hạng mục — ≤100 ký tự
+  status           MaintenanceTaskStatus @default(OPEN)
+  reporterId       String                @map("reporter_id") @db.Uuid // người báo
+  assigneeId       String?               @map("assignee_id") @db.Uuid // người xử lý (tự nhận hay chỉ định — OQ-2 maintenance)
+  cancelReason     String?               @map("cancel_reason") @db.VarChar(200) // lý do hủy — tùy chọn, ≤200 ký tự (FR-maintenance-006)
+  dueAt            DateTime?             @map("due_at") @db.Timestamptz // ngưỡng quá hạn chưa chốt (OQ-1 maintenance)
+  overdueFlaggedAt DateTime?             @map("overdue_flagged_at") @db.Timestamptz
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  version          Int                   @default(1)
+
+  room     Room  @relation(fields: [roomId], references: [id])
+  reporter User  @relation("MaintenanceReporter", fields: [reporterId], references: [id])
+  assignee User? @relation("MaintenanceAssignee", fields: [assigneeId], references: [id])
+
+  @@index([status])
+  @@index([roomId, status])
+  @@map("maintenance_tasks")
+}
+
+/// Ngừng phục vụ đặt tay (không gắn việc sửa), kèm lý do bắt buộc.
+/// Mỗi phòng tối đa 1 hold đang đặt (liftedAt null) — partial unique index trong migration SQL.
+model OutOfServiceHold {
+  id         String    @id @default(uuid()) @db.Uuid
+  roomId     String    @map("room_id") @db.Uuid
+  reason     String    @db.VarChar(200) // lý do ngừng — bắt buộc, ≤200 ký tự (FR-maintenance-007)
+  placedById String    @map("placed_by_id") @db.Uuid
+  placedAt   DateTime  @default(now()) @map("placed_at") @db.Timestamptz
+  liftedById String?   @map("lifted_by_id") @db.Uuid
+  liftedAt   DateTime? @map("lifted_at") @db.Timestamptz // null = đang đặt
+
+  room     Room  @relation(fields: [roomId], references: [id])
+  placedBy User  @relation("HoldPlacedBy", fields: [placedById], references: [id])
+  liftedBy User? @relation("HoldLiftedBy", fields: [liftedById], references: [id])
+
+  @@index([roomId])
+  @@map("out_of_service_holds")
+}
+
+// ---------------------------------------------------------------------
+// audit-log — MỘT bảng nhật ký chung cho mọi feature (append-only)
+// ---------------------------------------------------------------------
+
+/// Bản ghi nhật ký. Ghi trong CÙNG transaction với thao tác — ghi lỗi thì thao tác cũng lỗi.
+/// Không UPDATE/DELETE (chặn bằng trigger trong migration SQL).
+model AuditLog {
+  id          String          @id @default(uuid()) @db.Uuid
+  occurredAt  DateTime        @default(now()) @map("occurred_at") @db.Timestamptz // thời điểm máy chủ lưu
+  actorId     String?         @map("actor_id") @db.Uuid // null = hệ thống (SYSTEM)
+  actorRole   String          @map("actor_role") // vai trò lúc ghi, hoặc "SYSTEM"
+  action      String // vd: room.check_in, housekeeping.confirm, auth.login_failed
+  entityType  AuditEntityType @map("entity_type")
+  entityId    String          @map("entity_id") // id đối tượng
+  entityLabel String?         @map("entity_label") // nhãn chụp lúc ghi (vd "Phòng 203")
+  roomId      String?         @map("room_id") @db.Uuid // gắn phòng để xem nhật ký theo phòng
+
+  actor   User?            @relation(fields: [actorId], references: [id])
+  room    Room?            @relation(fields: [roomId], references: [id])
+  changes AuditLogChange[]
+
+  @@index([roomId, occurredAt])
+  @@index([occurredAt])
+  @@index([actorId, occurredAt])
+  @@map("audit_logs")
+}
+
+/// Chi tiết thay đổi: mỗi trục/trường đổi là 1 dòng (từ → sang). Không bao giờ ghi mật khẩu.
+/// Một thao tác đổi NHIỀU đối tượng (vd trả phòng: phòng + lượt lưu trú + việc dọn) liệt kê đủ trong CÙNG
+/// một bản ghi (FR-audit-log-002): dòng nào thuộc đối tượng khác thì điền entityType/entityId/entityLabel;
+/// để trống = cùng đối tượng với bản ghi cha.
+model AuditLogChange {
+  id          String           @id @default(uuid()) @db.Uuid
+  auditLogId  String           @map("audit_log_id") @db.Uuid
+  entityType  AuditEntityType? @map("entity_type")
+  entityId    String?          @map("entity_id")
+  entityLabel String?          @map("entity_label") // nhãn chụp lúc ghi
+  field       String // vd: occupancy, cleaning, service, status
+  before      String? // giá trị trước
+  after       String? // giá trị sau
+  position    Int              @default(0) // thứ tự hiển thị
+
+  auditLog AuditLog @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
+
+  @@index([auditLogId])
+  @@map("audit_log_changes")
+}
+
+// ---------------------------------------------------------------------
+// ai-ops-summary — bản tóm tắt & hạn mức AI
+// ---------------------------------------------------------------------
+
+/// Bản tóm tắt vận hành. Số liệu gửi AI lưu dạng JSON (không định danh khách).
+/// Có lưu để xem lại hay không còn mở (OQ-4) — bảng này cho phép cả hai.
+model AiSummary {
+  id          String        @id @default(uuid()) @db.Uuid
+  period      SummaryPeriod
+  dataAsOf    DateTime      @map("data_as_of") @db.Timestamptz // thời điểm dữ liệu T
+  source      SummarySource
+  overview    String // tổng quan
+  highlights  String // nổi bật
+  attention   String // việc cần chú ý
+  metrics     Json // số liệu tổng hợp tại T
+  createdById String        @map("created_by_id") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@index([createdAt])
+  @@map("ai_summaries")
+}
+
+/// Hạn mức AI theo ngày (hình thức & giá trị còn mở — OQ-2 ai-ops-summary).
+model AiQuota {
+  day     DateTime @id @db.Date // mỗi ngày 1 dòng
+  used    Int      @default(0) // số lần đã gọi
+  limit   Int // số lần tối đa
+  costVnd Int      @default(0) @map("cost_vnd") // chi phí ước tính đã dùng
+
+  @@map("ai_quotas")
+}
+
+// ---------------------------------------------------------------------
+// KHÔNG tạo bảng (xem database-design.md):
+// - room-dashboard: chỉ số tính bằng query/VIEW từ rooms + tasks.
+// - realtime-sync: kết nối thiết bị & sự kiện nằm trong bộ nhớ Socket.IO; phiên bản = cột `version`.
+// ---------------------------------------------------------------------
