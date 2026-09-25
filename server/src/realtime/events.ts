@@ -25,6 +25,10 @@ export type SessionRevokedReason = 'LOGGED_IN_ELSEWHERE' | 'LOCKED' | 'EXPIRED' 
  */
 export interface ServerToClientEvents {
   'room:updated': (payload: { room: RoomDto; emittedAt: string }) => void;
+  /** Phòng mới thêm vào danh mục (room-catalog FR-011). */
+  'room:created': (payload: { room: RoomDto; emittedAt: string }) => void;
+  /** Phòng bị xóa khỏi danh mục — client bỏ ô phòng này. */
+  'room:deleted': (payload: { roomId: string; emittedAt: string }) => void;
   /** Phiên này đã kết thúc — server ngắt kết nối ngay sau sự kiện này (E-auth-roles-009/011, SC-auth-roles-05). */
   'session:revoked': (payload: { reason: SessionRevokedReason; message: string; emittedAt: string }) => void;
 }

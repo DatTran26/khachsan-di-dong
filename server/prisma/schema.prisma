@@ -212,7 +212,6 @@ model Room {
   housekeepingTasks HousekeepingTask[]
   maintenanceTasks  MaintenanceTask[]
   outOfServiceHolds OutOfServiceHold[]
-  auditLogs         AuditLog[]
 
   @@index([floor])
   @@map("rooms")
@@ -342,10 +341,9 @@ model AuditLog {
   entityType  AuditEntityType @map("entity_type")
   entityId    String          @map("entity_id") // id đối tượng
   entityLabel String?         @map("entity_label") // nhãn chụp lúc ghi (vd "Phòng 203")
-  roomId      String?         @map("room_id") @db.Uuid // gắn phòng để xem nhật ký theo phòng
+  roomId      String?         @map("room_id") @db.Uuid // gắn phòng để xem nhật ký theo phòng — KHÔNG khóa ngoại: nhật ký là bản chụp, phòng có thể bị xóa (NFR-audit-log-002)
 
   actor   User?            @relation(fields: [actorId], references: [id])
-  room    Room?            @relation(fields: [roomId], references: [id])
   changes AuditLogChange[]
 
   @@index([roomId, occurredAt])

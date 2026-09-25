@@ -21,6 +21,14 @@ export const MSG = {
   accountLockedDone: (fullName: string) => `Đã khóa tài khoản ${fullName}.`,
   accountUnlocked: (tempPassword: string) => `Đã mở khóa tài khoản. Mật khẩu tạm mới: ${tempPassword}`,
 
+  // room-catalog error matrix (mục 6)
+  roomNumberTaken: (number: string) => `Số phòng ${number} đã tồn tại trong danh mục.`,
+  roomDeleteBusy: 'Không thể xóa — phòng đang có khách / có việc đang mở.',
+  roomDeleteHasHistory: "Phòng đã có lịch sử hoạt động — không xóa được. Hãy đặt 'Ngừng phục vụ' để rút phòng khỏi vận hành.",
+  outOfServiceReasonRequired: 'Vui lòng nhập lý do ngừng phục vụ.',
+  // room-catalog E-006 = check-in-out E-005
+  invalidState: 'Thao tác không hợp lệ ở trạng thái hiện tại. Tải lại để xem trạng thái mới nhất.',
+
   // realtime-sync E-002, audit-log E-005
   versionConflict: 'Dữ liệu vừa được người khác cập nhật — đã tải lại bản mới nhất.',
   notCompleted: 'Thao tác chưa hoàn tất — vui lòng thử lại.',
@@ -36,4 +44,13 @@ export const MSG = {
   loginRequired: 'Vui lòng đăng nhập để tiếp tục.',
   resetLockedAccount: 'Tài khoản đang bị khóa — hãy dùng "Mở khóa" (hệ thống sẽ cấp mật khẩu tạm mới).',
   passwordResetByAdmin: 'Mật khẩu của bạn vừa được đặt lại — vui lòng đăng nhập bằng mật khẩu tạm.',
+  occupiedConfirmRequired: 'Phòng đang có khách — khách vẫn ở hết kỳ. Xác nhận lại để đặt ngừng phục vụ.',
+  roomHasOpenMaintenance: 'Phòng còn việc bảo trì đang mở — chưa thể mở lại phục vụ.',
+  roomTypeInactive: 'Loại phòng này đang ngừng dùng — vui lòng chọn loại khác.',
+  roomTypeTaken: (name: string) => `Loại phòng ${name} đã tồn tại.`,
+  bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
+  bulkCreated: (created: number, skipped: string[]) =>
+    skipped.length
+      ? `Đã tạo ${created} phòng. Bỏ qua ${skipped.length} số đã tồn tại: ${skipped.join(', ')}.`
+      : `Đã tạo ${created} phòng.`,
 } as const;
