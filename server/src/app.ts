@@ -6,6 +6,7 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { roomTypesRouter } from './modules/room-types/room-types.routes.js';
 import { roomsRouter } from './modules/rooms/rooms.routes.js';
+import { staysRouter } from './modules/stays/stays.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
 
 export function createApp() {
@@ -18,6 +19,7 @@ export function createApp() {
   app.use('/api/users', usersRouter);
   app.use('/api/room-types', roomTypesRouter);
   app.use('/api/rooms', roomsRouter);
+  app.use('/api/stays', staysRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

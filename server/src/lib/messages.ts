@@ -29,6 +29,12 @@ export const MSG = {
   // room-catalog E-006 = check-in-out E-005
   invalidState: 'Thao tác không hợp lệ ở trạng thái hiện tại. Tải lại để xem trạng thái mới nhất.',
 
+  // check-in-out error matrix (mục 6)
+  checkInOccupied: 'Phòng đang có khách — không thể nhận.',
+  checkInNotClean: (cleaningLabel: string) => `Phòng chưa dọn xong (${cleaningLabel}) — không thể nhận.`,
+  checkInOutOfService: 'Phòng đang ngừng phục vụ — không thể nhận.',
+  guestNameRequired: 'Vui lòng nhập tên khách.',
+
   // realtime-sync E-002, audit-log E-005
   versionConflict: 'Dữ liệu vừa được người khác cập nhật — đã tải lại bản mới nhất.',
   notCompleted: 'Thao tác chưa hoàn tất — vui lòng thử lại.',
@@ -48,6 +54,7 @@ export const MSG = {
   roomHasOpenMaintenance: 'Phòng còn việc bảo trì đang mở — chưa thể mở lại phục vụ.',
   roomTypeInactive: 'Loại phòng này đang ngừng dùng — vui lòng chọn loại khác.',
   roomTypeTaken: (name: string) => `Loại phòng ${name} đã tồn tại.`,
+  guestCountInvalid: 'Số người phải từ 1 trở lên.',
   bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
   bulkCreated: (created: number, skipped: string[]) =>
     skipped.length

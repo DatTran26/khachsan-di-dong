@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { MSG } from '../../lib/messages.js';
 import { authOf, requireAuth, requireRole } from '../auth/auth.middleware.js';
+import { checkIn, checkOut } from '../stays/stays.service.js';
 import {
   createRoom,
   createRoomRange,
@@ -14,7 +15,7 @@ import {
 import { getRoom, listRooms } from './rooms.service.js';
 
 /**
- * Phòng: xem (mọi vai trò) · danh mục (quản lý) · ngừng phục vụ (quản lý, lễ tân).
+ * Phòng: xem (mọi vai trò) · danh mục (quản lý) · ngừng phục vụ (quản lý, lễ tân) · nhận/trả (chỉ lễ tân).
  * Mọi thao tác ghi gửi kèm `version` của phòng đã đọc (FR-realtime-sync-003).
  */
 export const roomsRouter = Router();
@@ -90,4 +91,25 @@ roomsRouter.post('/:id/out-of-service', requireRole('MANAGER', 'RECEPTIONIST'), 
 roomsRouter.post('/:id/back-in-service', requireRole('MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await liftOutOfService(authOf(res).user, id, z.object({ version }).parse(req.body).version) });
+});
+
+// ---- Nhận / trả phòng (chỉ lễ tân — BR-auth-roles-002) -------------------------
+
+roomsRouter.post('/:id/check-in', requireRole('RECEPTIONIST'), async (req, res) => {
+  const { id } = idParams.parse(req.params);
+  const { version: v, ...input } = z
+    .object({
+      version,
+      guestName: z.string({ required_error: MSG.guestNameRequired }).trim().min(1, MSG.guestNameRequired).max(100),
+      guestCount: z.number({ required_error: MSG.guestCountInvalid }).int().min(1, MSG.guestCountInvalid).max(20),
+      note: z.string().trim().max(500).optional(),
+      expectedCheckout: z.coerce.date().optional(),
+    })
+    .parse(req.body);
+  res.json({ data: await checkIn(authOf(res).user, id, v, input) });
+});
+
+roomsRouter.post('/:id/check-out', requireRole('RECEPTIONIST'), async (req, res) => {
+  const { id } = idParams.parse(req.params);
+  res.json({ data: await checkOut(authOf(res).user, id, z.object({ version }).parse(req.body).version) });
 });
