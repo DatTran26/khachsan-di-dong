@@ -19,7 +19,7 @@ links: []
 | Sprint | Thời gian | Mục tiêu (theo PRD) | Việc xong | Tiến độ |
 |---|---|---|---|---|
 | Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 7/8 | 88% |
-| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 1/8 | 13% |
+| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/9 | 67% |
 | Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
 
@@ -37,7 +37,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Khung ứng dụng Flutter (Web + Android) + kiểm chứng thư viện Socket.IO phía Flutter | Dat (Web), Bao (Android) | Chưa làm | Tôn chỉ yêu cầu kiểm chứng Socket.IO trên Flutter ngay Sprint 1 — backend đã sẵn sự kiện `room:updated` |
 | Khung backend Node.js + Express + TS + Prisma + PostgreSQL | Kim | Xong | 23/09 — `server/`, 12 bảng, chống ghi đè, 14 test pass |
 | Đăng nhập & phân quyền (`auth-roles`) | Kim (backend) | Xong (API) | 23/09 — đăng nhập/phiên 12h/1 TK 1 thiết bị/khóa 5 lần/MK tạm/quản lý TK/socket có xác thực. Màn hình: Dat, Bao |
-| Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Xong (API) | 25/09 — thêm/sửa/xóa, tạo theo dải, loại phòng, ngừng phục vụ tay; chưa commit |
+| Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Xong (API) | 25/09 — thêm/sửa/xóa, tạo theo dải, loại phòng, ngừng phục vụ tay |
 | GitHub Actions: typecheck + test + build cho backend | Kim | Xong | 23/09 — `.github/workflows/backend-ci.yml` (chạy thật khi push) |
 | Kiểm chứng realtime Socket.IO ≤3s với 30 phiên | Kim (backend) | Xong | 23/09 — 30 TB × 100 lượt: 100% ≤3s, max 43 ms (đo trên máy dev) |
 
@@ -49,17 +49,17 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Thiết kế CSDL: gộp 9 ERD thành `schema.prisma` (12 bảng) | Kim (backend) | Đang làm | Bản nháp xong 23/09, chờ nhóm review — `docs/_shared/database-design.md` |
 | Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Chưa làm | |
 | Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Đang làm | Xong phía server: version, lưu rồi mới phát, sự kiện `room:updated`. Còn: xác thực socket, kênh theo vai trò/người |
-| Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Đang làm | 25/09 — API xong (trả phòng tự tạo việc dọn); chưa commit, chưa có UI |
-| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Chưa làm | |
-| Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Chưa làm | |
-| Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Chưa làm | |
+| Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Xong (API) | 25/09 — trả phòng tự tạo + tự giao việc dọn. Chưa có UI |
+| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — tự giao, nhận/từ chối/báo xong/xác nhận/trả lại/phân công lại, quá hạn. OQ-1…3 tạm theo giả định |
+| Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — báo hỏng, nhận, hoàn tất, hủy, chỉ định; trục bảo trì tự tính. OQ-1…3 chưa chốt |
+| Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Đang làm | 25/09 — test tự động backend pass (`e2e-room-lifecycle.test.ts`); chờ chạy trên app |
 
 ### Sprint 3 (06/10 – 19/10)
 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
-| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Chưa làm | |
-| Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Chưa làm | |
+| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 25/09 — API `/api/dashboard/summary` xong; UI chưa |
+| Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
 | Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Chưa làm | Ghi nhật ký phía backend đã có sẵn (`writeAudit`) |
 | AI tóm tắt vận hành (`ai-ops-summary`) | Bao | Chưa làm | Chưa chọn nhà cung cấp LLM |
 | Hoàn thiện giao diện Web + Android | Dat (Web), Bao (Android) | Chưa làm | |
@@ -96,6 +96,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 24/09 | Kim | PR #2 `develop-kim` → `develop` — đã merge, CI xanh, **chưa có review** | PR #2 |
 | 25/09 | Nhóm | Chốt: chỉ quản lý thêm/sửa/xóa phòng; khách tối thiểu = tên + số người; chờ Bao PR rồi mới lấy code Flutter | — |
 | 25/09 | Kim | CORS; API danh mục phòng đầy đủ; nhận/trả phòng; đăng xuất không trả 401; 94 test pass. Build thử app của Bao: chạy được, phát hiện lỗi vòng lặp logout phía app | chưa commit |
+| 25/09 | Kim | API dọn phòng (tự giao việc), báo hỏng & bảo trì, job quá hạn, API dashboard; test luồng đầy đủ; 130 test pass | `server/src/modules/housekeeping`, `maintenance`, `dashboard` |
 
 ## Quyết định đã chốt
 
@@ -111,4 +112,4 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 
 - [ ] Xác nhận lại phân công ở trên (gán theo mục "Vai trò" trong tôn chỉ: Dat = PM/BA/Flutter Web, Kim = Backend/CSDL/Triển khai, Bao = UI/Flutter Mobile/AI/QA).
 - [ ] Tôn chỉ dự án (`Ton_Chi_Du_An_WPCTeam.docx`) vẫn ghi 10 phiên — cập nhật hay ghi chú lệch.
-- [ ] Các câu hỏi mở (OQ) trong spec: ngưỡng quá hạn bảo trì, giao việc bảo trì, thông tin khách khi nhận phòng, quyền lễ tân với danh mục, nhà cung cấp LLM.
+- [ ] Câu hỏi mở còn lại: housekeeping OQ-1 (nguồn "đang trực" — tạm cờ onDuty), OQ-2 (cảnh báo quá hạn — tạm 1 lần), OQ-3 (nhắc chờ xác nhận — chưa làm); maintenance OQ-1 (ngưỡng quá hạn — tạm cấu hình, mặc định tắt), OQ-2 (tự nhận + chỉ định), OQ-3 (sửa khi có khách — không chặn); room-dashboard OQ-2 ("cần dọn" — API trả đủ từng trạng thái); nhà cung cấp LLM.
