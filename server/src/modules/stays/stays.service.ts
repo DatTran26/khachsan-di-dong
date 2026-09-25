@@ -12,6 +12,7 @@ import {
   roomLabel,
   roomUpdatedEvent,
 } from '../rooms/rooms.service.js';
+import { autoAssign, serializeAssignment } from '../housekeeping/housekeeping.assignment.js';
 
 /** Việc dọn quá hạn sau 60 phút kể từ lúc tạo = mốc trả phòng (BR-housekeeping-002). */
 export const HOUSEKEEPING_DUE_MINUTES = 60;
@@ -122,8 +123,8 @@ export async function checkOut(actor: User, roomId: string, version: number) {
       ],
     });
 
-    // Việc dọn do HỆ THỐNG tạo → nhật ký riêng với người thực hiện "hệ thống" (FR-audit-log-003).
-    // Tự giao cho nhân viên đang trực (FR-housekeeping-002) sẽ làm cùng feature housekeeping; tạm để "chờ giao".
+    // Việc dọn do HỆ THỐNG tạo và tự giao → nhật ký với người thực hiện "hệ thống" (FR-audit-log-003).
+    await serializeAssignment(tx);
     const task = await tx.housekeepingTask.create({
       data: { roomId, stayId: stay.id, dueAt: new Date(now.getTime() + HOUSEKEEPING_DUE_MINUTES * 60_000) },
     });
@@ -138,12 +139,11 @@ export async function checkOut(actor: User, roomId: string, version: number) {
       changes: [{ field: 'status', after: task.status }],
     });
 
+    // Giao ngay cho người trực ít việc nhất; không ai trực → "chờ giao" + cảnh báo quản lý (FR-housekeeping-002/003).
+    const housekeepingTask = await autoAssign(tx, task, enqueue);
+
     const roomDto = await reloadRoomDto(tx, roomId);
     enqueue(roomUpdatedEvent(roomDto));
-    return {
-      room: roomDto,
-      stay: toStayDto({ ...closed, room }),
-      housekeepingTask: { id: task.id, status: task.status, dueAt: task.dueAt },
-    };
+    return { room: roomDto, stay: toStayDto({ ...closed, room }), housekeepingTask };
   });
 }

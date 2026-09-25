@@ -90,6 +90,27 @@ export async function lockRoomForWrite(tx: Prisma.TransactionClient, roomId: str
   return room;
 }
 
+/**
+ * Đổi trục trạng thái phòng như HỆ QUẢ của một thao tác khác (nhận việc dọn, báo hỏng…):
+ * client không gửi version phòng mà gửi version của việc; phòng được khóa dòng rồi cập nhật theo version hiện tại.
+ * Trả về phòng trước khi đổi + danh sách trục đã đổi (để ghi vào nhật ký của thao tác gọi).
+ */
+export async function applyRoomChange(
+  tx: Prisma.TransactionClient,
+  roomId: string,
+  patch: RoomStatusPatch,
+  enqueue: (event: PendingEvent) => void,
+) {
+  await tx.$queryRaw`SELECT 1 FROM rooms WHERE id = ${roomId}::uuid FOR UPDATE`;
+  const before = await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { roomType: true } });
+  const changes = diffFields(before, { ...before, ...patch }, STATUS_FIELDS);
+  if (changes.length > 0) {
+    await updateWithVersion(tx, 'room', roomId, before.version, patch);
+    enqueue(roomUpdatedEvent(await reloadRoomDto(tx, roomId)));
+  }
+  return { room: before, changes };
+}
+
 /** Đọc lại phòng (kèm loại) sau khi ghi để trả client + phát realtime. */
 export async function reloadRoomDto(tx: Prisma.TransactionClient, roomId: string) {
   return toRoomDto(await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { roomType: true } }));

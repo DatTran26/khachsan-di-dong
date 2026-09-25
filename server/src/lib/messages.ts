@@ -35,6 +35,11 @@ export const MSG = {
   checkInOutOfService: 'Phòng đang ngừng phục vụ — không thể nhận.',
   guestNameRequired: 'Vui lòng nhập tên khách.',
 
+  // housekeeping error matrix (mục 6)
+  taskAlreadyTaken: 'Công việc này đã có người khác nhận.',
+  noStaffOnDuty: 'Chưa có nhân viên buồng phòng đang trực — công việc đang chờ giao.',
+  returnNoteRequired: 'Vui lòng nhập ghi chú khi trả lại công việc.',
+
   // realtime-sync E-002, audit-log E-005
   versionConflict: 'Dữ liệu vừa được người khác cập nhật — đã tải lại bản mới nhất.',
   notCompleted: 'Thao tác chưa hoàn tất — vui lòng thử lại.',
@@ -55,6 +60,11 @@ export const MSG = {
   roomTypeInactive: 'Loại phòng này đang ngừng dùng — vui lòng chọn loại khác.',
   roomTypeTaken: (name: string) => `Loại phòng ${name} đã tồn tại.`,
   guestCountInvalid: 'Số người phải từ 1 trở lên.',
+  // housekeeping / maintenance — thông báo đẩy (bổ sung)
+  taskAssignedToYou: (room: string) => `Bạn có việc dọn mới: ${room}.`,
+  taskPendingConfirm: (room: string) => `${room} đã dọn xong — chờ quản lý xác nhận.`,
+  taskReturned: (room: string, note: string) => `Việc dọn ${room} bị trả lại: ${note}`,
+  assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
   bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
   bulkCreated: (created: number, skipped: string[]) =>
     skipped.length

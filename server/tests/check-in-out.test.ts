@@ -121,7 +121,8 @@ describe('Trả phòng', () => {
 
     const tasks = await prisma.housekeepingTask.findMany({ where: { roomId: room.id } });
     expect(tasks).toHaveLength(1);
-    expect(tasks[0].status).toBe('UNASSIGNED');
+    // Giao cho ai / chờ giao phụ thuộc người đang trực — kiểm chi tiết ở housekeeping.test.ts.
+    expect(['ASSIGNED', 'UNASSIGNED']).toContain(tasks[0].status);
     const minutes = (tasks[0].dueAt.getTime() - tasks[0].createdAt.getTime()) / 60_000;
     expect(Math.round(minutes)).toBe(60);
   });
