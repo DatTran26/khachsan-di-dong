@@ -117,7 +117,9 @@ Test chứng minh: `tests/optimistic-lock.test.ts` (10 request cùng lúc cùng 
 
 ## API hiện có
 
-Mọi route trừ `/api/health` và `/api/auth/login` cần header `Authorization: Bearer <token>`.
+Mọi route trừ `/api/health`, `/api/auth/login`, `/api/auth/logout` cần header `Authorization: Bearer <token>`.
+`/api/auth/logout` luôn trả 204 (kể cả phiên đã hết) — client **không** được coi 401 của logout là lý do để gọi logout lại.
+Flutter Web gọi từ cổng khác: backend cho mọi `http://localhost:*` khi dev; khi triển khai khai báo `CORS_ORIGINS` trong `.env`.
 Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` là câu tiếng Việt hiển thị thẳng cho người dùng
 (lấy nguyên văn từ docs, xem `src/lib/messages.ts`).
 
@@ -132,8 +134,19 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 | POST | `/api/users` | quản lý, lễ tân | `{ fullName, phone, role }` → trả `tempPassword` **một lần** |
 | PATCH | `/api/users/:id` | quản lý, lễ tân | `{ version, fullName?, phone?, role?, onDuty? }` |
 | POST | `/api/users/:id/lock` · `/unlock` · `/reset-password` | quản lý, lễ tân | `{ version }` — mở khóa / đặt lại trả `tempPassword` mới |
-| GET | `/api/rooms?floor=&roomTypeId=&occupancy=&cleaning=&service=` | mọi vai trò | Danh sách phòng, kèm `isReady` và `version` |
+| GET | `/api/rooms?floor=&roomTypeId=&occupancy=&cleaning=&service=&ready=true` | mọi vai trò | Danh sách phòng, kèm `isReady` và `version`. `ready=true` = chỉ phòng sẵn sàng |
 | GET | `/api/rooms/:id` | mọi vai trò | Chi tiết một phòng |
+| POST | `/api/rooms` | quản lý | `{ number, floor, roomTypeId }` — phòng mới trống + sạch + bình thường |
+| POST | `/api/rooms/bulk` | quản lý | `{ floor, from, to, roomTypeId }` — tạo theo dải (≤100), trả `created`, `skipped` |
+| PATCH | `/api/rooms/:id` | quản lý | `{ version, number?, floor?, roomTypeId? }` — không sửa 3 trục trạng thái ở đây |
+| DELETE | `/api/rooms/:id` | quản lý | `{ version }` — chỉ khi trống, không việc mở, chưa có lịch sử hoạt động |
+| POST | `/api/rooms/:id/out-of-service` | quản lý, lễ tân | `{ version, reason, confirmOccupied? }` — phòng có khách phải gửi `confirmOccupied: true` |
+| POST | `/api/rooms/:id/back-in-service` | quản lý, lễ tân | `{ version }` — không được khi còn việc bảo trì mở |
+| POST | `/api/rooms/:id/check-in` | **chỉ lễ tân** | `{ version, guestName, guestCount, note?, expectedCheckout? }` |
+| POST | `/api/rooms/:id/check-out` | **chỉ lễ tân** | `{ version }` — phòng về trống + cần dọn, hệ thống tự tạo việc dọn (hạn 60 phút) |
+| GET | `/api/stays` | lễ tân, quản lý | Phòng đang ở: phòng + khách + mốc nhận |
+| GET | `/api/room-types` | mọi vai trò | Loại phòng |
+| POST · PATCH | `/api/room-types` · `/api/room-types/:id` | quản lý | `{ name }` · `{ name?, isActive? }` — tắt thay vì xóa |
 
 Quy tắc phân quyền tài khoản (BR-auth-roles-001, chốt 23/09/2026): **lễ tân** quản lý được TK không phải quản lý và không
 gán vai trò quản lý; không ai tự khóa mình; không khóa / đổi vai trò **quản lý cuối cùng**; không có xóa tài khoản.
@@ -146,6 +159,8 @@ Mã lỗi client cần xử lý riêng:
 | `PASSWORD_CHANGE_REQUIRED` | 403 | Chuyển màn đổi MK bắt buộc |
 | `FORBIDDEN` | 403 | Báo không đủ quyền |
 | `VERSION_CONFLICT` | 409 | Hiện `details.current` (bản mới nhất), báo "dữ liệu vừa được người khác cập nhật" |
+| `INVALID_STATE` | 409 | Tải lại dữ liệu (thao tác không hợp lệ với trạng thái hiện tại) |
+| `OCCUPIED_CONFIRM_REQUIRED` | 409 | Hỏi lại người dùng rồi gửi lại với `confirmOccupied: true` |
 
 ## Realtime (Socket.IO)
 
@@ -155,6 +170,8 @@ Token sai / hết hạn / đang dùng MK tạm → `connect_error` với `err.da
 | Sự kiện | Kênh | Dữ liệu |
 |---|---|---|
 | `room:updated` | `hotel` (mọi người) | `{ room: <như GET /api/rooms/:id>, emittedAt }` |
+| `room:created` | `hotel` | `{ room, emittedAt }` — thêm ô phòng mới |
+| `room:deleted` | `hotel` | `{ roomId, emittedAt }` — bỏ ô phòng |
 | `session:revoked` | riêng phiên đó | `{ reason, message }` — `reason`: `LOGGED_IN_ELSEWHERE` · `LOCKED` · `EXPIRED` · `LOGGED_OUT` · `PASSWORD_RESET`. Server ngắt kết nối ngay sau đó → client hiện `message`, về màn đăng nhập |
 
 Quy tắc phía client (Flutter):
