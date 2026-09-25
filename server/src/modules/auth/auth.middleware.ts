@@ -4,7 +4,7 @@ import { ForbiddenError } from '../../lib/errors.js';
 import { MSG } from '../../lib/messages.js';
 import { authenticate, type AuthContext } from './sessions.js';
 
-function bearerToken(header: string | undefined): string | undefined {
+export function bearerToken(header: string | undefined): string | undefined {
   const match = header?.match(/^Bearer (.+)$/i);
   return match?.[1];
 }
