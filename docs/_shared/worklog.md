@@ -1,7 +1,7 @@
 ---
 type: worklog
 status: active
-updated: 2026-09-23
+updated: 2026-09-25
 links: []
 ---
 
@@ -18,7 +18,7 @@ links: []
 
 | Sprint | Thời gian | Mục tiêu (theo PRD) | Việc xong | Tiến độ |
 |---|---|---|---|---|
-| Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 6/8 | 75% |
+| Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 7/8 | 88% |
 | Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 1/8 | 13% |
 | Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
@@ -37,7 +37,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Khung ứng dụng Flutter (Web + Android) + kiểm chứng thư viện Socket.IO phía Flutter | Dat (Web), Bao (Android) | Chưa làm | Tôn chỉ yêu cầu kiểm chứng Socket.IO trên Flutter ngay Sprint 1 — backend đã sẵn sự kiện `room:updated` |
 | Khung backend Node.js + Express + TS + Prisma + PostgreSQL | Kim | Xong | 23/09 — `server/`, 12 bảng, chống ghi đè, 14 test pass |
 | Đăng nhập & phân quyền (`auth-roles`) | Kim (backend) | Xong (API) | 23/09 — đăng nhập/phiên 12h/1 TK 1 thiết bị/khóa 5 lần/MK tạm/quản lý TK/socket có xác thực. Màn hình: Dat, Bao |
-| Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Đang làm | Seed 50 phòng + API đọc xong; còn API thêm/sửa/xóa |
+| Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Xong (API) | 25/09 — thêm/sửa/xóa, tạo theo dải, loại phòng, ngừng phục vụ tay; chưa commit |
 | GitHub Actions: typecheck + test + build cho backend | Kim | Xong | 23/09 — `.github/workflows/backend-ci.yml` (chạy thật khi push) |
 | Kiểm chứng realtime Socket.IO ≤3s với 30 phiên | Kim (backend) | Xong | 23/09 — 30 TB × 100 lượt: 100% ≤3s, max 43 ms (đo trên máy dev) |
 
@@ -49,7 +49,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Thiết kế CSDL: gộp 9 ERD thành `schema.prisma` (12 bảng) | Kim (backend) | Đang làm | Bản nháp xong 23/09, chờ nhóm review — `docs/_shared/database-design.md` |
 | Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Chưa làm | |
 | Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Đang làm | Xong phía server: version, lưu rồi mới phát, sự kiện `room:updated`. Còn: xác thực socket, kênh theo vai trò/người |
-| Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Chưa làm | |
+| Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Đang làm | 25/09 — API xong (trả phòng tự tạo việc dọn); chưa commit, chưa có UI |
 | Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Chưa làm | |
 | Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Chưa làm | |
 | Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Chưa làm | |
@@ -92,6 +92,10 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 23/09 | Kim | Rà soát code với spec + tôn chỉ; sửa schema (migration `align_with_specs`), thông báo lỗi, mốc phát sự kiện, lọc theo loại phòng; 33 test pass | `server/tests/spec-rules.test.ts` |
 | 23/09 | Nhóm | Chốt: lễ tân quản lý được TK nhân viên (không đụng TK quản lý) — cập nhật spec/BRD auth-roles | — |
 | 23/09 | Kim | GitHub Actions backend CI; đăng nhập & phân quyền (API + socket); 59 test pass; đo realtime 30 TB có đăng nhập: 100% ≤3s | `server/src/modules/auth`, `users` |
+| 24/09 | Bao | Khung Flutter: đăng nhập, đổi MK, dashboard, danh mục phòng, quản lý TK, socket (nhánh `develop-bao`, chưa PR) | commit `de1f966` |
+| 24/09 | Kim | PR #2 `develop-kim` → `develop` — đã merge, CI xanh, **chưa có review** | PR #2 |
+| 25/09 | Nhóm | Chốt: chỉ quản lý thêm/sửa/xóa phòng; khách tối thiểu = tên + số người; chờ Bao PR rồi mới lấy code Flutter | — |
+| 25/09 | Kim | CORS; API danh mục phòng đầy đủ; nhận/trả phòng; đăng xuất không trả 401; 94 test pass. Build thử app của Bao: chạy được, phát hiện lỗi vòng lặp logout phía app | chưa commit |
 
 ## Quyết định đã chốt
 
