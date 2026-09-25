@@ -85,7 +85,13 @@ server/
 │       ├── auth/             # đăng nhập, phiên, middleware requireAuth/requireRole
 │       ├── users/            # quản lý tài khoản
 │       ├── health/
-│       └── rooms/
+│       ├── rooms/            # đọc, danh mục, ngừng phục vụ
+│       ├── room-types/
+│       ├── stays/            # nhận/trả phòng
+│       ├── housekeeping/     # việc dọn + tự giao việc
+│       ├── maintenance/      # báo hỏng, sửa, trục bảo trì tự tính
+│       └── dashboard/
+│   ├── jobs/overdue.ts       # quét quá hạn 30 giây/lần
 ├── scripts/realtime-benchmark.ts
 └── tests/
 ```
@@ -147,6 +153,23 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 | GET | `/api/stays` | lễ tân, quản lý | Phòng đang ở: phòng + khách + mốc nhận |
 | GET | `/api/room-types` | mọi vai trò | Loại phòng |
 | POST · PATCH | `/api/room-types` · `/api/room-types/:id` | quản lý | `{ name }` · `{ name?, isActive? }` — tắt thay vì xóa |
+| GET | `/api/housekeeping/tasks?status=&assigneeId=&roomId=&mine=true&overdue=true` | quản lý, nhân viên | Việc dọn phòng |
+| POST | `/api/housekeeping/tasks/:id/accept` · `/reject` · `/complete` | nhân viên được giao | `{ version }` — nhận (phòng → đang dọn) · từ chối (giao người kế tiếp) · báo xong (phòng → chờ kiểm tra) |
+| POST | `/api/housekeeping/tasks/:id/confirm` | **chỉ quản lý** | `{ version }` — việc hoàn tất, phòng → sạch |
+| POST | `/api/housekeeping/tasks/:id/return` | **chỉ quản lý** | `{ version, note }` — ghi chú bắt buộc ≤500, phòng → đang dọn |
+| POST | `/api/housekeeping/tasks/:id/reassign` | **chỉ quản lý** | `{ version, assigneeId }` — người nhận phải là nhân viên đang trực |
+| GET | `/api/maintenance/tasks?status=&roomId=&assigneeId=` | mọi vai trò | Việc bảo trì |
+| POST | `/api/maintenance/tasks` | mọi vai trò | `{ roomId, description, location? }` — báo hỏng, phòng → ngừng phục vụ. Có thể trả `warning` |
+| POST | `/api/maintenance/tasks/:id/claim` · `/complete` | nhân viên | `{ version }` — nhận (→ đang sửa) · hoàn tất (việc của mình) |
+| POST | `/api/maintenance/tasks/:id/cancel` | người báo (việc chờ nhận), quản lý | `{ version, reason? }` |
+| POST | `/api/maintenance/tasks/:id/assign` | quản lý, lễ tân | `{ version, assigneeId }` — chỉ định người xử lý |
+| GET | `/api/dashboard/summary` | quản lý, lễ tân | Đang ở, sẵn sàng, ngừng phục vụ, số phòng theo từng trạng thái vệ sinh, việc quá hạn, lấp đầy (`rate: null` = không áp dụng) |
+
+**Việc dọn phòng tự động** (housekeeping): trả phòng → hệ thống tạo đúng 1 việc (hạn 60 phút) và giao ngay cho nhân viên
+**đang trực** (`onDuty`, quản lý/lễ tân bật qua `PATCH /api/users/:id`) có ít việc mở nhất; không ai trực → "chờ giao" +
+cảnh báo quản lý, có người vào trực thì tự giao. Job quét 30 giây/lần gắn cờ quá hạn **một lần**.
+**Trục bảo trì của phòng tự tính**: "ngừng phục vụ" khi còn việc bảo trì mở hoặc đang ngừng tay.
+Ngưỡng quá hạn bảo trì: `MAINTENANCE_DUE_MINUTES` trong `.env` (bỏ trống = không tính — maintenance OQ-1 chưa chốt).
 
 Quy tắc phân quyền tài khoản (BR-auth-roles-001, chốt 23/09/2026): **lễ tân** quản lý được TK không phải quản lý và không
 gán vai trò quản lý; không ai tự khóa mình; không khóa / đổi vai trò **quản lý cuối cùng**; không có xóa tài khoản.
@@ -172,6 +195,9 @@ Token sai / hết hạn / đang dùng MK tạm → `connect_error` với `err.da
 | `room:updated` | `hotel` (mọi người) | `{ room: <như GET /api/rooms/:id>, emittedAt }` |
 | `room:created` | `hotel` | `{ room, emittedAt }` — thêm ô phòng mới |
 | `room:deleted` | `hotel` | `{ roomId, emittedAt }` — bỏ ô phòng |
+| `housekeeping:task_updated` | `hotel` | `{ task, emittedAt }` — việc dọn đổi trạng thái / người |
+| `maintenance:task_updated` | `hotel` | `{ task, emittedAt }` — việc bảo trì đổi trạng thái |
+| `notification` | riêng người / vai trò | `{ kind, message, taskId?, roomId? }` — hiện `message` cho người dùng. `kind`: `HOUSEKEEPING_ASSIGNED` · `HOUSEKEEPING_UNASSIGNED` · `HOUSEKEEPING_PENDING_CONFIRM` · `HOUSEKEEPING_RETURNED` · `HOUSEKEEPING_OVERDUE` · `MAINTENANCE_REPORTED` · `MAINTENANCE_OVERDUE` |
 | `session:revoked` | riêng phiên đó | `{ reason, message }` — `reason`: `LOGGED_IN_ELSEWHERE` · `LOCKED` · `EXPIRED` · `LOGGED_OUT` · `PASSWORD_RESET`. Server ngắt kết nối ngay sau đó → client hiện `message`, về màn đăng nhập |
 
 Quy tắc phía client (Flutter):
