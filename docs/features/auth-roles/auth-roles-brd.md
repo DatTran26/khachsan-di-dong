@@ -2,7 +2,7 @@
 type: brd
 feature: auth-roles
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 author: "@Tran Tan Dat"
 links: ["docs/features/auth-roles/auth-roles-urd.md"]
 ---
@@ -70,10 +70,10 @@ Khách sạn cần một hệ thống tài khoản cá nhân có phân quyền �
 
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-01 | Chỉ quản lý được quản lý tài khoản (tạo/sửa/khóa/mở/đặt lại MK) | Đã chốt trong brainstorm |
+| BR-01 | Quản lý và lễ tân được quản lý tài khoản (tạo/sửa/khóa/mở/đặt lại MK); lễ tân chỉ thao tác trên TK không phải quản lý và không gán vai trò quản lý (chốt nhóm 23/09/2026) | Chốt nhóm 23/09/2026 (thay bản brainstorm: chỉ quản lý) |
 | BR-02 | Chỉ lễ tân được nhận/trả phòng — quản lý giám sát, không tự thao tác | Đã chốt (sửa ma trận) |
 | BR-03 | Buồng phòng–bảo trì chỉ cập nhật vệ sinh/bảo trì thuộc việc được giao | Đã chốt |
-| BR-04 | Sai mật khẩu 5 lần liên tiếp → khóa TK, chỉ quản lý mở được | Đã chốt |
+| BR-04 | Sai mật khẩu 5 lần liên tiếp → khóa TK; quản lý/lễ tân mở theo BR-01 | Đã chốt; cập nhật 23/09/2026 |
 | BR-05 | Tài khoản không bao giờ bị xóa — chỉ khóa/mở; nhật ký giữ nguyên | Đã chốt |
 | BR-06 | Không được khóa/đổi vai trò tài khoản quản lý cuối cùng | Đã chốt |
 | BR-07 | Một tài khoản chỉ một phiên thiết bị; phiên tối đa 12 giờ | Đã chốt |

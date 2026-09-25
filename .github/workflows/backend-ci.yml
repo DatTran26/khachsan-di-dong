@@ -1,0 +1,76 @@
+# Kiểm tra backend mỗi lần push / mở PR (tôn chỉ: "GitHub Actions chạy kiểm tra mã, kiểm thử và build").
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop, 'develop-*', 'release/**', 'hotfix/**']
+    paths: ['server/**', '.github/workflows/backend-ci.yml']
+  pull_request:
+    branches: [main, develop]
+    paths: ['server/**', '.github/workflows/backend-ci.yml']
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: khachsan
+          POSTGRES_PASSWORD: khachsan
+          POSTGRES_DB: khachsan
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U khachsan"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # CSDL tạm của CI — không phải bí mật thật.
+      DATABASE_URL: postgresql://khachsan:khachsan@localhost:5432/khachsan?schema=public
+      SEED_PASSWORD: Ci@123456
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Cài thư viện + sinh Prisma Client
+        run: |
+          npm ci
+          npx prisma generate
+
+      - name: Kiểm tra kiểu TypeScript
+        run: npm run typecheck
+
+      - name: Migration + seed chạy được trên CSDL trống
+        run: |
+          npx prisma migrate deploy
+          npm run db:seed
+
+      - name: Test (tự dùng CSDL khachsan_test)
+        run: npm test
+
+      - name: Đo realtime theo tiêu chí nghiệm thu (30 thiết bị, 100 lượt, ≤3s)
+        run: npm run bench:realtime
+
+      - name: Build
+        run: npm run build
