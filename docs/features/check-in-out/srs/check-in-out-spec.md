@@ -2,7 +2,7 @@
 type: srs-spec
 feature: check-in-out
 status: draft
-updated: 2026-09-23
+updated: 2026-09-25
 links:
   - "[[docs/features/check-in-out/check-in-out-prd.md|PRD — Check-in-out]]"
   - "[[docs/features/check-in-out/check-in-out-brd.md|BRD — Check-in-out]]"
@@ -121,7 +121,7 @@ links:
 
 ## 13. Open Questions
 
-- [ ] OQ-1: Thông tin khách tối thiểu khi nhận phòng?
+- [x] OQ-1: Thông tin khách tối thiểu khi nhận phòng? — ✅ Resolved 2026-09-25 (chốt nhóm): **tên khách + số người**, bắt buộc.
 - [ ] OQ-2: Cửa sổ hủy nhận phòng nhầm? Điều kiện "chưa phát sinh hoạt động khác"?
 - [ ] OQ-3: Trả phòng có ghi chú tình trạng phòng không, hay hoàn toàn thuộc `maintenance`?
 - [ ] OQ-4: Lễ tân xem được lịch sử lượt lưu trú đã đóng không, hay chỉ quản lý?
