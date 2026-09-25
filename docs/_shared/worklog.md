@@ -1,7 +1,7 @@
 ---
 type: worklog
 status: active
-updated: 2026-09-25
+updated: 2026-09-26
 links: []
 ---
 
@@ -19,12 +19,17 @@ links: []
 | Sprint | Thời gian | Mục tiêu (theo PRD) | Việc xong | Tiến độ |
 |---|---|---|---|---|
 | Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 7/8 | 88% |
-| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/9 | 67% |
-| Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
+| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/8 | 75% |
+| Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 1/5 | 20% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
 
-**Tình trạng chung (23/09):** tài liệu phân tích 9 tính năng đã xong; khung backend chạy được (chưa có Flutter).
-Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 1 trong Sprint 2.
+**Tình trạng chung (26/09):**
+- **Backend Sprint 1–2 xong phần API**: đăng nhập/phân quyền, danh mục phòng, nhận/trả phòng, dọn phòng (tự giao việc),
+  báo hỏng & bảo trì, realtime, nhật ký; làm sớm thêm phần Sprint 3 phía server (job quá hạn, API dashboard, API nhật ký).
+  139 test tự động; realtime 30 thiết bị × 100 lượt đạt 100% ≤3s (đo trên máy dev).
+- **Flutter**: khung app đã vào `develop` (PR #3); chưa có màn nhận/trả, dọn, bảo trì, nhật ký; chưa chạy thử với backend.
+- **Đang chờ**: Dat review + merge PR #4 (backend Sprint 2); sau đó mở PR #5 (nhật ký, dữ liệu demo, Docker — đã commit, chưa push).
+- Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù trong Sprint 2.
 
 ## Tiến độ theo sprint
 
@@ -34,7 +39,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 |---|---|---|---|
 | Tài liệu phân tích 9 tính năng (PRD, BRD, URD, SRS, use case, user story, wireframe, ERD) | Dat | Xong | 15–17/09, ~220 file trong `docs/features/` |
 | Dựng repo GitHub, nhánh thành viên, quy trình gitflow | Dat | Xong | 18/09, PR #1 |
-| Khung ứng dụng Flutter (Web + Android) + kiểm chứng thư viện Socket.IO phía Flutter | Dat (Web), Bao (Android) | Chưa làm | Tôn chỉ yêu cầu kiểm chứng Socket.IO trên Flutter ngay Sprint 1 — backend đã sẵn sự kiện `room:updated` |
+| Khung ứng dụng Flutter (Web + Android) + kiểm chứng thư viện Socket.IO phía Flutter | Dat (Web), Bao (Android) | Đang làm | 24–25/09 — Bao làm khung (đăng nhập, dashboard, danh mục phòng, tài khoản, socket), đã vào `develop` qua PR #3. Chưa chạy thử realtime với backend; build web thử 25/09 phát hiện lỗi vòng lặp logout phía app |
 | Khung backend Node.js + Express + TS + Prisma + PostgreSQL | Kim | Xong | 23/09 — `server/`, 12 bảng, chống ghi đè, 14 test pass |
 | Đăng nhập & phân quyền (`auth-roles`) | Kim (backend) | Xong (API) | 23/09 — đăng nhập/phiên 12h/1 TK 1 thiết bị/khóa 5 lần/MK tạm/quản lý TK/socket có xác thực. Màn hình: Dat, Bao |
 | Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Xong (API) | 25/09 — thêm/sửa/xóa, tạo theo dải, loại phòng, ngừng phục vụ tay |
@@ -46,9 +51,9 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
 | Chốt stack và mục tiêu tải 30 phiên; cập nhật docs | Kim | Xong | 23/09, commit `7718a26` |
-| Thiết kế CSDL: gộp 9 ERD thành `schema.prisma` (12 bảng) | Kim (backend) | Đang làm | Bản nháp xong 23/09, chờ nhóm review — `docs/_shared/database-design.md` |
-| Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Chưa làm | |
-| Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Đang làm | Xong phía server: version, lưu rồi mới phát, sự kiện `room:updated`. Còn: xác thực socket, kênh theo vai trò/người |
+| Thiết kế CSDL: gộp 9 ERD thành `schema.prisma` (12 bảng) | Kim (backend) | Xong | 23–25/09 — đã migrate (5 migration), chờ nhóm review `docs/_shared/database-design.md` |
+| Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Đang làm | Backend xong; còn chạy thử Flutter ↔ backend |
+| Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Xong (server) | 23–25/09 — version + trigger, lưu rồi mới phát, socket có xác thực, kênh theo vai trò/người/phiên, sự kiện phòng/việc/thông báo. Phía app: Dat, Bao |
 | Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Xong (API) | 25/09 — trả phòng tự tạo + tự giao việc dọn. Chưa có UI |
 | Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — tự giao, nhận/từ chối/báo xong/xác nhận/trả lại/phân công lại, quá hạn. OQ-1…3 tạm theo giả định |
 | Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — báo hỏng, nhận, hoàn tất, hủy, chỉ định; trục bảo trì tự tính. OQ-1…3 chưa chốt |
@@ -109,10 +114,19 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 23/09 | Mục tiêu tải: 30 phiên đồng thời (thay ~10) | Nhóm chốt |
 | 23/09 | Lễ tân quản lý được TK không phải quản lý (thay "chỉ quản lý" trong spec auth-roles) | Nhóm chốt |
 | 23/09 | Giữ lịch sprint, hạn cuối 02/11/2026; làm bù Sprint 1 trong Sprint 2 | Nhóm chốt |
+| 25/09 | Chỉ quản lý thêm/sửa/xóa phòng và loại phòng; lễ tân tra cứu + đặt/gỡ ngừng phục vụ (room-catalog OQ-1) | Nhóm chốt |
+| 25/09 | Nhận phòng ghi tên khách + số người (check-in-out OQ-1, PRD OQ-4) | Nhóm chốt |
+| 25/09 | Không gộp nhánh cá nhân của nhau — lấy code thành viên khác qua `develop` sau khi PR được merge | Kim đề xuất — cần nhóm thống nhất |
+| 25/09 | PR vào `develop` phải có người review, người tạo PR không tự merge; PR nhỏ theo từng đợt (PR #5 chờ PR #4) | Kim đề xuất — cần nhóm thống nhất |
+| 25/09 | Commit đứng tên đúng tài khoản GitHub của người làm (thầy chấm theo lịch sử GitHub) | Kim đề xuất — cần nhóm thống nhất |
 | 15/09 | Phân vai: Dat PM/BA/Flutter Web · Kim Backend/CSDL/Triển khai · Bao UI/Flutter Mobile/AI/QA | Tôn chỉ đã ký 15/09 |
 
 ## Việc còn treo
 
+- [ ] **Dat**: review + merge PR #4; bật bảo vệ nhánh `develop` (bắt buộc 1 review); review lại PR #2 (đã merge khi chưa review).
+- [ ] **Bao**: sửa vòng lặp logout (`auth_provider.dart` — `_logout` không gọi `/auth/logout` khi đang xử lý 401; `rooms_provider.dart` không gọi `/rooms` trước khi đăng nhập); thêm `cupertino_icons`; địa chỉ backend qua `--dart-define`; "N/A" → "không áp dụng"; nghe các sự kiện mới (`room:created/deleted`, `housekeeping:task_updated`, `maintenance:task_updated`, `notification`).
+- [ ] **Kim**: sau khi PR #4 merge → push + mở PR #5; chạy thử realtime app ↔ backend (cần đăng nhập tài khoản demo).
+- [ ] Câu hỏi mở chặn việc backend còn lại: check-in-out OQ-2 (cửa sổ hủy nhận phòng — FR-006), OQ-3 (ghi chú khi trả phòng), OQ-4 (lịch sử lượt lưu trú đã đóng); audit-log OQ-1 (tạm 50 dòng/lần).
 - [ ] Xác nhận lại phân công ở trên (gán theo mục "Vai trò" trong tôn chỉ: Dat = PM/BA/Flutter Web, Kim = Backend/CSDL/Triển khai, Bao = UI/Flutter Mobile/AI/QA).
 - [ ] Tôn chỉ dự án (`Ton_Chi_Du_An_WPCTeam.docx`) vẫn ghi 10 phiên — cập nhật hay ghi chú lệch.
 - [ ] Câu hỏi mở còn lại: housekeeping OQ-1 (nguồn "đang trực" — tạm cờ onDuty), OQ-2 (cảnh báo quá hạn — tạm 1 lần), OQ-3 (nhắc chờ xác nhận — chưa làm); maintenance OQ-1 (ngưỡng quá hạn — tạm cấu hình, mặc định tắt), OQ-2 (tự nhận + chỉ định), OQ-3 (sửa khi có khách — không chặn); room-dashboard OQ-2 ("cần dọn" — API trả đủ từng trạng thái); nhà cung cấp LLM.
