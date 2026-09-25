@@ -60,7 +60,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 |---|---|---|---|
 | Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 25/09 — API `/api/dashboard/summary` xong; UI chưa |
 | Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
-| Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Chưa làm | Ghi nhật ký phía backend đã có sẵn (`writeAudit`) |
+| Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Đang làm | 25/09 — API xem nhật ký xong (theo phòng, nhật ký chung, lọc, tải theo phần, mẫu dòng 7.3); UI chưa |
 | AI tóm tắt vận hành (`ai-ops-summary`) | Bao | Chưa làm | Chưa chọn nhà cung cấp LLM |
 | Hoàn thiện giao diện Web + Android | Dat (Web), Bao (Android) | Chưa làm | |
 
@@ -70,7 +70,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 |---|---|---|---|
 | Kiểm thử bộ kịch bản nghiệm thu trên Web + Android | Cả nhóm | Chưa làm | |
 | Đo realtime: ≥95% trong 100 lượt ≤3s (50 phòng, 30 phiên) | Kim (backend) | Chưa làm | |
-| Triển khai: Docker Compose + Nginx HTTPS trên VPS, sao lưu CSDL; build APK | Dat (VPS) · Kim (Docker, sao lưu) · Bao (APK) | Chưa làm | Theo tôn chỉ |
+| Triển khai: Docker Compose + Nginx HTTPS trên VPS, sao lưu CSDL; build APK | Dat (VPS) · Kim (Docker, sao lưu) · Bao (APK) | Đang làm | 25/09 — Dockerfile backend + compose `--profile full`, CI build image. Còn Nginx HTTPS, sao lưu, VPS |
 | Sửa lỗi, nghiệm thu, bàn giao | Cả nhóm | Chưa làm | |
 
 ## Nhật ký theo ngày
@@ -97,6 +97,9 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 25/09 | Nhóm | Chốt: chỉ quản lý thêm/sửa/xóa phòng; khách tối thiểu = tên + số người; chờ Bao PR rồi mới lấy code Flutter | — |
 | 25/09 | Kim | CORS; API danh mục phòng đầy đủ; nhận/trả phòng; đăng xuất không trả 401; 94 test pass. Build thử app của Bao: chạy được, phát hiện lỗi vòng lặp logout phía app | chưa commit |
 | 25/09 | Kim | API dọn phòng (tự giao việc), báo hỏng & bảo trì, job quá hạn, API dashboard; test luồng đầy đủ; 130 test pass | `server/src/modules/housekeeping`, `maintenance`, `dashboard` |
+| 25/09 | Bao | PR #3 `develop-bao` → `develop` (khung Flutter) — đã merge | PR #3 |
+| 25/09 | Kim | PR #4 `develop-kim` → `develop` (12 commit backend Sprint 2), CI xanh, chờ review | PR #4 |
+| 25/09 | Kim | API xem nhật ký; dữ liệu demo (`db:seed:demo`); Dockerfile backend + CI build image; 139 test pass | `server/src/modules/audit` |
 
 ## Quyết định đã chốt
 
