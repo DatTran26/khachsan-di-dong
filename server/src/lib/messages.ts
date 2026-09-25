@@ -64,7 +64,10 @@ export const MSG = {
   taskAssignedToYou: (room: string) => `Bạn có việc dọn mới: ${room}.`,
   taskPendingConfirm: (room: string) => `${room} đã dọn xong — chờ quản lý xác nhận.`,
   taskReturned: (room: string, note: string) => `Việc dọn ${room} bị trả lại: ${note}`,
+  maintenanceReported: (room: string) => `Có báo hỏng mới ở ${room}.`,
+  maintenanceAlreadyOpen: 'Phòng này đang có việc bảo trì mở — vẫn đã ghi nhận báo hỏng mới.',
   assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
+  maintenanceAssignedToOther: 'Việc này đã được giao cho người khác.',
   bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
   bulkCreated: (created: number, skipped: string[]) =>
     skipped.length

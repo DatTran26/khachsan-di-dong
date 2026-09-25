@@ -5,6 +5,7 @@ import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes.js';
+import { maintenanceRouter } from './modules/maintenance/maintenance.routes.js';
 import { roomTypesRouter } from './modules/room-types/room-types.routes.js';
 import { roomsRouter } from './modules/rooms/rooms.routes.js';
 import { staysRouter } from './modules/stays/stays.routes.js';
@@ -22,6 +23,7 @@ export function createApp() {
   app.use('/api/rooms', roomsRouter);
   app.use('/api/stays', staysRouter);
   app.use('/api/housekeeping', housekeepingRouter);
+  app.use('/api/maintenance', maintenanceRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

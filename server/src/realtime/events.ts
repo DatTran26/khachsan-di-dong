@@ -1,4 +1,5 @@
 import type { toHousekeepingTaskDto } from '../modules/housekeeping/housekeeping.dto.js';
+import type { toMaintenanceTaskDto } from '../modules/maintenance/maintenance.dto.js';
 import type { toRoomDto } from '../modules/rooms/rooms.service.js';
 
 /**
@@ -17,6 +18,7 @@ export const CHANNELS = {
 
 type RoomDto = ReturnType<typeof toRoomDto>;
 type HousekeepingTaskDto = ReturnType<typeof toHousekeepingTaskDto>;
+type MaintenanceTaskDto = ReturnType<typeof toMaintenanceTaskDto>;
 
 export type NotificationKind =
   | 'HOUSEKEEPING_ASSIGNED'
@@ -42,6 +44,8 @@ export interface ServerToClientEvents {
   'room:deleted': (payload: { roomId: string; emittedAt: string }) => void;
   /** Việc dọn phòng đổi trạng thái / người phụ trách (housekeeping FR-007). */
   'housekeeping:task_updated': (payload: { task: HousekeepingTaskDto; emittedAt: string }) => void;
+  /** Việc bảo trì đổi trạng thái (maintenance FR-011). */
+  'maintenance:task_updated': (payload: { task: MaintenanceTaskDto; emittedAt: string }) => void;
   /** Thông báo cho đúng người: việc mới, chờ xác nhận, bị trả lại, quá hạn, thiếu người trực… */
   notification: (payload: { kind: NotificationKind; message: string; taskId?: string; roomId?: string; emittedAt: string }) => void;
   /** Phiên này đã kết thúc — server ngắt kết nối ngay sau sự kiện này (E-auth-roles-009/011, SC-auth-roles-05). */
