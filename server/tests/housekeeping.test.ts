@@ -9,6 +9,7 @@ import { io as connect, type Socket } from 'socket.io-client';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
+import { flagOverdueTasks } from '../src/jobs/overdue.js';
 import { MSG } from '../src/lib/messages.js';
 import { prisma } from '../src/lib/prisma.js';
 import { attachRealtime, closeRealtime } from '../src/realtime/socket.js';
@@ -243,12 +244,49 @@ describe('Quản lý xác nhận / trả lại / phân công lại (FR-006, FR-0
   });
 });
 
-describe('Danh sách (FR-010)', () => {
+describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
   it('FR-010: lọc việc của tôi / theo trạng thái; lễ tân không xem danh sách việc', async () => {
     const { task } = await checkedOutRoom();
     const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
     const mine = await request(app).get('/api/housekeeping/tasks?mine=true&status=ASSIGNED').set(owner.auth);
     expect(mine.body.data.map((t: { id: string }) => t.id)).toContain(task.id);
     expect((await request(app).get('/api/housekeeping/tasks').set(receptionist.auth)).status).toBe(403);
+  });
+
+  it('quá 60 phút chưa báo xong → cờ quá hạn MỘT lần, báo quản lý + người phụ trách; hoàn tất thì gỡ cờ', async () => {
+    const { task } = await checkedOutRoom();
+    const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
+    const later = new Date(Date.now() + 61 * 60_000);
+
+    const first = await flagOverdueTasks(later);
+    expect(first.housekeeping).toBeGreaterThanOrEqual(1);
+    expect(await waitForNote(manager.user.id, 'HOUSEKEEPING_OVERDUE')).toBeDefined();
+    expect(await waitForNote(owner.user.id, 'HOUSEKEEPING_OVERDUE')).toBeDefined();
+    expect((await flagOverdueTasks(later)).housekeeping).toBe(0); // không cảnh báo lặp
+
+    let current = await taskOf(task.id);
+    await act(owner, task.id, 'accept', { version: current.version });
+    current = await taskOf(task.id);
+    await act(owner, task.id, 'complete', { version: current.version });
+    current = await taskOf(task.id);
+    const done = await act(manager, task.id, 'confirm', { version: current.version });
+    expect(done.body.data.isOverdue).toBe(false);
+  });
+
+  it('BR-002: việc đã báo xong (chờ xác nhận) không bị tính quá hạn', async () => {
+    const { task } = await checkedOutRoom();
+    const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
+    await act(owner, task.id, 'accept', { version: task.version });
+    await act(owner, task.id, 'complete', { version: task.version + 1 });
+    await flagOverdueTasks(new Date(Date.now() + 61 * 60_000));
+    expect((await taskOf(task.id)).overdueFlaggedAt).toBeNull();
+  });
+
+  it('dashboard: số việc quá hạn + chỉ số phòng; nhân viên không xem', async () => {
+    const res = await request(app).get('/api/dashboard/summary').set(receptionist.auth);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toMatchObject({ overdue: { housekeeping: expect.any(Number) }, cleaning: expect.any(Object) });
+    expect(res.body.data.occupancy.rate === null || typeof res.body.data.occupancy.rate === 'number').toBe(true);
+    expect((await request(app).get('/api/dashboard/summary').set(staffA.auth)).status).toBe(403);
   });
 });

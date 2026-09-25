@@ -3,6 +3,7 @@ import express from 'express';
 import { corsOptions } from './config/cors.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { housekeepingRouter } from './modules/housekeeping/housekeeping.routes.js';
 import { maintenanceRouter } from './modules/maintenance/maintenance.routes.js';
@@ -24,6 +25,7 @@ export function createApp() {
   app.use('/api/stays', staysRouter);
   app.use('/api/housekeeping', housekeepingRouter);
   app.use('/api/maintenance', maintenanceRouter);
+  app.use('/api/dashboard', dashboardRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

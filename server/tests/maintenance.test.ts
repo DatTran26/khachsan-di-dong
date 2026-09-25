@@ -7,6 +7,7 @@ import type { Room, User } from '@prisma/client';
 import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
+import { flagOverdueTasks } from '../src/jobs/overdue.js';
 import { MSG } from '../src/lib/messages.js';
 import { prisma } from '../src/lib/prisma.js';
 import { createUserWithToken } from './helpers.js';
@@ -158,5 +159,14 @@ describe('Quá hạn (FR-010, OQ-1 = cấu hình)', () => {
     const room = await makeRoom();
     const task = (await report(staffA, room.id)).body.data.task;
     expect(task.dueAt).toBeNull();
+  });
+
+  it('có MAINTENANCE_DUE_MINUTES → quá ngưỡng thì gắn cờ', async () => {
+    process.env.MAINTENANCE_DUE_MINUTES = '120';
+    const room = await makeRoom();
+    const task = (await report(staffA, room.id)).body.data.task;
+    await flagOverdueTasks(new Date(Date.now() + 121 * 60_000));
+    const res = await request(app).get(`/api/maintenance/tasks?roomId=${room.id}`).set(manager.auth);
+    expect(res.body.data.find((t: { id: string }) => t.id === task.id).isOverdue).toBe(true);
   });
 });

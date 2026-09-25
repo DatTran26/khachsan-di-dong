@@ -64,6 +64,8 @@ export const MSG = {
   taskAssignedToYou: (room: string) => `Bạn có việc dọn mới: ${room}.`,
   taskPendingConfirm: (room: string) => `${room} đã dọn xong — chờ quản lý xác nhận.`,
   taskReturned: (room: string, note: string) => `Việc dọn ${room} bị trả lại: ${note}`,
+  taskOverdue: (room: string) => `Việc dọn ${room} đã quá hạn.`,
+  maintenanceOverdue: (room: string) => `Việc sửa ${room} đã quá hạn.`,
   maintenanceReported: (room: string) => `Có báo hỏng mới ở ${room}.`,
   maintenanceAlreadyOpen: 'Phòng này đang có việc bảo trì mở — vẫn đã ghi nhận báo hỏng mới.',
   assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
