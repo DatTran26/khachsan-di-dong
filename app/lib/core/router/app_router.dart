@@ -10,6 +10,7 @@ import '../../features/users/screens/users_screen.dart';
 import '../../features/stays/screens/stays_screen.dart';
 import '../../features/housekeeping/screens/housekeeping_screen.dart';
 import '../../features/maintenance/screens/maintenance_screen.dart';
+import '../../features/audit/screens/audit_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
 import '../../models/user.dart';
 
@@ -44,6 +45,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/dashboard';
       }
       if (path.startsWith('/luot-o') && !isManagerOrReceptionist) {
+        return '/dashboard';
+      }
+      if (path.startsWith('/nhat-ky') && role != UserRole.manager) {
         return '/dashboard';
       }
 
@@ -89,6 +93,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/tai-khoan',
             builder: (_, __) => const UsersScreen(),
+          ),
+          GoRoute(
+            path: '/nhat-ky',
+            builder: (_, __) => const AuditScreen(),
           ),
         ],
       ),
