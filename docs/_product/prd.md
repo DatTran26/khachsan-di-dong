@@ -134,7 +134,7 @@ Nghiệp vụ lõi của lễ tân: nhận phòng chỉ khi phòng trống, đã
 4) Trạng thái mới lan realtime tới mọi thiết bị (`realtime-sync`).
 
 **Rủi ro chính:** nhận phòng vào phòng chưa sẵn sàng → sai nghiệp vụ cốt lõi, khách vào phòng chưa dọn. · **Đo thành công:** 100% ca nhận phòng bị chặn khi phòng chưa đủ điều kiện; 100% ca trả phòng tự tạo việc dọn.
-**OQ riêng:** OQ-4 (thông tin khách tối thiểu cần ghi khi nhận phòng).
+**OQ riêng:** OQ-4 ✅ resolved 2026-09-25 — tên khách + số người.
 
 ### 7.4 Công việc dọn phòng — `housekeeping`
 
@@ -281,4 +281,4 @@ Cuối ca hoặc cuối ngày, quản lý bấm tạo bản tóm tắt: hệ th�
   - **Trạng thái từng phía (giữ OQ mở ở product):**
     - `housekeeping`: đã chốt hướng MVP — hệ thống tự phân công tới cá nhân; quản lý xác nhận sẵn sàng (BR-housekeeping-001). Phân công lại thủ công = P1.
     - `maintenance`: vẫn phụ thuộc maintenance OQ-2 — "tự nhận" đang là assumption chưa chốt (urd + brainstorm); chưa cascade đóng product OQ-3.
-- [ ] OQ-4: Thông tin khách tối thiểu cần ghi khi nhận phòng (chỉ tên? số người? giấy tờ giả lập?) — quyết khi `/brainstorm check-in-out`.
+- [x] OQ-4: Thông tin khách tối thiểu cần ghi khi nhận phòng — ✅ Resolved 2026-09-25 (chốt nhóm): tên khách + số người.

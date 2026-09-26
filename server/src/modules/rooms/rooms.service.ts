@@ -1,12 +1,12 @@
 import type { CleaningStatus, OccupancyStatus, Prisma, Role, Room, RoomType, ServiceStatus } from '@prisma/client';
 import { diffFields, writeAudit } from '../../lib/audit.js';
-import { NotFoundError } from '../../lib/errors.js';
+import { NotFoundError, VersionConflictError } from '../../lib/errors.js';
 import { updateWithVersion } from '../../lib/optimistic-lock.js';
 import { prisma } from '../../lib/prisma.js';
 import { withTransaction } from '../../lib/transaction.js';
-import { CHANNELS } from '../../realtime/events.js';
+import { CHANNELS, type PendingEvent } from '../../realtime/events.js';
 
-type RoomWithType = Room & { roomType: RoomType };
+export type RoomWithType = Room & { roomType: RoomType };
 
 /** "Sẵn sàng" = trống + sạch + đang phục vụ — suy ra, không lưu (BR-housekeeping-003). */
 export function isRoomReady(room: Pick<Room, 'occupancy' | 'cleaning' | 'service'>): boolean {
@@ -35,15 +35,21 @@ export interface RoomFilter {
   occupancy?: OccupancyStatus;
   cleaning?: CleaningStatus;
   service?: ServiceStatus;
+  /** true = chỉ phòng sẵn sàng (trống + sạch + đang phục vụ) — lễ tân chọn phòng để nhận khách. */
+  ready?: boolean;
 }
 
 export async function listRooms(filter: RoomFilter) {
+  const readyOnly: Prisma.RoomWhereInput = filter.ready
+    ? { occupancy: 'VACANT', cleaning: 'CLEAN', service: 'IN_SERVICE' }
+    : {};
   const where: Prisma.RoomWhereInput = {
     floor: filter.floor,
     roomTypeId: filter.roomTypeId,
     occupancy: filter.occupancy,
     cleaning: filter.cleaning,
     service: filter.service,
+    AND: [readyOnly],
   };
   const rooms = await prisma.room.findMany({
     where,
@@ -57,6 +63,61 @@ export async function getRoom(id: string) {
   const room = await prisma.room.findUnique({ where: { id }, include: { roomType: true } });
   if (!room) throw new NotFoundError('Phòng không tồn tại.');
   return toRoomDto(room);
+}
+
+/** Nhãn tiếng Việt của trục vệ sinh — dùng trong câu báo lỗi (vd "Phòng chưa dọn xong (Cần dọn)"). */
+export const CLEANING_LABELS: Record<CleaningStatus, string> = {
+  DIRTY: 'Cần dọn',
+  CLEANING: 'Đang dọn',
+  PENDING_INSPECTION: 'Chờ kiểm tra',
+  CLEAN: 'Sạch',
+};
+
+export const roomLabel = (room: Pick<Room, 'number'>) => `Phòng ${room.number}`;
+
+/**
+ * Khóa dòng phòng (SELECT … FOR UPDATE) trong transaction rồi kiểm version.
+ * Nhờ khóa dòng, các điều kiện nghiệp vụ (trống/sạch/đang phục vụ…) được kiểm trên trạng thái THẬT
+ * tại thời điểm ghi, không bị người khác đổi xen giữa (FR-check-in-out-001/008, NFR-room-catalog-004).
+ */
+export async function lockRoomForWrite(tx: Prisma.TransactionClient, roomId: string, expectedVersion: number) {
+  await tx.$queryRaw`SELECT 1 FROM rooms WHERE id = ${roomId}::uuid FOR UPDATE`;
+  const room = await tx.room.findUnique({ where: { id: roomId }, include: { roomType: true } });
+  if (!room) throw new NotFoundError('Phòng không tồn tại.');
+  if (room.version !== expectedVersion) {
+    throw new VersionConflictError('Phòng', roomId, expectedVersion, toRoomDto(room));
+  }
+  return room;
+}
+
+/**
+ * Đổi trục trạng thái phòng như HỆ QUẢ của một thao tác khác (nhận việc dọn, báo hỏng…):
+ * client không gửi version phòng mà gửi version của việc; phòng được khóa dòng rồi cập nhật theo version hiện tại.
+ * Trả về phòng trước khi đổi + danh sách trục đã đổi (để ghi vào nhật ký của thao tác gọi).
+ */
+export async function applyRoomChange(
+  tx: Prisma.TransactionClient,
+  roomId: string,
+  patch: RoomStatusPatch,
+  enqueue: (event: PendingEvent) => void,
+) {
+  await tx.$queryRaw`SELECT 1 FROM rooms WHERE id = ${roomId}::uuid FOR UPDATE`;
+  const before = await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { roomType: true } });
+  const changes = diffFields(before, { ...before, ...patch }, STATUS_FIELDS);
+  if (changes.length > 0) {
+    await updateWithVersion(tx, 'room', roomId, before.version, patch);
+    enqueue(roomUpdatedEvent(await reloadRoomDto(tx, roomId)));
+  }
+  return { room: before, changes };
+}
+
+/** Đọc lại phòng (kèm loại) sau khi ghi để trả client + phát realtime. */
+export async function reloadRoomDto(tx: Prisma.TransactionClient, roomId: string) {
+  return toRoomDto(await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { roomType: true } }));
+}
+
+export function roomUpdatedEvent(room: ReturnType<typeof toRoomDto>): PendingEvent {
+  return { channel: CHANNELS.hotel, event: 'room:updated', payload: { room } };
 }
 
 export interface Actor {

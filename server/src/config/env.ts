@@ -7,6 +7,10 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().min(1, 'Thiếu DATABASE_URL — sao chép .env.example thành .env'),
+  // Danh sách origin được gọi API, cách nhau dấu phẩy. Bỏ trống = chỉ cho localhost (dev).
+  CORS_ORIGINS: z.string().optional(),
+  // Ngưỡng quá hạn việc bảo trì (phút). Bỏ trống = không tính quá hạn — maintenance OQ-1 chưa chốt.
+  MAINTENANCE_DUE_MINUTES: z.coerce.number().int().positive().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
