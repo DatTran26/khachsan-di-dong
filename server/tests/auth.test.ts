@@ -126,6 +126,11 @@ describe('Phiên đăng nhập', () => {
     expect((await request(app).get('/api/auth/me').set(auth)).status).toBe(401);
   });
 
+  it('đăng xuất khi phiên đã hết / không có token → vẫn 204 (không tạo vòng lặp 401 ở client)', async () => {
+    expect((await request(app).post('/api/auth/logout')).status).toBe(204);
+    expect((await request(app).post('/api/auth/logout').set({ Authorization: 'Bearer het-han' })).status).toBe(204);
+  });
+
   it('FR-003 / E-003: quá 12 giờ → từ chối, yêu cầu đăng nhập lại, nhật ký "hết phiên"', async () => {
     const { user, auth } = await createUserWithToken('STAFF');
     await prisma.session.update({ where: { userId: user.id }, data: { expiresAt: new Date(Date.now() - 1_000) } });

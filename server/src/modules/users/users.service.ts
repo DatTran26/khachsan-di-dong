@@ -7,6 +7,7 @@ import { prisma } from '../../lib/prisma.js';
 import { withTransaction } from '../../lib/transaction.js';
 import { generateTempPassword, hashPassword } from '../auth/credentials.js';
 import { revokeUserSession } from '../auth/sessions.js';
+import { assignPendingTasks } from '../housekeeping/housekeeping.assignment.js';
 import { toUserDto } from './users.dto.js';
 
 /**
@@ -102,7 +103,7 @@ export async function updateUser(
   patch: { fullName?: string; phone?: string; role?: Role; onDuty?: boolean },
 ) {
   try {
-    return await withTransaction(async (tx) => {
+    return await withTransaction(async (tx, enqueue) => {
       await serializeAccountAdmin(tx);
       const target = await loadTarget(tx, id);
       assertCanManage(actor, target, patch.role);
@@ -115,6 +116,8 @@ export async function updateUser(
 
       const updated = await updateWithVersion(tx, 'user', id, version, patch);
       await audit(tx, actor, 'user.updated', target, diffFields(target, updated, ['fullName', 'phone', 'role', 'onDuty']));
+      // Có nhân viên vào trực → hệ thống giao ngay các việc dọn đang "chờ giao" (FR-housekeeping-003).
+      if (updated.role === 'STAFF' && updated.onDuty && !target.onDuty) await assignPendingTasks(tx, enqueue);
       return { user: toUserDto(updated), message: MSG.accountUpdated };
     });
   } catch (error) {

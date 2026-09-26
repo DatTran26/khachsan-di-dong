@@ -1,5 +1,6 @@
 import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
+import { corsOptions } from '../config/cors.js';
 import { AppError } from '../lib/errors.js';
 import { MSG } from '../lib/messages.js';
 import { authenticate, expireSession, type AuthContext } from '../modules/auth/sessions.js';
@@ -21,7 +22,7 @@ let io: RealtimeServer | null = null;
  */
 export function attachRealtime(httpServer: HttpServer): RealtimeServer {
   io = new Server<ClientToServerEvents, ServerToClientEvents, Record<string, never>, SocketData>(httpServer, {
-    cors: { origin: true },
+    cors: corsOptions(process.env.CORS_ORIGINS),
     pingInterval: 5_000,
     pingTimeout: 5_000,
   });
