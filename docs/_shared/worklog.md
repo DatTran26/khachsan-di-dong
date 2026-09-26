@@ -19,7 +19,7 @@ links: []
 | Sprint | Thời gian | Mục tiêu (theo PRD) | Việc xong | Tiến độ |
 |---|---|---|---|---|
 | Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 7/8 | 88% |
-| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/9 | 67% |
+| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 7/9 | 78% |
 | Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
 
@@ -98,6 +98,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 25/09 | Kim | CORS; API danh mục phòng đầy đủ; nhận/trả phòng; đăng xuất không trả 401; 94 test pass. Build thử app của Bao: chạy được, phát hiện lỗi vòng lặp logout phía app | chưa commit |
 | 25/09 | Kim | API dọn phòng (tự giao việc), báo hỏng & bảo trì, job quá hạn, API dashboard; test luồng đầy đủ; 130 test pass | `server/src/modules/housekeeping`, `maintenance`, `dashboard` |
 | 26/09 | Bao | Flutter: models (HousekeepingTask, MaintenanceTask, Stay), socket events mới, màn dọn phòng/bảo trì/lưu trú, check-in/out dialog, dashboard API thật, cập nhật nav | `app/lib/features/`, `app/lib/models/` |
+| 26/09 | Bao | Flutter (bổ sung): ConfirmDialog dùng chung, TaskStatusTimeline (dọn phòng + bảo trì), xử lý VERSION_CONFLICT (handleApiError), form thêm/sửa/xóa phòng (quản lý), bulk-create theo dải, màn nhật ký (placeholder) | `app/lib/shared/`, `app/lib/features/rooms/`, `app/lib/features/audit/` |
 
 ## Quyết định đã chốt
 

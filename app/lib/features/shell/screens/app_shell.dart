@@ -52,6 +52,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       ('/bao-tri', const NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build), label: 'Bảo trì')),
       if (isManagerOrReceptionist)
         ('/tai-khoan', const NavigationDestination(icon: Icon(Icons.manage_accounts_outlined), selectedIcon: Icon(Icons.manage_accounts), label: 'Tài khoản')),
+      if (isManager)
+        ('/nhat-ky', const NavigationDestination(icon: Icon(Icons.history_outlined), selectedIcon: Icon(Icons.history), label: 'Nhật ký')),
     ];
 
     final currentIndex = destinations.indexWhere((d) => location.startsWith(d.$1));
@@ -188,6 +190,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     if (location.startsWith('/don-phong')) return 'Dọn phòng';
     if (location.startsWith('/bao-tri')) return 'Bảo trì';
     if (location.startsWith('/tai-khoan')) return 'Quản lý tài khoản';
+    if (location.startsWith('/nhat-ky')) return 'Nhật ký thay đổi';
     if (location.startsWith('/doi-mat-khau')) return 'Đổi mật khẩu';
     return 'Dashboard';
   }

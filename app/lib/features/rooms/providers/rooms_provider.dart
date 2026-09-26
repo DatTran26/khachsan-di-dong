@@ -185,6 +185,53 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
   Future<void> backInService({required String roomId, required int version}) async {
     await apiClient.post('/rooms/$roomId/back-in-service', body: {'version': version});
   }
+
+  Future<Map<String, dynamic>> createRoom({
+    required String number,
+    required int floor,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms', body: {
+      'number': number,
+      'floor': floor,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createRoomRange({
+    required int floor,
+    required int from,
+    required int to,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms/bulk', body: {
+      'floor': floor,
+      'from': from,
+      'to': to,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateRoom({
+    required String roomId,
+    required int version,
+    String? number,
+    int? floor,
+    String? roomTypeId,
+  }) async {
+    final body = <String, dynamic>{'version': version};
+    if (number != null) body['number'] = number;
+    if (floor != null) body['floor'] = floor;
+    if (roomTypeId != null) body['roomTypeId'] = roomTypeId;
+    final res = await apiClient.patch('/rooms/$roomId', body: body);
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteRoom({required String roomId, required int version}) async {
+    await apiClient.delete('/rooms/$roomId', body: {'version': version});
+  }
 }
 
 final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {

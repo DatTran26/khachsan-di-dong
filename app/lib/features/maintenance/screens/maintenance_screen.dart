@@ -9,6 +9,8 @@ import '../../../features/users/providers/users_provider.dart';
 import '../../../features/rooms/providers/rooms_provider.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/utils/error_handler.dart';
 
 class MaintenanceScreen extends ConsumerWidget {
   const MaintenanceScreen({super.key});
@@ -116,9 +118,7 @@ class MaintenanceScreen extends ConsumerWidget {
       }
     } on ApiException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
-        );
+        handleApiError(context, e, onReload: () => ref.read(maintenanceProvider.notifier).load());
       }
     }
   }
@@ -334,6 +334,8 @@ class _MaintenanceCard extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: Colors.grey[600])),
             if (task.cancelReason != null)
               Text('Lý do hủy: ${task.cancelReason}', style: const TextStyle(fontSize: 12, color: Colors.red)),
+            const SizedBox(height: 8),
+            TaskStatusTimeline.maintenance(task.status),
             if (isActive && onAction != null) ...[
               const SizedBox(height: 8),
               Wrap(

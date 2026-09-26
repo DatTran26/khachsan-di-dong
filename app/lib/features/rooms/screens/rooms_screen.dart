@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/rooms_provider.dart';
+import '../screens/room_form_screen.dart';
 import '../widgets/room_card.dart';
 import '../widgets/room_filter_bar.dart';
 import '../../dashboard/widgets/offline_banner.dart';
@@ -8,6 +9,7 @@ import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/user.dart';
 import '../../../models/room.dart';
 import '../../../core/api/api_client.dart';
+import '../../../shared/utils/error_handler.dart';
 
 class RoomsScreen extends ConsumerWidget {
   const RoomsScreen({super.key});
@@ -30,6 +32,16 @@ class RoomsScreen extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButton: isManager
+          ? FloatingActionButton.extended(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RoomFormScreen()),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm phòng'),
+            )
+          : null,
       body: Column(
         children: [
           if (!state.isConnected) const OfflineBanner(),
@@ -111,8 +123,9 @@ class RoomsScreen extends ConsumerWidget {
                         child: RoomCard(
                           room: room,
                           onEdit: isManager
-                              ? () => ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Tính năng đang phát triển.')),
+                              ? () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => RoomFormScreen(room: room)),
                                   )
                               : null,
                         ),
@@ -181,8 +194,17 @@ class RoomsScreen extends ConsumerWidget {
                     await ref.read(roomsProvider.notifier).backInService(roomId: room.id, version: room.version);
                     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã đưa phòng vào phục vụ')));
                   } on ApiException catch (e) {
-                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
+                    if (context.mounted) handleApiError(context, e, onReload: () => ref.read(roomsProvider.notifier).load());
                   }
+                },
+              ),
+            if (user.role == UserRole.manager)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Xóa phòng', style: TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmDeleteRoom(context, ref, room);
                 },
               ),
             const SizedBox(height: 8),
@@ -271,6 +293,31 @@ class RoomsScreen extends ConsumerWidget {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã trả phòng ${room.number}')));
     } on ApiException catch (e) {
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
+    }
+  }
+
+  Future<void> _confirmDeleteRoom(BuildContext context, WidgetRef ref, Room room) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Xóa phòng ${room.number}?'),
+        content: const Text('Chỉ xóa được phòng chưa có lịch sử hoạt động (chưa từng có khách, dọn phòng, bảo trì).'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await ref.read(roomsProvider.notifier).deleteRoom(roomId: room.id, version: room.version);
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Đã xóa phòng ${room.number}')));
+    } on ApiException catch (e) {
+      if (context.mounted) handleApiError(context, e, onReload: () => ref.read(roomsProvider.notifier).load());
     }
   }
 
