@@ -8,6 +8,8 @@ import '../../../features/auth/providers/auth_provider.dart';
 import '../../../features/users/providers/users_provider.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/utils/error_handler.dart';
 
 class HousekeepingScreen extends ConsumerWidget {
   const HousekeepingScreen({super.key});
@@ -117,9 +119,7 @@ class HousekeepingScreen extends ConsumerWidget {
       }
     } on ApiException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
-        );
+        handleApiError(context, e, onReload: () => ref.read(housekeepingProvider.notifier).load());
       }
     }
   }
@@ -266,6 +266,8 @@ class _TaskCard extends StatelessWidget {
             if (task.assignee != null)
               Text('Phụ trách: ${task.assignee!.fullName}',
                   style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            const SizedBox(height: 8),
+            TaskStatusTimeline.housekeeping(task.status),
             if (task.returnNote != null) ...[
               const SizedBox(height: 4),
               Text('Ghi chú trả lại: ${task.returnNote}',
