@@ -1,7 +1,7 @@
 ---
 type: worklog
 status: active
-updated: 2026-09-25
+updated: 2026-09-26
 links: []
 ---
 
@@ -49,16 +49,16 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | Thiết kế CSDL: gộp 9 ERD thành `schema.prisma` (12 bảng) | Kim (backend) | Đang làm | Bản nháp xong 23/09, chờ nhóm review — `docs/_shared/database-design.md` |
 | Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Chưa làm | |
 | Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Đang làm | Xong phía server: version, lưu rồi mới phát, sự kiện `room:updated`. Còn: xác thực socket, kênh theo vai trò/người |
-| Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Xong (API) | 25/09 — trả phòng tự tạo + tự giao việc dọn. Chưa có UI |
-| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — tự giao, nhận/từ chối/báo xong/xác nhận/trả lại/phân công lại, quá hạn. OQ-1…3 tạm theo giả định |
-| Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — báo hỏng, nhận, hoàn tất, hủy, chỉ định; trục bảo trì tự tính. OQ-1…3 chưa chốt |
-| Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Đang làm | 25/09 — test tự động backend pass (`e2e-room-lifecycle.test.ts`); chờ chạy trên app |
+| Nhận/trả phòng (`check-in-out`) | Kim (API) · Bao (UI) | Xong | 26/09 — UI: dialog nhận/trả phòng trên màn danh mục phòng và màn lưu trú |
+| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI) | Xong | 26/09 — UI: màn `/don-phong`, accept/reject/complete (NV), confirm/return/reassign (QL), realtime qua socket |
+| Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI) | Xong | 26/09 — UI: màn `/bao-tri`, báo hỏng (mọi role), claim/complete (NV), assign/cancel (QL/LT), realtime qua socket |
+| Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Đang làm | 26/09 — test tự động backend pass; UI xong, chờ chạy thử trên app |
 
 ### Sprint 3 (06/10 – 19/10)
 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
-| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 25/09 — API `/api/dashboard/summary` xong; UI chưa |
+| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện |
 | Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
 | Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Chưa làm | Ghi nhật ký phía backend đã có sẵn (`writeAudit`) |
 | AI tóm tắt vận hành (`ai-ops-summary`) | Bao | Chưa làm | Chưa chọn nhà cung cấp LLM |
@@ -97,6 +97,7 @@ Sprint 1 trễ hạn → nhóm chốt giữ lịch, làm bù phần code Sprint 
 | 25/09 | Nhóm | Chốt: chỉ quản lý thêm/sửa/xóa phòng; khách tối thiểu = tên + số người; chờ Bao PR rồi mới lấy code Flutter | — |
 | 25/09 | Kim | CORS; API danh mục phòng đầy đủ; nhận/trả phòng; đăng xuất không trả 401; 94 test pass. Build thử app của Bao: chạy được, phát hiện lỗi vòng lặp logout phía app | chưa commit |
 | 25/09 | Kim | API dọn phòng (tự giao việc), báo hỏng & bảo trì, job quá hạn, API dashboard; test luồng đầy đủ; 130 test pass | `server/src/modules/housekeeping`, `maintenance`, `dashboard` |
+| 26/09 | Bao | Flutter: models (HousekeepingTask, MaintenanceTask, Stay), socket events mới, màn dọn phòng/bảo trì/lưu trú, check-in/out dialog, dashboard API thật, cập nhật nav | `app/lib/features/`, `app/lib/models/` |
 
 ## Quyết định đã chốt
 

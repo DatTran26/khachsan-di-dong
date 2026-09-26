@@ -4,26 +4,54 @@ import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../../models/user.dart';
+import '../../../core/realtime/socket_service.dart';
 
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    socketService.onNotification = _handleNotification;
+  }
+
+  void _handleNotification(String kind, String message, String? taskId, String? roomId) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final isConnected = ref.watch(roomsProvider).isConnected;
     final location = GoRouterState.of(context).uri.path;
 
     final isManager = user?.role == UserRole.manager;
     final isReceptionist = user?.role == UserRole.receptionist;
+    final isManagerOrReceptionist = isManager || isReceptionist;
 
     final destinations = <(String, NavigationDestination)>[
       ('/dashboard', const NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Dashboard')),
-      ('/phong', const NavigationDestination(icon: Icon(Icons.hotel_outlined), selectedIcon: Icon(Icons.hotel), label: 'Danh mục phòng')),
-      if (isManager || isReceptionist)
-        ('/tai-khoan', const NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Tài khoản')),
+      ('/phong', const NavigationDestination(icon: Icon(Icons.hotel_outlined), selectedIcon: Icon(Icons.hotel), label: 'Phòng')),
+      if (isManagerOrReceptionist)
+        ('/luot-o', const NavigationDestination(icon: Icon(Icons.people_outline), selectedIcon: Icon(Icons.people), label: 'Lưu trú')),
+      ('/don-phong', const NavigationDestination(icon: Icon(Icons.cleaning_services_outlined), selectedIcon: Icon(Icons.cleaning_services), label: 'Dọn phòng')),
+      ('/bao-tri', const NavigationDestination(icon: Icon(Icons.build_outlined), selectedIcon: Icon(Icons.build), label: 'Bảo trì')),
+      if (isManagerOrReceptionist)
+        ('/tai-khoan', const NavigationDestination(icon: Icon(Icons.manage_accounts_outlined), selectedIcon: Icon(Icons.manage_accounts), label: 'Tài khoản')),
     ];
 
     final currentIndex = destinations.indexWhere((d) => location.startsWith(d.$1));
@@ -31,7 +59,7 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       appBar: _buildAppBar(context, ref, user, isConnected, location),
-      body: child,
+      body: widget.child,
       bottomNavigationBar: MediaQuery.of(context).size.width < 600
           ? NavigationBar(
               selectedIndex: selectedIndex,
@@ -156,6 +184,9 @@ class AppShell extends ConsumerWidget {
 
   String _titleFor(String location) {
     if (location.startsWith('/phong')) return 'Danh mục phòng';
+    if (location.startsWith('/luot-o')) return 'Lượt lưu trú';
+    if (location.startsWith('/don-phong')) return 'Dọn phòng';
+    if (location.startsWith('/bao-tri')) return 'Bảo trì';
     if (location.startsWith('/tai-khoan')) return 'Quản lý tài khoản';
     if (location.startsWith('/doi-mat-khau')) return 'Đổi mật khẩu';
     return 'Dashboard';
