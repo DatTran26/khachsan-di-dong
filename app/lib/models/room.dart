@@ -94,11 +94,15 @@ extension ServiceStatusX on ServiceStatus {
 class RoomType {
   final String id;
   final String name;
+  final bool isActive;
 
-  const RoomType({required this.id, required this.name});
+  const RoomType({required this.id, required this.name, this.isActive = true});
 
-  factory RoomType.fromJson(Map<String, dynamic> json) =>
-      RoomType(id: json['id'] as String, name: json['name'] as String);
+  factory RoomType.fromJson(Map<String, dynamic> json) => RoomType(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        isActive: (json['isActive'] as bool?) ?? true,
+      );
 }
 
 class Room {

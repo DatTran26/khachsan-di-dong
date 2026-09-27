@@ -7,6 +7,10 @@ import '../../features/auth/screens/change_password_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/rooms/screens/rooms_screen.dart';
 import '../../features/users/screens/users_screen.dart';
+import '../../features/stays/screens/stays_screen.dart';
+import '../../features/housekeeping/screens/housekeeping_screen.dart';
+import '../../features/maintenance/screens/maintenance_screen.dart';
+import '../../features/audit/screens/audit_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
 import '../../models/user.dart';
 
@@ -36,7 +40,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final role = auth.user?.role;
       final isManagerOrReceptionist =
           role == UserRole.manager || role == UserRole.receptionist;
+
       if (path.startsWith('/tai-khoan') && !isManagerOrReceptionist) {
+        return '/dashboard';
+      }
+      if (path.startsWith('/luot-o') && !isManagerOrReceptionist) {
+        return '/dashboard';
+      }
+      if (path.startsWith('/nhat-ky') && role != UserRole.manager) {
         return '/dashboard';
       }
 
@@ -68,8 +79,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => const RoomsScreen(),
           ),
           GoRoute(
+            path: '/luot-o',
+            builder: (_, __) => const StaysScreen(),
+          ),
+          GoRoute(
+            path: '/don-phong',
+            builder: (_, __) => const HousekeepingScreen(),
+          ),
+          GoRoute(
+            path: '/bao-tri',
+            builder: (_, __) => const MaintenanceScreen(),
+          ),
+          GoRoute(
             path: '/tai-khoan',
             builder: (_, __) => const UsersScreen(),
+          ),
+          GoRoute(
+            path: '/nhat-ky',
+            builder: (_, __) => const AuditScreen(),
           ),
         ],
       ),

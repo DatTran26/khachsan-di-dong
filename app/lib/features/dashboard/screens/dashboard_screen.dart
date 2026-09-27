@@ -12,7 +12,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final roomsState = ref.watch(roomsProvider);
-    final stats = ref.watch(dashboardStatsProvider);
+    final summaryState = ref.watch(dashboardSummaryProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -21,15 +21,17 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Tải lại',
-            onPressed: () => ref.read(roomsProvider.notifier).load(),
+            onPressed: () {
+              ref.read(roomsProvider.notifier).load();
+              ref.read(dashboardSummaryProvider.notifier).load();
+            },
           ),
         ],
       ),
       body: Column(
         children: [
           if (!roomsState.isConnected) const OfflineBanner(),
-          // ReconnectedBanner is shown by app shell after reconnect
-          StatsRow(stats: stats),
+          StatsRow(summary: summaryState.summary),
           const Divider(height: 1),
           if (roomsState.isLoading)
             const Expanded(child: Center(child: CircularProgressIndicator()))

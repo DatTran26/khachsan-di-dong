@@ -1,13 +1,21 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
-typedef RoomUpdatedCallback = void Function(Map<String, dynamic> roomJson);
+typedef RoomJsonCallback = void Function(Map<String, dynamic> json);
+typedef RoomIdCallback = void Function(String roomId);
+typedef TaskJsonCallback = void Function(Map<String, dynamic> json);
+typedef NotificationCallback = void Function(String kind, String message, String? taskId, String? roomId);
 typedef SessionRevokedCallback = void Function(String reason, String message);
 typedef ConnectionCallback = void Function(bool connected);
 
 class SocketService {
   io.Socket? _socket;
 
-  RoomUpdatedCallback? onRoomUpdated;
+  RoomJsonCallback? onRoomUpdated;
+  RoomJsonCallback? onRoomCreated;
+  RoomIdCallback? onRoomDeleted;
+  TaskJsonCallback? onHousekeepingTaskUpdated;
+  TaskJsonCallback? onMaintenanceTaskUpdated;
+  NotificationCallback? onNotification;
   SessionRevokedCallback? onSessionRevoked;
   ConnectionCallback? onConnectionChanged;
 
@@ -44,7 +52,7 @@ class SocketService {
       if (data is Map && data['data'] is Map) {
         final code = data['data']['code'] as String?;
         if (code != null) {
-          final authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID'];
+          const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID'];
           if (authCodes.contains(code)) {
             onSessionRevoked?.call(code, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
           }
@@ -56,6 +64,44 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         final room = data['room'] as Map<String, dynamic>?;
         if (room != null) onRoomUpdated?.call(room);
+      }
+    });
+
+    _socket!.on('room:created', (data) {
+      if (data is Map<String, dynamic>) {
+        final room = data['room'] as Map<String, dynamic>?;
+        if (room != null) onRoomCreated?.call(room);
+      }
+    });
+
+    _socket!.on('room:deleted', (data) {
+      if (data is Map<String, dynamic>) {
+        final roomId = data['roomId'] as String?;
+        if (roomId != null) onRoomDeleted?.call(roomId);
+      }
+    });
+
+    _socket!.on('housekeeping:task_updated', (data) {
+      if (data is Map<String, dynamic>) {
+        final task = data['task'] as Map<String, dynamic>?;
+        if (task != null) onHousekeepingTaskUpdated?.call(task);
+      }
+    });
+
+    _socket!.on('maintenance:task_updated', (data) {
+      if (data is Map<String, dynamic>) {
+        final task = data['task'] as Map<String, dynamic>?;
+        if (task != null) onMaintenanceTaskUpdated?.call(task);
+      }
+    });
+
+    _socket!.on('notification', (data) {
+      if (data is Map<String, dynamic>) {
+        final kind = data['kind'] as String? ?? '';
+        final message = data['message'] as String? ?? '';
+        final taskId = data['taskId'] as String?;
+        final roomId = data['roomId'] as String?;
+        onNotification?.call(kind, message, taskId, roomId);
       }
     });
 

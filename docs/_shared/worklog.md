@@ -19,6 +19,8 @@ links: []
 | Sprint | Thời gian | Mục tiêu (theo PRD) | Việc xong | Tiến độ |
 |---|---|---|---|---|
 | Sprint 1 | 08/09 – 21/09 | Tài liệu + khung ứng dụng + phân quyền + danh mục phòng + kiểm chứng realtime | 7/8 | 88% |
+| Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 7/9 | 78% |
+| Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
 | Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/8 | 75% |
 | Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 1/5 | 20% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
@@ -63,7 +65,7 @@ links: []
 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
-| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 25/09 — API `/api/dashboard/summary` xong; UI chưa |
+| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện |
 | Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
 | Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Đang làm | 25/09 — API xem nhật ký xong (theo phòng, nhật ký chung, lọc, tải theo phần, mẫu dòng 7.3); UI chưa |
 | AI tóm tắt vận hành (`ai-ops-summary`) | Bao | Chưa làm | Chưa chọn nhà cung cấp LLM |
