@@ -40,6 +40,11 @@ export const MSG = {
   noStaffOnDuty: 'Chưa có nhân viên buồng phòng đang trực — công việc đang chờ giao.',
   returnNoteRequired: 'Vui lòng nhập ghi chú khi trả lại công việc.',
 
+  // audit-log error matrix (mục 6) + wording 7.3
+  auditForbidden: 'Bạn không có quyền xem nhật ký.',
+  auditRangeInvalid: 'Khoảng thời gian chưa hợp lệ — mốc bắt đầu phải trước hoặc bằng mốc kết thúc.',
+  auditEmpty: 'Chưa có thay đổi nào trong phạm vi đã chọn.',
+
   // realtime-sync E-002, audit-log E-005
   versionConflict: 'Dữ liệu vừa được người khác cập nhật — đã tải lại bản mới nhất.',
   notCompleted: 'Thao tác chưa hoàn tất — vui lòng thử lại.',

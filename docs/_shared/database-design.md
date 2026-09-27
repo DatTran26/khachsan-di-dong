@@ -1,7 +1,7 @@
 ---
 type: database-design
 status: draft
-updated: 2026-09-23
+updated: 2026-09-26
 links:
   - server/prisma/schema.prisma
 ---
@@ -117,11 +117,14 @@ erDiagram
 | D15 | **Phiên lưu SHA-256 của token** (`sessions.token_hash`), không dùng JWT | Hủy phiên = xóa 1 dòng → khóa TK / đăng nhập nơi khác có hiệu lực ngay (SC-auth-roles-05); lộ CSDL cũng không dùng được token |
 | D16 | **`users.version`** + trigger | Hai người (quản lý/lễ tân) cùng sửa một tài khoản không ghi đè nhau |
 | D14 | **Giới hạn độ dài theo spec**: ghi chú trả lại ≤500, mô tả hỏng ≤500, vị trí ≤100, lý do hủy ≤200, lý do ngừng phục vụ ≤200 | FR-housekeeping-006, FR-maintenance-001/006/007 — CSDL chặn cả khi API quên kiểm |
+| D17 | **`audit_logs.room_id` không còn khóa ngoại** (migration `audit_room_snapshot`, 25/09) | Nhật ký là bản chụp (NFR-audit-log-002): nhật ký "tạo phòng" không được chặn việc xóa phòng chưa có hoạt động (FR-room-catalog-004); xóa phòng xong nhật ký vẫn còn nguyên. "Lịch sử hoạt động" = lượt lưu trú, việc dọn, việc sửa, lần ngừng phục vụ |
+| D18 | **Trục bảo trì của phòng tự tính** từ việc sửa đang mở + ngừng phục vụ tay | Không để lệch giữa việc sửa và trạng thái phòng (FR-maintenance-002/003) |
 
 **Ràng buộc viết tay bằng SQL trong migration `init`** (Prisma chưa tả được):
 
 - Mỗi phòng tối đa 1 lượt lưu trú `OPEN` và 1 `OutOfServiceHold` đang đặt (partial unique index).
 - `audit_logs` chỉ thêm, không sửa/xóa (trigger chặn UPDATE/DELETE).
+- `housekeeping_tasks.stay_id` unique; giới hạn độ dài ghi chú/mô tả/lý do (migration `align_with_specs`).
 - `floor > 0`, `guest_count > 0` (CHECK).
 - Trigger `bump_version`: mọi UPDATE trên 4 bảng có `version` đều tăng version (lưới an toàn chống ghi đè).
 
@@ -142,4 +145,5 @@ erDiagram
 - [x] Spike realtime: 30 thiết bị × 100 lượt → 100% ≤3s (23/09).
 - [x] Rà soát với spec, bổ sung D11–D14 (migration `align_with_specs`, 23/09).
 - [x] Đăng nhập & phân quyền: migration `auth_sessions` (23/09).
+- [x] Danh mục phòng, nhận/trả phòng, dọn phòng, bảo trì, job quá hạn, dashboard, nhật ký chạy trên schema này — bổ sung D17, D18 (25/09).
 - [ ] Nhóm review mục 3 và 4 → chốt.

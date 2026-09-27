@@ -18,7 +18,8 @@
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "test": "vitest run",
-    "bench:realtime": "tsx scripts/realtime-benchmark.ts"
+    "bench:realtime": "tsx scripts/realtime-benchmark.ts",
+    "db:seed:demo": "tsx prisma/seed-demo.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
