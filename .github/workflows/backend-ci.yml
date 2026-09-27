@@ -74,3 +74,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image backend (kiểm chứng Dockerfile)
+        run: docker build -t khachsan-api:ci ./server

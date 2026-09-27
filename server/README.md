@@ -13,10 +13,19 @@ cp .env.example .env          # rồi sửa giá trị nếu cần
 docker compose up -d          # bật PostgreSQL (bỏ qua nếu đã cài PostgreSQL trên máy)
 npm run db:migrate            # tạo bảng
 npm run db:seed               # 50 phòng + 8 tài khoản mẫu
+npm run db:seed:demo          # (tuỳ chọn) tình huống demo: phòng có khách, đang dọn, chờ xác nhận, đang sửa…
 npm run dev                   # http://localhost:3000/api/health
 ```
 
 > CSDL phải dùng bảng mã **UTF-8** (Docker mặc định đã là UTF-8), nếu không tiếng Việt sẽ lỗi.
+
+### Chạy cả backend bằng Docker (giống VPS)
+
+```bash
+docker compose --profile full up -d --build   # PostgreSQL + backend, tự chạy migration khi khởi động
+```
+
+Image backend được build thử trên GitHub Actions mỗi lần push (job "Docker image").
 
 ### Không dùng Docker: cài PostgreSQL trên Windows
 
@@ -90,7 +99,8 @@ server/
 │       ├── stays/            # nhận/trả phòng
 │       ├── housekeeping/     # việc dọn + tự giao việc
 │       ├── maintenance/      # báo hỏng, sửa, trục bảo trì tự tính
-│       └── dashboard/
+│       ├── dashboard/
+│       └── audit/            # xem nhật ký + nhãn tiếng Việt
 │   ├── jobs/overdue.ts       # quét quá hạn 30 giây/lần
 ├── scripts/realtime-benchmark.ts
 └── tests/
@@ -164,6 +174,7 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 | POST | `/api/maintenance/tasks/:id/cancel` | người báo (việc chờ nhận), quản lý | `{ version, reason? }` |
 | POST | `/api/maintenance/tasks/:id/assign` | quản lý, lễ tân | `{ version, assigneeId }` — chỉ định người xử lý |
 | GET | `/api/dashboard/summary` | quản lý, lễ tân | Đang ở, sẵn sàng, ngừng phục vụ, số phòng theo từng trạng thái vệ sinh, việc quá hạn, lấp đầy (`rate: null` = không áp dụng) |
+| GET | `/api/audit-logs?roomId=&from=&to=&actorId=&actorRole=&action=&entityType=&field=&limit=&cursor=` | **chỉ quản lý** | Nhật ký, mới nhất trước, tải theo phần (`nextCursor`). Mỗi dòng có `line` theo mẫu *"14:32 05/10 · Trần B (lễ tân) · Trả phòng · Phòng 305 · lưu trú: đang ở → trống"*. `actorRole=SYSTEM` = việc hệ thống tự làm. Mặc định 50 dòng/lần (audit-log OQ-1 chưa chốt) |
 
 **Việc dọn phòng tự động** (housekeeping): trả phòng → hệ thống tạo đúng 1 việc (hạn 60 phút) và giao ngay cho nhân viên
 **đang trực** (`onDuty`, quản lý/lễ tân bật qua `PATCH /api/users/:id`) có ít việc mở nhất; không ai trực → "chờ giao" +
