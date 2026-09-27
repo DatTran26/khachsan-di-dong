@@ -19,7 +19,8 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "bench:realtime": "tsx scripts/realtime-benchmark.ts",
-    "db:seed:demo": "tsx prisma/seed-demo.ts"
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
