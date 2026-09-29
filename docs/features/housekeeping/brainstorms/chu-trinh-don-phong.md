@@ -56,7 +56,7 @@ MVP 8 tuần (08/09–02/11/2026), 1 khách sạn giả định 50 phòng, tiế
 4) Nhân viên bấm nhận việc → công việc "đang làm", phòng "đang dọn".
 5) Nhân viên dọn xong, báo hoàn tất → công việc "chờ xác nhận", phòng "chờ kiểm tra"; quản lý nhận thông báo.
 6) Quản lý xác nhận → công việc "hoàn tất", phòng "sạch".
-7) Nếu phòng đang trống và đang phục vụ → hiển thị "sẵn sàng"; dashboard cập nhật trên mọi thiết bị.
+7) Nếu phòng đang trống và trục bảo trì bình thường → hiển thị "sẵn sàng"; dashboard cập nhật trên mọi thiết bị.
 
 ```
 LỄ TÂN            HỆ THỐNG                      NHÂN VIÊN BP            QUẢN LÝ
@@ -121,7 +121,7 @@ LỄ TÂN            HỆ THỐNG                      NHÂN VIÊN BP           
 | D2 | Nhân viên phản hồi việc được giao | Nhân viên bấm nhận? | Việc "đang làm", phòng "đang dọn" | Giao lại người trực kế tiếp; hết người → "chờ giao" + cảnh báo |
 | D3 | Theo dõi thời gian | Việc đã quá 60 phút kể từ tạo mà chưa hoàn tất? | Đánh cờ "quá hạn" + cảnh báo quản lý và nhân viên phụ trách | Không làm gì |
 | D4 | Quản lý kiểm tra | Quản lý xác nhận đạt? | Việc "hoàn tất", phòng "sạch" | Trả lại: bắt buộc ghi chú, việc về "đang làm", phòng về "đang dọn" |
-| D5 | Hiển thị sẵn sàng | Phòng trống + sạch + đang phục vụ? | Hiển thị "sẵn sàng" trên dashboard | Không hiển thị "sẵn sàng" |
+| D5 | Hiển thị sẵn sàng | Phòng trống + sạch + bảo trì bình thường? | Hiển thị "sẵn sàng" trên dashboard | Không hiển thị "sẵn sàng" |
 
 ### 6.2 Scenario Matrix
 
@@ -256,7 +256,6 @@ chờ giao → đã giao → đang làm → chờ xác nhận → hoàn tất
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Danh sách "nhân viên buồng phòng đang trực" lấy từ đâu trong MVP — giả lập cố định, hay quản lý đánh dấu theo ca?
 - [ ] OQ-2: Cảnh báo quá hạn phát 1 lần khi vượt ngưỡng, hay lặp lại định kỳ (vd mỗi 15 phút) tới khi hoàn tất?
 - [ ] OQ-3: Việc "chờ xác nhận" quá lâu (quản lý không phản hồi) có cần ngưỡng nhắc riêng không? Bao nhiêu phút?
 

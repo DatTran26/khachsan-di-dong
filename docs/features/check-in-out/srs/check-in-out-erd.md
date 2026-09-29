@@ -14,9 +14,9 @@ erDiagram
     PHONG {
         string id PK
         string so_phong
-        string luu_tru "trong | dang_o"
-        string ve_sinh "doc tu room-catalog / doi khi tra"
-        string bao_tri "doc — chan nhan neu ngung"
+        string truc_luu_tru "trong | dang_o"
+        string truc_ve_sinh "doc tu room-catalog / doi khi tra"
+        string truc_bao_tri "doc — chan nhan neu ngung"
     }
 
     LUOT_LUU_TRU {

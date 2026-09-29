@@ -101,8 +101,8 @@ flowchart TB
 ## Flow: Báo hoàn tất → xác nhận / trả lại (Sequence)
 
 **Related UC**: [[../usecases/uc-bao-hoan-tat.md]], [[../usecases/uc-xac-nhan-tra-lai.md]]
-**Related FR**: FR-housekeeping-005, FR-housekeeping-006, FR-housekeeping-007
-**Related E**: E-housekeeping-005
+**Related FR**: FR-housekeeping-005, FR-housekeeping-006, FR-housekeeping-007, FR-housekeeping-008, FR-housekeeping-009
+**Related E**: E-housekeeping-005, E-housekeeping-007
 
 ```mermaid
 sequenceDiagram
@@ -110,13 +110,18 @@ sequenceDiagram
     actor QL as QuanLy
     participant Server as MayChu
 
-    NV->>Server: Bao hoan tat
+    NV->>Server: Tai anh tong quan, khu ngu, nha ve sinh
+    alt Thieu anh bat buoc / tai loi
+        Server-->>NV: E-housekeeping-007
+    else Du bo anh
+        NV->>Server: Bao hoan tat
     Server->>Server: cho xac nhan / cho kiem tra
     Server-->>QL: Thong bao hang cho
+    QL->>Server: Mo gallery, phong to anh
     alt QL xac nhan
         QL->>Server: Xac nhan
         Server->>Server: hoan tat / sach
-        Note over Server: San sang neu trong + sach + dang phuc vu
+        Note over Server: San sang neu trong + sach + binh thuong
     else QL tra lai
         QL->>Server: Tra lai + ghi chu
         alt Thieu ghi chu
@@ -126,6 +131,7 @@ sequenceDiagram
         end
     end
     Server->>Server: Nhat ky + realtime
+    end
 ```
 
 ## Flow: Cảnh báo quá hạn (Activity)

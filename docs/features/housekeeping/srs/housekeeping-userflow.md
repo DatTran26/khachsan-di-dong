@@ -23,7 +23,9 @@ flowchart TD
     n3["[2] Chi tiet viec"]
     n4{"Nhan OK?"}
     n5["E-housekeeping-001 / 004"]
-    n6["Bao hoan tat"]
+    n6["Chup/tai anh nghiem thu"]
+    n6a{"Du 3 nhom anh?"}
+    n6b["Bao hoan tat"]
     n7["[3] Hang cho xac nhan"]
     n8{"Xac nhan hay tra lai?"}
     n9["Hoan tat / sach"]
@@ -42,7 +44,10 @@ flowchart TD
     n5 -.->|"tai lai"| n2
     n4 -->|"ok"| n3
     n3 -->|"bao hoan tat"| n6
-    n6 --> n7
+    n6 --> n6a
+    n6a -->|"chua"| n6
+    n6a -->|"du"| n6b
+    n6b --> n7
     n7 --> n8
     n8 -->|"xac nhan"| n9
     n8 -->|"tra lai"| n10
@@ -69,8 +74,8 @@ flowchart TD
 | [#] | Slug | Màn hình | Mục đích | Thuộc flow |
 |-----|------|----------|----------|------------|
 | 1 | viec-cua-toi | Việc của tôi | NV xem việc giao/đang làm; nhận/từ chối; cờ quá hạn | xu-ly-viec |
-| 2 | chi-tiet-viec | Chi tiết công việc | Nhận/từ chối/báo hoàn tất; xem ghi chú trả lại | xu-ly-viec, xac-nhan |
-| 3 | hang-cho-xac-nhan | Hàng chờ xác nhận | QL xác nhận / trả lại | xac-nhan |
+| 2 | chi-tiet-viec | Chi tiết công việc | Nhận/từ chối/chụp ảnh/báo hoàn tất; xem ghi chú trả lại | xu-ly-viec, xac-nhan |
+| 3 | hang-cho-xac-nhan | Hàng chờ xác nhận | QL xem gallery ảnh, xác nhận / trả lại | xac-nhan |
 | 4 | danh-sach-cong-viec | Danh sách công việc | QL lọc + phân công lại + quá hạn | quan-ly-viec |
 
 ## 3. Danh sách flow
@@ -94,6 +99,5 @@ flowchart TD
 
 > Canonical: `srs/housekeeping-spec.md` Mục 12 — chỉ ref.
 
-- [ ] OQ-1: xem `spec.md#OQ-1` — Nguồn danh sách NV buồng phòng đang trực?
 - [ ] OQ-2: xem `spec.md#OQ-2` — Cảnh báo quá hạn 1 lần hay lặp định kỳ?
 - [ ] OQ-3: xem `spec.md#OQ-3` — Việc chờ xác nhận quá lâu có ngưỡng nhắc riêng?

@@ -98,5 +98,3 @@ flowchart TD
 > Chỉ ref — không tự trả lời. Canonical: `srs/maintenance-spec.md` Mục 14.
 
 - [ ] OQ-1: xem `spec.md#OQ-1` — Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo?
-- [ ] OQ-2: xem `spec.md#OQ-2` — Cơ chế giao việc — tự nhận hay chỉ định từ đầu?
-- [ ] OQ-3: xem `spec.md#OQ-3` — Việc trên phòng đang có khách — sửa giữa kỳ lưu trú hay chờ trả?

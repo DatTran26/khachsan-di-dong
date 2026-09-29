@@ -55,7 +55,7 @@ Ref: `[[docs/features/ai-ops-summary/ai-ops-summary-urd.md]]` mục User Types +
 | CAP-ai-ops-summary-05 | Hiển thị kèm thời điểm dữ liệu + nhãn "tham khảo"/"báo cáo mẫu" | P0 | Cam kết tôn chỉ; chống nhầm bản AI là quyết định hệ thống | ~3 | UN-004 → BO-01 |
 | CAP-ai-ops-summary-06 | Hạn mức chi phí + fallback báo cáo mẫu | P0 | Bảo vệ ngân sách 300.000 VNĐ và tính liên tục vận hành | ~4 | UN-005 → BO-02, BO-03 |
 | CAP-ai-ops-summary-07 | Gợi ý việc cần chú ý liên kết về dashboard (việc quá hạn, phòng ngừng phục vụ) | P1 | Tăng giá trị hành động; phụ thuộc dashboard có sẵn | ~3 | UN-003 → BO-01 |
-| CAP-ai-ops-summary-08 | Xem lại bản tóm tắt gần nhất đã tạo | P1 | Tiện cho quản lý; phụ thuộc quyết định lưu ở OQ-4 | ~3 | UN-006 → BO-01 |
+| CAP-ai-ops-summary-08 | Xem lại bản tóm tắt gần nhất đã tạo | P1 | Tiện cho quản lý, không phát sinh lượt gọi AI mới | ~3 | UN-006 → BO-01 |
 | CAP-ai-ops-summary-09 | Tự động tạo tóm tắt theo lịch cuối ca | P2 | Ngoài MVP — tôn chỉ chỉ yêu cầu theo yêu cầu | ~4 | UN-001 → BO-01 |
 
 ### Done when (product level)
@@ -67,7 +67,7 @@ Ref: `[[docs/features/ai-ops-summary/ai-ops-summary-urd.md]]` mục User Types +
 - CAP-ai-ops-summary-05: 100% bản hiển thị kèm "Dữ liệu tính đến {T}" và nhãn đúng loại ("tham khảo" cho bản AI / "báo cáo mẫu" cho bản mẫu).
 - CAP-ai-ops-summary-06: Mọi lượt gọi AI đi qua kiểm tra hạn mức ở máy chủ; AI lỗi/timeout/hết hạn mức/đầu ra sai/kỳ rỗng → báo cáo mẫu đủ chỉ số chính + việc cần chú ý theo quy tắc; mọi lượt tạo có nhật ký.
 - CAP-ai-ops-summary-07: Mục việc cần chú ý dẫn về đúng vị trí tương ứng trên dashboard.
-- CAP-ai-ops-summary-08: Quản lý mở lại được bản gần nhất mà không tạo mới (chỉ khi OQ-4 chốt lưu).
+- CAP-ai-ops-summary-08: Quản lý mở lại được bản gần nhất mà không tạo mới.
 - CAP-ai-ops-summary-09: (Sau MVP) hệ thống tự tạo tóm tắt theo lịch cuối ca.
 
 ## 5. Upstream Traceability
@@ -108,16 +108,14 @@ Ref: `[[docs/features/ai-ops-summary/ai-ops-summary-urd.md]]` mục User Types +
 | Nhóm chỉ số tổng hợp của kỳ | Feature `room-dashboard` (sprint 3, song song) | Chưa có — tham chiếu theo PRD 7.7 | CAP-02, CAP-07 |
 | Sự kiện nổi bật trong kỳ + ghi nhật ký lượt tạo | Feature `audit-log` (sprint 2–3) | Chưa có — tham chiếu theo PRD 7.8 | CAP-02, CAP-06 |
 | Vai trò quản lý + kiểm quyền máy chủ | Feature `auth-roles` (sprint 1) | Đã chi tiết | CAP-ai-ops-summary-01 |
-| Dịch vụ LLM có đầu ra cấu trúc | Vendor ngoài — chọn ở OQ-3 | Chưa chốt | CAP-ai-ops-summary-03 |
+| Dịch vụ LLM có đầu ra cấu trúc | OpenAI Responses API, Structured Outputs | Đã chốt | CAP-ai-ops-summary-03 |
 | Ngân sách API AI 300.000 VNĐ | WPCTeam (tôn chỉ) | Đã phân bổ | CAP-ai-ops-summary-06 |
 
 ## 9. Assumptions
 
-- Khung giờ "ca" định nghĩa sẵn trong hệ thống — OQ-1.
-- Hình thức hạn mức (số lần/ngày, ngưỡng chi phí, hay cả hai) chưa chốt — OQ-2.
-- Provider LLM chưa chốt; tôn chỉ nêu ví dụ OpenAI/Google AI — OQ-3.
-- Lưu bản tóm tắt để xem lại hay chỉ tức thời chưa chốt — OQ-4 (CAP-08 phụ thuộc).
-- Thời gian chờ dịch vụ AI chưa chốt — OQ-5.
+- Ca cố định 06:00–14:00, 14:00–22:00, 22:00–06:00 theo giờ địa phương; có tùy chọn hôm nay.
+- Hạn mức là chi phí thực tế, tối đa 300.000 VNĐ toàn MVP; timeout 15 giây.
+- Dùng OpenAI Responses API với Structured Outputs; lưu bản gần nhất của mỗi kỳ.
 - Dữ liệu giả lập đủ sự kiện để tóm tắt có nội dung (kịch bản ca đỉnh).
 
 ## 10. Risks (product)
@@ -139,7 +137,7 @@ Ref: `[[docs/features/ai-ops-summary/ai-ops-summary-urd.md]]` mục User Types +
 ### Next (cuối Sprint 3 / Sprint 4 nếu còn thời gian)
 
 - CAP-ai-ops-summary-07 — liên kết việc cần chú ý về dashboard.
-- CAP-ai-ops-summary-08 — xem lại bản gần nhất (chỉ khi OQ-4 chốt lưu).
+- CAP-ai-ops-summary-08 — xem lại bản gần nhất.
 
 ### Later (sau MVP)
 
@@ -152,9 +150,3 @@ Ref: `[[docs/features/ai-ops-summary/ai-ops-summary-urd.md]]` mục User Types +
 - Rollback: tắt gọi AI (hết hạn mức) — báo cáo mẫu thay thế hoàn toàn, không mất chức năng xem số liệu.
 
 ## 13. Open Questions
-
-- [ ] OQ-1: Khung giờ "ca" để tóm tắt định nghĩa thế nào — ca cố định theo giờ (vd sáng/chiều/tối) hay quản lý chọn khoảng thời gian tùy ý?
-- [ ] OQ-2: Hạn mức AI cụ thể là gì — số lần tạo tối đa/ngày, ngưỡng chi phí cắt, hay cả hai? Giá trị bao nhiêu?
-- [ ] OQ-3: Chọn dịch vụ LLM nào cho demo (OpenAI, Google AI, hay provider khác có đầu ra có cấu trúc)?
-- [ ] OQ-4: Bản tóm tắt đã tạo có được lưu để xem lại trong ngày, hay chỉ hiển thị tức thời?
-- [ ] OQ-5: Thời gian chờ tối đa khi gọi dịch vụ AI trước khi rơi về báo cáo mẫu là bao nhiêu giây?

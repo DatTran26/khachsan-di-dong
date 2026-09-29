@@ -88,10 +88,10 @@ Dashboard trạng thái phòng giúp quản lý biết ngay tình trạng toàn 
 - **Related needs:** UN-004, UN-005
 
 1) Lễ tân mở dashboard, lọc trạng thái "sẵn sàng" (kèm tầng nếu cần).
-2) Lưới chỉ còn các phòng trống + sạch + đang phục vụ tại thời điểm đó.
+2) Lưới chỉ còn các phòng trống + sạch + bảo trì bình thường tại thời điểm đó.
 3) Lễ tân nhận khách trên màn nghiệp vụ nhận/trả phòng; dashboard cập nhật phòng sang "đang ở" ngay sau xác nhận.
 
-**Independent verification:** Mọi phòng trong nhóm "sẵn sàng" đều thỏa trống + sạch + đang phục vụ; thay đổi trạng thái phản ánh trên dashboard ≤3 giây.
+**Independent verification:** Mọi phòng trong nhóm "sẵn sàng" đều thỏa trống + sạch + bảo trì bình thường; thay đổi trạng thái phản ánh trên dashboard ≤3 giây.
 
 ### Journey 3: Cập nhật realtime từ các bộ phận
 
@@ -147,9 +147,9 @@ Dashboard trạng thái phòng giúp quản lý biết ngay tình trạng toàn 
 | Assumption | Impact if Wrong | Validation Status | Next Action |
 |------------|-----------------|-------------------|-------------|
 | Mẫu số tỷ lệ lấp đầy = phòng không "ngừng phục vụ" | Chỉ số lấp đầy sai lệch kỳ vọng nghiệm thu | Assumption có căn cứ từ công thức tôn chỉ | Xác nhận khi đối soát nghiệm thu |
-| Chỉ số "phòng cần dọn" = phòng có trục vệ sinh chưa đạt "sạch" (gồm đang dọn, chờ kiểm tra) | Chỉ số cần dọn thiếu hoặc thừa | Chưa xác nhận — OQ-2 | Chốt cách đếm trước khi đặc tả chỉ số |
+| Chỉ số "phòng cần dọn" chỉ đếm trục vệ sinh `can_don` | Tránh trộn phòng chưa xử lý với phòng đang dọn/đợi duyệt | Đã chốt | Hiển thị riêng 3 trạng thái vệ sinh trên lưới |
 | Cờ "quá hạn" do feature nghiệp vụ sở hữu đánh, dashboard chỉ hiển thị và đếm | Nếu sai, dashboard phải tự tính ngưỡng → phình scope | Assumption nhất quán phạm vi "giám sát, không sở hữu luồng" | Xác nhận khi `maintenance` chi tiết hóa (OQ-1) |
-| Dashboard v1 chỉ cần trên web | Nếu nghiệm thu bắt buộc Android → thiếu nền tảng | Chưa xác nhận — OQ-3 | Đối chiếu tiêu chí nghiệm thu với điều phối viên |
+| Dashboard v1 chỉ cần trên web | Giữ đúng bối cảnh quản lý/lễ tân tại quầy | Đã chốt | Android là hậu MVP |
 
 ## 9. User Success Criteria
 
@@ -158,11 +158,9 @@ Dashboard trạng thái phòng giúp quản lý biết ngay tình trạng toàn 
 | USC-001 | Quản lý có cái nhìn tổng tin cậy | Chưa có — phải hỏi từng người | 100% chỉ số dashboard khớp dữ liệu đối soát | Đối soát trong nghiệm thu | Nghiệm thu (02/11/2026) |
 | USC-002 | Mọi thiết bị thấy cùng trạng thái mới nhất | Chưa có — cập nhật thủ công qua lễ tân | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | Đo theo tiêu chí tôn chỉ (50 phòng, ~10 phiên) | Nghiệm thu |
 | USC-003 | Việc trễ không còn lặng lẽ | Chưa có — quá hạn phải tự phát hiện | 100% công việc có cờ quá hạn được tô cờ và đếm trên dashboard | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" | Sprint 3 |
-| USC-004 | Nhãn "sẵn sàng" luôn đáng tin | Chưa có | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + đang phục vụ | Đối chiếu trạng thái nguồn trong test | Nghiệm thu |
+| USC-004 | Nhãn "sẵn sàng" luôn đáng tin | Chưa có | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + bảo trì bình thường | Đối chiếu trạng thái nguồn trong test | Nghiệm thu |
 
 ## 10. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`.
-- [ ] OQ-2: Chỉ số "phòng cần dọn" đếm chỉ phòng ở trạng thái "cần dọn", hay mọi phòng chưa đạt "sạch" (gồm "đang dọn", "chờ kiểm tra")?
-- [ ] OQ-3: Dashboard có cần hiển thị trong app Android cho quản lý/lễ tân không — tiêu chí nghiệm thu tôn chỉ liệt kê "dashboard" trong bộ kịch bản chạy trên cả Flutter Web và Android, trong khi PRD ghi "quản lý mở dashboard trên web"?
 - [ ] OQ-4: Chạm vào một ô phòng có mở màn chi tiết phòng (đủ 3 trục + công việc đang mở + liên kết sang màn xử lý của housekeeping/maintenance) không, hay lưới tổng quan đã đủ cho v1?

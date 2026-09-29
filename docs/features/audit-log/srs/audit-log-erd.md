@@ -30,7 +30,7 @@ erDiagram
     CHI_TIET_THAY_DOI {
         string id PK
         string ban_ghi_id FK
-        string truc_hoac_truong "luu_tru ve_sinh bao_tri"
+        string truc_hoac_truong "truc_luu_tru truc_ve_sinh truc_bao_tri"
         string gia_tri_truoc
         string gia_tri_sau
         int thu_tu

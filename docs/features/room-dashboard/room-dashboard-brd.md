@@ -125,7 +125,7 @@ Một dashboard web realtime: quản lý mở lên là thấy lưới 50 phòng 
 |----|---------------|-----------|
 | BR-room-dashboard-01 | Ba trục lưu trú / vệ sinh / bảo trì luôn hiển thị riêng, không gộp thành 1 trạng thái | Ràng buộc lõi tôn chỉ để tránh nhầm lẫn |
 | BR-room-dashboard-02 | Tỷ lệ lấp đầy = phòng đang ở ÷ phòng có thể phục vụ × 100%; mẫu số = 0 hiển thị "không áp dụng" | Công thức tôn chỉ |
-| BR-room-dashboard-03 | Phòng chỉ được tính/hiển thị "sẵn sàng" khi trống + sạch + đang phục vụ | Điều kiện nhận phòng tôn chỉ; "sẵn sàng" là composite không phải trạng thái lưu (tham chiếu `housekeeping` BR-housekeeping-03) |
+| BR-room-dashboard-03 | Phòng chỉ được tính/hiển thị "sẵn sàng" khi trống + sạch + bảo trì bình thường | Điều kiện nhận phòng tôn chỉ; "sẵn sàng" là composite không phải trạng thái lưu (tham chiếu `housekeeping` BR-housekeeping-03) |
 | BR-room-dashboard-04 | Cờ "quá hạn" do feature nghiệp vụ sở hữu đánh theo quy tắc (việc dọn 60 phút theo `housekeeping`; việc sửa chờ OQ-1 ở `maintenance`); dashboard chỉ hiển thị và đếm — không dùng AI | Tôn chỉ: cảnh báo quá hạn bằng quy tắc; dashboard giám sát, không sở hữu luồng |
 | BR-room-dashboard-05 | Dashboard chỉ đọc: mọi thay đổi trạng thái/công việc thực hiện ở feature nghiệp vụ sở hữu | Phạm vi giám sát của Feature Map; chống scope creep |
 | BR-room-dashboard-06 | Chỉ vai trò quản lý và lễ tân được xem dashboard | PRD 7.7 (màn hình tổng cho quản lý, tham khảo cho lễ tân) + project profile |
@@ -161,6 +161,4 @@ Một dashboard web realtime: quản lý mở lên là thấy lưới 50 phòng 
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`.
-- [ ] OQ-2: Chỉ số "phòng cần dọn" đếm chỉ phòng ở trạng thái "cần dọn", hay mọi phòng chưa đạt "sạch" (gồm "đang dọn", "chờ kiểm tra")?
-- [ ] OQ-3: Dashboard có cần hiển thị trong app Android cho quản lý/lễ tân không — tiêu chí nghiệm thu tôn chỉ liệt kê "dashboard" trong bộ kịch bản chạy trên cả Flutter Web và Android, trong khi PRD ghi "quản lý mở dashboard trên web"?
 - [ ] OQ-4: Chạm vào một ô phòng có mở màn chi tiết phòng (đủ 3 trục + công việc đang mở + liên kết sang màn xử lý của housekeeping/maintenance) không, hay lưới tổng quan đã đủ cho v1?

@@ -179,5 +179,3 @@ Chu trình báo hỏng và bảo trì giúp mọi vai trò báo hỏng ngay khi 
 ## 10. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho việc bảo trì (bao nhiêu phút/giờ)? Cảnh báo phát 1 lần hay lặp lại?
-- [ ] OQ-2: Cơ chế giao việc — nhân viên tự nhận từ danh sách chung (giả định MVP) hay quản lý/lễ tân chỉ định từ đầu?
-- [ ] OQ-3: Việc bảo trì trên phòng đang có khách xử lý khi nào — sửa giữa kỳ lưu trú hay chờ khách trả?

@@ -23,9 +23,9 @@ erDiagram
         string so_phong UK "so phong duy nhat"
         int tang "so nguyen duong"
         string loai_phong_id FK
-        string luu_tru "trong | dang_o"
-        string ve_sinh "can_don | dang_don | cho_kiem_tra | sach"
-        string bao_tri "binh_thuong | ngung_phuc_vu"
+        string truc_luu_tru "trong | dang_o"
+        string truc_ve_sinh "can_don | dang_don | cho_kiem_tra | sach"
+        string truc_bao_tri "binh_thuong | ngung_phuc_vu"
         string ly_do_ngung "bat buoc khi ngung phuc vu"
         boolean co_lich_su "da co hoat dong — chan xoa cung"
         datetime updated_at

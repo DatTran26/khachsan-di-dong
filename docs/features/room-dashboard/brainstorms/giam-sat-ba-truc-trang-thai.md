@@ -80,7 +80,7 @@ có mạng lại ─────────────────────
 ### 5.2 Lễ tân kiểm tra phòng sẵn sàng trước khi nhận khách
 
 1) Lễ tân mở dashboard (tham khảo), lọc trạng thái "sẵn sàng" kèm tầng nếu cần.
-2) Lưới chỉ còn các phòng trống + sạch + đang phục vụ tại thời điểm đó.
+2) Lưới chỉ còn các phòng trống + sạch + bảo trì bình thường tại thời điểm đó.
 3) Lễ tân nhận khách trên màn nghiệp vụ nhận/trả phòng; dashboard cập nhật phòng sang "đang ở" ngay sau khi lễ tân xác nhận.
 
 ### 5.3 Quản lý xử lý việc quá hạn
@@ -95,7 +95,7 @@ có mạng lại ─────────────────────
 
 | ID | Tình huống | Điều kiện | YES | NO |
 |----|-----------|-----------|-----|----|
-| D1 | Nhãn "sẵn sàng" của phòng | Phòng trống + sạch + đang phục vụ? | Hiển thị "sẵn sàng", đếm vào chỉ số sẵn sàng | Hiển thị trạng thái thật của từng trục |
+| D1 | Nhãn "sẵn sàng" của phòng | Phòng trống + sạch + bảo trì bình thường? | Hiển thị "sẵn sàng", đếm vào chỉ số sẵn sàng | Hiển thị trạng thái thật của từng trục |
 | D2 | Tỷ lệ lấp đầy | Mẫu số "phòng có thể phục vụ" = 0? | Hiển thị "không áp dụng" | Hiển thị % bình thường |
 | D3 | Kết nối realtime | Đang mất kết nối? | Banner offline + đánh dấu dữ liệu có thể lỗi thời | Hiển thị bình thường |
 | D4 | Cờ quá hạn trên ô phòng | Phòng có ≥1 công việc đang mở bị cờ quá hạn? | Tô cờ ô phòng + đếm vào chỉ số quá hạn | Không cờ |
@@ -121,7 +121,7 @@ Dashboard không sở hữu vòng đời trạng thái — chỉ đọc và hi�
 | Vệ sinh | cần dọn / đang dọn / chờ kiểm tra / sạch | `housekeeping` |
 | Bảo trì | bình thường / ngừng phục vụ | `maintenance` |
 
-- "Sẵn sàng" là trạng thái suy ra (composite: trống + sạch + đang phục vụ), không phải trạng thái lưu của trục nào — tham chiếu `housekeeping`.
+- "Sẵn sàng" là trạng thái suy ra (composite: trống + sạch + bảo trì bình thường), không phải trạng thái lưu của trục nào — tham chiếu `housekeeping`.
 - "Quá hạn" là cờ suy ra trên công việc theo quy tắc thời gian — việc dọn do `housekeeping` đánh (60 phút), việc sửa do `maintenance` đánh (ngưỡng chờ OQ-1).
 
 ### 6.4 Interrupted Transactions & Edge Cases
@@ -147,7 +147,7 @@ Edge cases khác:
 
 | Element | Rule |
 |---------|------|
-| Chỉ số "sẵn sàng" | Chỉ đếm phòng trống + sạch + đang phục vụ |
+| Chỉ số "sẵn sàng" | Chỉ đếm phòng trống + sạch + bảo trì bình thường |
 | Chỉ số "việc quá hạn" | Đếm công việc đang mở có cờ quá hạn (cờ do feature nguồn đánh) |
 | Tỷ lệ lấp đầy | Tử = phòng "đang ở"; mẫu = phòng không "ngừng phục vụ"; mẫu = 0 → "không áp dụng" |
 | Lọc theo tầng | Theo dữ liệu tầng của danh mục phòng (`room-catalog`) |
@@ -212,8 +212,6 @@ Edge cases khác:
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`.
-- [ ] OQ-2: Chỉ số "phòng cần dọn" đếm chỉ phòng ở trạng thái "cần dọn", hay mọi phòng chưa đạt "sạch" (gồm "đang dọn", "chờ kiểm tra")?
-- [ ] OQ-3: Dashboard có cần hiển thị trong app Android cho quản lý/lễ tân không — tiêu chí nghiệm thu tôn chỉ liệt kê "dashboard" trong bộ kịch bản chạy trên cả Flutter Web và Android, trong khi PRD ghi "quản lý mở dashboard trên web"?
 - [ ] OQ-4: Chạm vào một ô phòng có mở màn chi tiết phòng (đủ 3 trục + công việc đang mở + liên kết sang màn xử lý của housekeeping/maintenance) không, hay lưới tổng quan đã đủ cho v1?
 
 ## 12. Next Steps

@@ -156,5 +156,3 @@ Ai phát hiện cũng báo hỏng trực tiếp vào hệ thống kèm phòng + 
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho việc bảo trì (bao nhiêu phút/giờ)? Cảnh báo phát 1 lần hay lặp lại?
-- [ ] OQ-2: Cơ chế giao việc — nhân viên tự nhận từ danh sách chung (giả định MVP) hay chỉ định từ đầu?
-- [ ] OQ-3: Việc bảo trì trên phòng đang có khách xử lý khi nào — sửa giữa kỳ lưu trú hay chờ khách trả?

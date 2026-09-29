@@ -96,7 +96,7 @@ Ref: `[[docs/features/maintenance/maintenance-urd.md]]` mục User Types + Journ
 
 ## 7. Assumptions
 
-- Việc bảo trì vào danh sách chung, nhân viên tự nhận — OQ-2 (nếu đổi sang chỉ định từ đầu, CAP-08 lên P0).
+- Việc bảo trì vào danh sách chung, nhân viên tự nhận; chỉ định từ đầu không thuộc MVP (CAP-08 giữ P1).
 - Báo xong → phòng mở lại ngay, không bước xác nhận (PRD chốt).
 - "Ngừng phục vụ" 2 nguồn độc lập: việc mở (tự gỡ) và đặt tay (gỡ tay).
 - Thông báo qua realtime trong app, không SMS/push ngoài.
@@ -132,5 +132,3 @@ Ref: `[[docs/features/maintenance/maintenance-urd.md]]` mục User Types + Journ
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo (1 lần hay lặp)?
-- [ ] OQ-2: Cơ chế giao việc — tự nhận từ danh sách chung hay chỉ định từ đầu?
-- [ ] OQ-3: Việc bảo trì trên phòng đang có khách — sửa giữa kỳ lưu trú hay chờ trả?
