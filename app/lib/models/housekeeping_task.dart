@@ -1,16 +1,25 @@
-enum HousekeepingStatus { pending, accepted, cleaning, pendingInspection, done }
+/// Khớp enum `HousekeepingTaskStatus` phía BE:
+/// UNASSIGNED → (quản lý giao) ASSIGNED → (nhân viên nhận) IN_PROGRESS → (báo xong) PENDING_CONFIRM
+/// → (quản lý xác nhận) DONE; quản lý trả lại → IN_PROGRESS kèm `returnNote`; nhân viên từ chối → UNASSIGNED.
+enum HousekeepingStatus {
+  unassigned,
+  assigned,
+  inProgress,
+  pendingConfirm,
+  done
+}
 
 extension HousekeepingStatusX on HousekeepingStatus {
   String get label {
     switch (this) {
-      case HousekeepingStatus.pending:
+      case HousekeepingStatus.unassigned:
         return 'Chờ giao';
-      case HousekeepingStatus.accepted:
-        return 'Đã nhận';
-      case HousekeepingStatus.cleaning:
+      case HousekeepingStatus.assigned:
+        return 'Chờ nhận';
+      case HousekeepingStatus.inProgress:
         return 'Đang dọn';
-      case HousekeepingStatus.pendingInspection:
-        return 'Chờ xác nhận';
+      case HousekeepingStatus.pendingConfirm:
+        return 'Chờ kiểm tra';
       case HousekeepingStatus.done:
         return 'Hoàn tất';
     }
@@ -18,14 +27,14 @@ extension HousekeepingStatusX on HousekeepingStatus {
 
   String get value {
     switch (this) {
-      case HousekeepingStatus.pending:
-        return 'PENDING';
-      case HousekeepingStatus.accepted:
-        return 'ACCEPTED';
-      case HousekeepingStatus.cleaning:
-        return 'CLEANING';
-      case HousekeepingStatus.pendingInspection:
-        return 'PENDING_INSPECTION';
+      case HousekeepingStatus.unassigned:
+        return 'UNASSIGNED';
+      case HousekeepingStatus.assigned:
+        return 'ASSIGNED';
+      case HousekeepingStatus.inProgress:
+        return 'IN_PROGRESS';
+      case HousekeepingStatus.pendingConfirm:
+        return 'PENDING_CONFIRM';
       case HousekeepingStatus.done:
         return 'DONE';
     }
@@ -33,16 +42,16 @@ extension HousekeepingStatusX on HousekeepingStatus {
 
   static HousekeepingStatus fromString(String v) {
     switch (v) {
-      case 'ACCEPTED':
-        return HousekeepingStatus.accepted;
-      case 'CLEANING':
-        return HousekeepingStatus.cleaning;
-      case 'PENDING_INSPECTION':
-        return HousekeepingStatus.pendingInspection;
+      case 'ASSIGNED':
+        return HousekeepingStatus.assigned;
+      case 'IN_PROGRESS':
+        return HousekeepingStatus.inProgress;
+      case 'PENDING_CONFIRM':
+        return HousekeepingStatus.pendingConfirm;
       case 'DONE':
         return HousekeepingStatus.done;
       default:
-        return HousekeepingStatus.pending;
+        return HousekeepingStatus.unassigned;
     }
   }
 }
@@ -52,9 +61,11 @@ class HousekeepingRoomRef {
   final String number;
   final int floor;
 
-  const HousekeepingRoomRef({required this.id, required this.number, required this.floor});
+  const HousekeepingRoomRef(
+      {required this.id, required this.number, required this.floor});
 
-  factory HousekeepingRoomRef.fromJson(Map<String, dynamic> json) => HousekeepingRoomRef(
+  factory HousekeepingRoomRef.fromJson(Map<String, dynamic> json) =>
+      HousekeepingRoomRef(
         id: json['id'] as String,
         number: json['number'] as String,
         floor: json['floor'] as int,
@@ -67,7 +78,8 @@ class HousekeepingAssigneeRef {
 
   const HousekeepingAssigneeRef({required this.id, required this.fullName});
 
-  factory HousekeepingAssigneeRef.fromJson(Map<String, dynamic> json) => HousekeepingAssigneeRef(
+  factory HousekeepingAssigneeRef.fromJson(Map<String, dynamic> json) =>
+      HousekeepingAssigneeRef(
         id: json['id'] as String,
         fullName: json['fullName'] as String,
       );
@@ -104,25 +116,38 @@ class HousekeepingTask {
     required this.version,
   });
 
-  factory HousekeepingTask.fromJson(Map<String, dynamic> json) => HousekeepingTask(
+  factory HousekeepingTask.fromJson(Map<String, dynamic> json) =>
+      HousekeepingTask(
         id: json['id'] as String,
-        room: HousekeepingRoomRef.fromJson(json['room'] as Map<String, dynamic>),
+        room:
+            HousekeepingRoomRef.fromJson(json['room'] as Map<String, dynamic>),
         assignee: json['assignee'] != null
-            ? HousekeepingAssigneeRef.fromJson(json['assignee'] as Map<String, dynamic>)
+            ? HousekeepingAssigneeRef.fromJson(
+                json['assignee'] as Map<String, dynamic>)
             : null,
         status: HousekeepingStatusX.fromString(json['status'] as String),
         isOverdue: json['isOverdue'] as bool,
         dueAt: DateTime.parse(json['dueAt'] as String),
         returnNote: json['returnNote'] as String?,
         createdAt: DateTime.parse(json['createdAt'] as String),
-        assignedAt: json['assignedAt'] != null ? DateTime.parse(json['assignedAt'] as String) : null,
-        startedAt: json['startedAt'] != null ? DateTime.parse(json['startedAt'] as String) : null,
-        completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt'] as String) : null,
-        confirmedAt: json['confirmedAt'] != null ? DateTime.parse(json['confirmedAt'] as String) : null,
+        assignedAt: json['assignedAt'] != null
+            ? DateTime.parse(json['assignedAt'] as String)
+            : null,
+        startedAt: json['startedAt'] != null
+            ? DateTime.parse(json['startedAt'] as String)
+            : null,
+        completedAt: json['completedAt'] != null
+            ? DateTime.parse(json['completedAt'] as String)
+            : null,
+        confirmedAt: json['confirmedAt'] != null
+            ? DateTime.parse(json['confirmedAt'] as String)
+            : null,
         version: json['version'] as int,
       );
 
-  HousekeepingTask copyWith({HousekeepingStatus? status, bool? isOverdue, int? version}) => HousekeepingTask(
+  HousekeepingTask copyWith(
+          {HousekeepingStatus? status, bool? isOverdue, int? version}) =>
+      HousekeepingTask(
         id: id,
         room: room,
         assignee: assignee,
