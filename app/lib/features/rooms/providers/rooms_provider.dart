@@ -86,6 +86,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   void _setupSocket() {
     socketService.onRoomUpdated = _handleRoomUpdated;
+    socketService.onRoomCreated = _handleRoomCreated;
+    socketService.onRoomDeleted = _handleRoomDeleted;
     socketService.onConnectionChanged = _handleConnectionChanged;
   }
 
@@ -97,6 +99,17 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     if (updated.version <= current.version) return;
     final newRooms = [...state.rooms];
     newRooms[idx] = updated;
+    state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
+  }
+
+  void _handleRoomCreated(Map<String, dynamic> roomJson) {
+    final room = Room.fromJson(roomJson);
+    if (state.rooms.any((r) => r.id == room.id)) return;
+    state = state.copyWith(rooms: [...state.rooms, room], lastUpdated: DateTime.now());
+  }
+
+  void _handleRoomDeleted(String roomId) {
+    final newRooms = state.rooms.where((r) => r.id != roomId).toList();
     state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
   }
 
@@ -129,6 +142,95 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
   void clearFilter() {
     state = state.copyWith(filter: const RoomsFilter());
+  }
+
+  Future<Map<String, dynamic>> checkIn({
+    required String roomId,
+    required int version,
+    required String guestName,
+    required int guestCount,
+    String? note,
+    DateTime? expectedCheckout,
+  }) async {
+    final body = <String, dynamic>{
+      'version': version,
+      'guestName': guestName,
+      'guestCount': guestCount,
+    };
+    if (note != null && note.isNotEmpty) body['note'] = note;
+    if (expectedCheckout != null) body['expectedCheckout'] = expectedCheckout.toIso8601String();
+    final res = await apiClient.post('/rooms/$roomId/check-in', body: body);
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> checkOut({
+    required String roomId,
+    required int version,
+  }) async {
+    final res = await apiClient.post('/rooms/$roomId/check-out', body: {'version': version});
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> setOutOfService({
+    required String roomId,
+    required int version,
+    required String reason,
+    bool confirmOccupied = false,
+  }) async {
+    final body = <String, dynamic>{'version': version, 'reason': reason};
+    if (confirmOccupied) body['confirmOccupied'] = true;
+    await apiClient.post('/rooms/$roomId/out-of-service', body: body);
+  }
+
+  Future<void> backInService({required String roomId, required int version}) async {
+    await apiClient.post('/rooms/$roomId/back-in-service', body: {'version': version});
+  }
+
+  Future<Map<String, dynamic>> createRoom({
+    required String number,
+    required int floor,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms', body: {
+      'number': number,
+      'floor': floor,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createRoomRange({
+    required int floor,
+    required int from,
+    required int to,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms/bulk', body: {
+      'floor': floor,
+      'from': from,
+      'to': to,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateRoom({
+    required String roomId,
+    required int version,
+    String? number,
+    int? floor,
+    String? roomTypeId,
+  }) async {
+    final body = <String, dynamic>{'version': version};
+    if (number != null) body['number'] = number;
+    if (floor != null) body['floor'] = floor;
+    if (roomTypeId != null) body['roomTypeId'] = roomTypeId;
+    final res = await apiClient.patch('/rooms/$roomId', body: body);
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteRoom({required String roomId, required int version}) async {
+    await apiClient.delete('/rooms/$roomId', body: {'version': version});
   }
 }
 

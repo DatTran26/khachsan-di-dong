@@ -113,6 +113,14 @@ class ApiClient {
       throw _wrap(e);
     }
   }
+
+  Future<void> delete(String path, {Map<String, dynamic>? body}) async {
+    try {
+      await _dio.delete<dynamic>(path, data: body);
+    } catch (e) {
+      throw _wrap(e);
+    }
+  }
 }
 
 final apiClient = ApiClient();
