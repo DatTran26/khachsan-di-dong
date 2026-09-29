@@ -12,7 +12,7 @@ import '../../features/housekeeping/screens/housekeeping_screen.dart';
 import '../../features/maintenance/screens/maintenance_screen.dart';
 import '../../features/audit/screens/audit_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
-import '../../models/user.dart';
+import 'nav.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier<AuthState>(ref.read(authProvider));
@@ -35,21 +35,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/doi-mat-khau';
       }
 
-      if (path == '/dang-nhap') return '/dashboard';
-
       final role = auth.user?.role;
-      final isManagerOrReceptionist =
-          role == UserRole.manager || role == UserRole.receptionist;
+      if (path == '/dang-nhap' || path == '/') return homeFor(role);
+      if (path == '/doi-mat-khau') return null;
 
-      if (path.startsWith('/tai-khoan') && !isManagerOrReceptionist) {
-        return '/dashboard';
-      }
-      if (path.startsWith('/luot-o') && !isManagerOrReceptionist) {
-        return '/dashboard';
-      }
-      if (path.startsWith('/nhat-ky') && role != UserRole.manager) {
-        return '/dashboard';
-      }
+      // Chặn mở màn ngoài quyền (BE vẫn kiểm quyền — đây chỉ để không hiện màn lỗi 403).
+      if (!canOpen(role, path)) return homeFor(role);
 
       return null;
     },
@@ -105,8 +96,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         redirect: (_, __) => '/dashboard',
       ),
     ],
-    errorBuilder: (_, state) => Scaffold(
-      body: Center(child: Text('Trang không tồn tại: ${state.error}')),
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Không tìm thấy trang này.',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+                onPressed: () => context.go('/'),
+                child: const Text('Về trang chính')),
+          ],
+        ),
+      ),
     ),
   );
 });
