@@ -14,6 +14,9 @@ extension UserRoleX on UserRole {
     }
   }
 
+  /// Nhãn ngắn cho bảng, chip, thanh điều hướng.
+  String get shortLabel => this == UserRole.staff ? 'Nhân viên' : label;
+
   String get value {
     switch (this) {
       case UserRole.manager:
