@@ -94,18 +94,18 @@ class UsersNotifier extends StateNotifier<UsersState> {
     }
   }
 
-  Future<void> unlockUser(String id, int version) async {
-    try {
-      await apiClient.post('/users/$id/unlock', body: {'version': version});
-      await load();
-    } on ApiException {
-      rethrow;
-    }
+  /// Mở khóa → BE cấp mật khẩu tạm mới (trả về `tempPassword`).
+  Future<Map<String, dynamic>?> unlockUser(String id, int version) async {
+    final res =
+        await apiClient.post('/users/$id/unlock', body: {'version': version});
+    await load();
+    return res['data'] as Map<String, dynamic>?;
   }
 
   Future<Map<String, dynamic>?> resetPassword(String id, int version) async {
     try {
-      final res = await apiClient.post('/users/$id/reset-password', body: {'version': version});
+      final res = await apiClient
+          .post('/users/$id/reset-password', body: {'version': version});
       await load();
       return res['data'] as Map<String, dynamic>?;
     } on ApiException {

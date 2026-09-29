@@ -1,257 +1,378 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../models/user.dart';
-import '../providers/users_provider.dart';
-import '../widgets/user_form_dialog.dart';
-import '../widgets/temp_password_dialog.dart';
+import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
+import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../rooms/providers/rooms_provider.dart';
+import '../providers/users_provider.dart';
+import '../widgets/temp_password_dialog.dart';
+import '../widgets/user_form_dialog.dart';
 
-class UsersScreen extends ConsumerWidget {
+/// Tài khoản (auth-roles). Quản lý: mọi tài khoản. Lễ tân: tài khoản không phải quản lý.
+class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(usersProvider);
-    final currentUser = ref.watch(authProvider).user;
-    final isManager = currentUser?.role == UserRole.manager;
+  ConsumerState<UsersScreen> createState() => _UsersScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản lý tài khoản'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Tải lại',
-            onPressed: () => ref.read(usersProvider.notifier).load(),
-          ),
-          if (isManager)
-            IconButton(
-              icon: const Icon(Icons.person_add),
-              tooltip: 'Tạo tài khoản',
-              onPressed: () => showDialog(
-                context: context,
-                builder: (_) => const UserFormDialog(),
+class _UsersScreenState extends ConsumerState<UsersScreen> {
+  UserRole? _roleFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(usersProvider);
+    final me = ref.watch(authProvider).user;
+    final online = ref.watch(isOnlineProvider);
+    final wide = Breakpoints.isWide(context);
+    final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
+
+    if (state.isLoading && state.users.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (state.error != null && state.users.isEmpty) {
+      return ErrorState(
+          message: state.error!,
+          onRetry: () => ref.read(usersProvider.notifier).load());
+    }
+
+    final users = state.users
+        .where((u) => _roleFilter == null || u.role == _roleFilter)
+        .toList()
+      ..sort((a, b) {
+        final r = a.role.index.compareTo(b.role.index);
+        return r != 0 ? r : a.fullName.compareTo(b.fullName);
+      });
+    int count(UserRole? r) => r == null
+        ? state.users.length
+        : state.users.where((u) => u.role == r).length;
+
+    final rows = [
+      for (final u in users)
+        _UserRow(user: u, me: me, online: online, wide: wide),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(pad, wide ? 24 : 16, pad, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final r in <UserRole?>[null, ...UserRole.values])
+                FilterPill(
+                  label: '${r == null ? 'Tất cả' : r.shortLabel} · ${count(r)}',
+                  selected: _roleFilter == r,
+                  onTap: () => setState(() => _roleFilter = r),
+                ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: online
+                    ? () => showDialog(
+                        context: context,
+                        builder: (_) => const UserFormDialog())
+                    : null,
+                icon: const Icon(Icons.person_add_alt_1_outlined, size: 18),
+                label: const Text('Tạo tài khoản'),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: users.isEmpty
+                ? const EmptyState(
+                    icon: Icons.manage_accounts_outlined,
+                    title: 'Chưa có tài khoản nào ở nhóm này.',
+                    message:
+                        'Bấm "Tạo tài khoản" để thêm nhân viên và cấp mật khẩu tạm.',
+                  )
+                : wide
+                    ? AppCard(
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            const _HeaderRow(),
+                            const Divider(height: 1, color: AppColors.border),
+                            Expanded(
+                              child: ListView.separated(
+                                itemCount: rows.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (_, i) => rows[i],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: rows.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        itemBuilder: (_, i) => rows[i],
+                      ),
+          ),
         ],
       ),
-      body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red[400], size: 40),
-                      const SizedBox(height: 8),
-                      Text(state.error!),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => ref.read(usersProvider.notifier).load(),
-                        child: const Text('Thử lại'),
-                      ),
-                    ],
-                  ),
-                )
-              : state.users.isEmpty
-                  ? const Center(child: Text('Chưa có tài khoản nào.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: state.users.length,
-                      itemBuilder: (context, i) => _UserTile(
-                        user: state.users[i],
-                        currentUser: currentUser,
-                        isManager: isManager,
-                      ),
-                    ),
     );
   }
 }
 
-class _UserTile extends ConsumerWidget {
+const _flex = [22, 14, 12, 14, 10, 28];
+
+class _HeaderRow extends StatelessWidget {
+  const _HeaderRow();
+
+  @override
+  Widget build(BuildContext context) {
+    const s = TextStyle(
+        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    Widget c(int i, String t, {bool end = false}) => Expanded(
+        flex: _flex[i],
+        child: Align(
+            alignment: end ? Alignment.centerRight : Alignment.centerLeft,
+            child: Text(t, style: s)));
+    return Container(
+      color: const Color(0xFFFAF8F3),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(children: [
+        c(0, 'Họ tên'),
+        c(1, 'Số điện thoại'),
+        c(2, 'Vai trò'),
+        c(3, 'Trạng thái'),
+        c(4, 'Trực ca'),
+        c(5, 'Thao tác', end: true),
+      ]),
+    );
+  }
+}
+
+StatusTone _statusTone(AccountStatus s) => switch (s) {
+      AccountStatus.active => StatusTone.ready,
+      AccountStatus.pendingActivation => StatusTone.dirty,
+      AccountStatus.locked => StatusTone.danger,
+    };
+
+class _UserRow extends ConsumerWidget {
   final AppUser user;
-  final AppUser? currentUser;
-  final bool isManager;
+  final AppUser? me;
+  final bool online;
+  final bool wide;
 
-  const _UserTile({
-    required this.user,
-    required this.currentUser,
-    required this.isManager,
-  });
+  const _UserRow(
+      {required this.user,
+      required this.me,
+      required this.online,
+      required this.wide});
 
-  Color _statusColor() {
-    switch (user.status) {
-      case AccountStatus.active:
-        return Colors.green;
-      case AccountStatus.locked:
-        return Colors.red;
-      case AccountStatus.pendingActivation:
-        return Colors.orange;
+  bool get _isSelf => user.id == me?.id;
+
+  /// Lễ tân không thao tác trên tài khoản quản lý (BE chặn).
+  bool get _canManage =>
+      me?.role == UserRole.manager ||
+      (me?.role == UserRole.receptionist && user.role != UserRole.manager);
+
+  Future<void> _showTemp(
+      BuildContext context, Map<String, dynamic>? data, String heading) async {
+    final pw = data?['tempPassword'] as String?;
+    if (pw == null || !context.mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => TempPasswordDialog(
+          tempPassword: pw, fullName: user.fullName, heading: heading),
+    );
+  }
+
+  Future<void> _lock(BuildContext context, WidgetRef ref) => showConfirmDialog(
+        context,
+        title: 'Khóa tài khoản ${user.fullName}?',
+        message:
+            'Người này bị đăng xuất ngay trên mọi thiết bị và không đăng nhập được cho tới khi mở khóa.',
+        confirmLabel: 'Khóa tài khoản',
+        destructive: true,
+        onConfirm: () async {
+          await ref
+              .read(usersProvider.notifier)
+              .lockUser(user.id, user.version);
+          if (context.mounted) {
+            showAppSnack(context, 'Đã khóa tài khoản ${user.fullName}.');
+          }
+        },
+      );
+
+  Future<void> _unlock(BuildContext context, WidgetRef ref) async {
+    Map<String, dynamic>? data;
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Mở khóa tài khoản ${user.fullName}?',
+      message:
+          'Hệ thống cấp mật khẩu tạm mới. Nhân viên phải đặt mật khẩu mới ở lần đăng nhập đầu.',
+      confirmLabel: 'Mở khóa',
+      onConfirm: () async => data = await ref
+          .read(usersProvider.notifier)
+          .unlockUser(user.id, user.version),
+    );
+    if (ok && context.mounted) {
+      await _showTemp(context, data, 'Đã mở khóa tài khoản');
     }
+  }
+
+  Future<void> _reset(BuildContext context, WidgetRef ref) async {
+    Map<String, dynamic>? data;
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Đặt lại mật khẩu cho ${user.fullName}?',
+      message:
+          'Mật khẩu hiện tại hết hiệu lực và người này bị đăng xuất. Hệ thống cấp mật khẩu tạm mới.',
+      confirmLabel: 'Đặt lại mật khẩu',
+      onConfirm: () async => data = await ref
+          .read(usersProvider.notifier)
+          .resetPassword(user.id, user.version),
+    );
+    if (ok && context.mounted) {
+      await _showTemp(context, data, 'Đã đặt lại mật khẩu cho');
+    }
+  }
+
+  Future<void> _toggleDuty(BuildContext context, WidgetRef ref, bool v) async {
+    try {
+      await ref
+          .read(usersProvider.notifier)
+          .updateUser(id: user.id, version: user.version, onDuty: v);
+      if (context.mounted) {
+        showAppSnack(
+            context,
+            v
+                ? '${user.fullName} đang trực — sẽ được giao việc.'
+                : '${user.fullName} đã hết ca.');
+      }
+    } on ApiException catch (e) {
+      if (context.mounted) {
+        handleApiError(context, e,
+            onReload: () => ref.read(usersProvider.notifier).load());
+      }
+    }
+  }
+
+  List<Widget> _actions(BuildContext context, WidgetRef ref) {
+    if (!_canManage) return const [];
+    final small = OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 34),
+        padding: const EdgeInsets.symmetric(horizontal: 12));
+    final ghost = TextButton.styleFrom(
+        minimumSize: const Size(0, 34),
+        padding: const EdgeInsets.symmetric(horizontal: 10));
+    return [
+      TextButton(
+        style: ghost,
+        onPressed: online
+            ? () => showDialog(
+                context: context, builder: (_) => UserFormDialog(user: user))
+            : null,
+        child: const Text('Sửa'),
+      ),
+      if (!_isSelf && user.status != AccountStatus.locked)
+        TextButton(
+            style: ghost,
+            onPressed: online ? () => _reset(context, ref) : null,
+            child: const Text('Đặt lại mật khẩu')),
+      if (!_isSelf && user.status != AccountStatus.locked)
+        OutlinedButton(
+          style: small.copyWith(
+            foregroundColor: const WidgetStatePropertyAll(AppColors.danger),
+            side: const WidgetStatePropertyAll(
+                BorderSide(color: Color(0xFFF2C4C6))),
+          ),
+          onPressed: online ? () => _lock(context, ref) : null,
+          child: const Text('Khóa'),
+        ),
+      if (user.status == AccountStatus.locked)
+        OutlinedButton(
+            style: small,
+            onPressed: online ? () => _unlock(context, ref) : null,
+            child: const Text('Mở khóa')),
+    ];
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isSelf = user.id == currentUser?.id;
+    final duty = user.role == UserRole.staff
+        ? Switch(
+            value: user.onDuty,
+            activeThumbColor: AppColors.gold,
+            onChanged: online && _canManage
+                ? (v) => _toggleDuty(context, ref, v)
+                : null,
+          )
+        : const MetaText('—');
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF1565C0).withValues(alpha: 0.1),
-          child: Text(
-            user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-            style: const TextStyle(color: Color(0xFF1565C0), fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Row(
-          children: [
-            Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
-            if (isSelf) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1565C0).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text('Bạn', style: TextStyle(fontSize: 11, color: Color(0xFF1565C0))),
-              ),
+    final name = Row(
+      children: [
+        InitialAvatar(user.fullName, size: 32),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(user.fullName,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              if (_isSelf)
+                const Text('Bạn',
+                    style: TextStyle(fontSize: 12, color: AppColors.goldText)),
             ],
-          ],
+          ),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(user.phone),
-            Row(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 2, right: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: Text(user.role.label, style: const TextStyle(fontSize: 11)),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 2),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _statusColor().withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    user.status.label,
-                    style: TextStyle(fontSize: 11, color: _statusColor()),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        isThreeLine: true,
-        trailing: isManager && !isSelf
-            ? PopupMenuButton<String>(
-                onSelected: (action) => _handleAction(context, ref, action),
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
-                  if (user.status == AccountStatus.active)
-                    const PopupMenuItem(value: 'lock', child: Text('Khoá')),
-                  if (user.status == AccountStatus.locked)
-                    const PopupMenuItem(value: 'unlock', child: Text('Mở khoá')),
-                  const PopupMenuItem(value: 'reset', child: Text('Đặt lại mật khẩu')),
-                ],
-              )
-            : null,
-      ),
+      ],
     );
-  }
 
-  Future<void> _handleAction(BuildContext context, WidgetRef ref, String action) async {
-    switch (action) {
-      case 'edit':
-        await showDialog(
-          context: context,
-          builder: (_) => UserFormDialog(user: user),
-        );
-      case 'lock':
-        await _confirmAndDo(
-          context,
-          ref,
-          title: 'Khoá tài khoản',
-          message: 'Khoá tài khoản của ${user.fullName}?',
-          action: () => ref.read(usersProvider.notifier).lockUser(user.id, user.version),
-        );
-      case 'unlock':
-        await _confirmAndDo(
-          context,
-          ref,
-          title: 'Mở khoá',
-          message: 'Mở khoá tài khoản của ${user.fullName}?',
-          action: () => ref.read(usersProvider.notifier).unlockUser(user.id, user.version),
-        );
-      case 'reset':
-        await _confirmAndDo(
-          context,
-          ref,
-          title: 'Đặt lại mật khẩu',
-          message: 'Đặt lại mật khẩu cho ${user.fullName}? Một mật khẩu tạm thời sẽ được tạo.',
-          action: () async {
-            final data = await ref.read(usersProvider.notifier).resetPassword(user.id, user.version);
-            final tempPw = data?['tempPassword'] as String?;
-            if (tempPw != null && context.mounted) {
-              await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (_) => TempPasswordDialog(
-                  tempPassword: tempPw,
-                  fullName: user.fullName,
-                ),
-              );
-            }
-          },
-        );
+    if (wide) {
+      Widget c(int i, Widget w, {bool end = false}) => Expanded(
+          flex: _flex[i],
+          child: Align(
+              alignment: end ? Alignment.centerRight : Alignment.centerLeft,
+              child: w));
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(children: [
+          c(0, name),
+          c(1, Text(user.phone)),
+          c(2, Text(user.role.shortLabel)),
+          c(3, StatusChip(user.status.label, tone: _statusTone(user.status))),
+          c(4, duty),
+          c(
+              5,
+              Wrap(
+                  spacing: 4,
+                  alignment: WrapAlignment.end,
+                  children: _actions(context, ref)),
+              end: true),
+        ]),
+      );
     }
-  }
 
-  Future<void> _confirmAndDo(
-    BuildContext context,
-    WidgetRef ref, {
-    required String title,
-    required String message,
-    required Future<void> Function() action,
-  }) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Huỷ'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xác nhận'),
-          ),
+    return AppCard(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [
+            Expanded(child: name),
+            StatusChip(user.status.label, tone: _statusTone(user.status))
+          ]),
+          const SizedBox(height: 6),
+          MetaText('${user.role.shortLabel} · ${user.phone}'),
+          if (user.role == UserRole.staff)
+            Row(children: [const MetaText('Đang trực'), const Spacer(), duty]),
+          if (_canManage) Wrap(spacing: 4, children: _actions(context, ref)),
         ],
       ),
     );
-    if (confirm != true || !context.mounted) return;
-    try {
-      await action();
-    } on Exception catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red[700],
-        ),
-      );
-    }
   }
 }
