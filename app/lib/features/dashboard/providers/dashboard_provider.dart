@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../rooms/providers/rooms_provider.dart';
 
 class DashboardSummary {
   final int totalRooms;
@@ -40,12 +42,19 @@ class DashboardSummary {
     occupancyServiceable: 0,
   );
 
+  /// Mẫu = 0 → "Không áp dụng" (FR-room-dashboard-004). Dấu thập phân kiểu Việt: 37,5%.
   String get occupancyRateLabel {
-    if (occupancyRate == null) return 'N/A';
-    return '${occupancyRate!.toStringAsFixed(1)}%';
+    if (occupancyRate == null) return 'Không áp dụng';
+    final r = occupancyRate!;
+    final s = r == r.roundToDouble()
+        ? r.toStringAsFixed(0)
+        : r.toStringAsFixed(1).replaceAll('.', ',');
+    return '$s%';
   }
 
   int get needsCleaning => cleaning['DIRTY'] ?? 0;
+  int get cleaningNow => cleaning['CLEANING'] ?? 0;
+  int get pendingInspection => cleaning['PENDING_INSPECTION'] ?? 0;
 
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     final cleaningMap = (json['cleaning'] as Map<String, dynamic>?)
@@ -63,8 +72,11 @@ class DashboardSummary {
       overdueMaintenance: (overdue['maintenance'] as num?)?.toInt() ?? 0,
       overdueTotal: (overdue['total'] as num?)?.toInt() ?? 0,
       occupancyServiceable: (occupancy['serviceable'] as num?)?.toInt() ?? 0,
-      occupancyRate: occupancy['rate'] != null ? (occupancy['rate'] as num).toDouble() : null,
-      asOf: json['asOf'] != null ? DateTime.parse(json['asOf'] as String) : null,
+      occupancyRate: occupancy['rate'] != null
+          ? (occupancy['rate'] as num).toDouble()
+          : null,
+      asOf:
+          json['asOf'] != null ? DateTime.parse(json['asOf'] as String) : null,
     );
   }
 }
@@ -98,11 +110,28 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
     load();
   }
 
-  Future<void> load() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+  Timer? _debounce;
+
+  /// Có thay đổi realtime → tải lại chỉ số (gom nhiều sự kiện liền nhau thành một lần gọi).
+  void scheduleReload() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 800), () {
+      if (mounted) load(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  Future<void> load({bool silent = false}) async {
+    if (!silent) state = state.copyWith(isLoading: true, clearError: true);
     try {
       final res = await apiClient.get('/dashboard/summary');
-      final summary = DashboardSummary.fromJson(res['data'] as Map<String, dynamic>);
+      final summary =
+          DashboardSummary.fromJson(res['data'] as Map<String, dynamic>);
       state = state.copyWith(summary: summary, isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
@@ -111,6 +140,10 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
 }
 
 final dashboardSummaryProvider =
-    StateNotifierProvider<DashboardSummaryNotifier, DashboardSummaryState>((ref) {
-  return DashboardSummaryNotifier();
+    StateNotifierProvider<DashboardSummaryNotifier, DashboardSummaryState>(
+        (ref) {
+  final notifier = DashboardSummaryNotifier();
+  ref.listen(roomsProvider.select((s) => s.lastUpdated),
+      (_, __) => notifier.scheduleReload());
+  return notifier;
 });

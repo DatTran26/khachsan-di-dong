@@ -35,7 +35,7 @@ extension CleaningStatusX on CleaningStatus {
       case CleaningStatus.cleaning:
         return 'Đang dọn';
       case CleaningStatus.pendingInspection:
-        return 'Chờ xác nhận';
+        return 'Chờ kiểm tra';
       case CleaningStatus.clean:
         return 'Sạch';
     }
@@ -72,7 +72,7 @@ extension ServiceStatusX on ServiceStatus {
   String get label {
     switch (this) {
       case ServiceStatus.inService:
-        return 'Bình thường';
+        return 'Đang phục vụ';
       case ServiceStatus.outOfService:
         return 'Ngừng phục vụ';
     }
@@ -87,8 +87,9 @@ extension ServiceStatusX on ServiceStatus {
     }
   }
 
-  static ServiceStatus fromString(String v) =>
-      v == 'OUT_OF_SERVICE' ? ServiceStatus.outOfService : ServiceStatus.inService;
+  static ServiceStatus fromString(String v) => v == 'OUT_OF_SERVICE'
+      ? ServiceStatus.outOfService
+      : ServiceStatus.inService;
 }
 
 class RoomType {

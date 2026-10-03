@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../providers/maintenance_provider.dart';
-import '../../../models/maintenance_task.dart';
-import '../../../models/user.dart';
-import '../../../features/auth/providers/auth_provider.dart';
-import '../../../features/users/providers/users_provider.dart';
-import '../../../features/rooms/providers/rooms_provider.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../models/maintenance_task.dart';
+import '../../../models/user.dart';
 import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
+import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/widgets/ui.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../rooms/providers/rooms_provider.dart';
+import '../../users/providers/users_provider.dart';
+import '../providers/maintenance_provider.dart';
+import '../widgets/report_issue_dialog.dart';
 
+/// Bảo trì (maintenance).
+/// - Nhân viên: việc sửa chờ nhận + việc mình đang sửa.
+/// - Quản lý, lễ tân: bảng Chờ nhận · Đang sửa · Đã xử lý, chỉ định người sửa.
 class MaintenanceScreen extends ConsumerWidget {
   const MaintenanceScreen({super.key});
 
@@ -19,362 +25,545 @@ class MaintenanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(maintenanceProvider);
     final user = ref.watch(authProvider).user;
-
-    final active = state.tasks.where((t) => t.status == MaintenanceStatus.open || t.status == MaintenanceStatus.inProgress).toList();
-    final closed = state.tasks.where((t) => t.status == MaintenanceStatus.done || t.status == MaintenanceStatus.cancelled).toList();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bảo trì'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Tải lại',
-            onPressed: () => ref.read(maintenanceProvider.notifier).load(),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showReportDialog(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Báo hỏng'),
-      ),
-      body: _buildBody(context, ref, state, active, closed, user),
-    );
-  }
-
-  Widget _buildBody(
-    BuildContext context,
-    WidgetRef ref,
-    MaintenanceState state,
-    List<MaintenanceTask> active,
-    List<MaintenanceTask> closed,
-    AppUser? user,
-  ) {
-    if (state.isLoading) {
+    final online = ref.watch(isOnlineProvider);
+    if (state.isLoading && state.tasks.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (state.error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red[400], size: 40),
-            const SizedBox(height: 8),
-            Text(state.error!, textAlign: TextAlign.center),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => ref.read(maintenanceProvider.notifier).load(),
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
+    if (state.error != null && state.tasks.isEmpty) {
+      return ErrorState(
+          message: state.error!,
+          onRetry: () => ref.read(maintenanceProvider.notifier).load());
     }
-    if (state.tasks.isEmpty) {
-      return const Center(child: Text('Không có việc bảo trì nào.'));
-    }
+    final isStaff = user?.role == UserRole.staff;
+    final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
-      children: [
-        if (active.isNotEmpty) ...[
-          Text('Đang xử lý (${active.length})',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 8),
-          ...active.map((t) => _MaintenanceCard(
-              task: t,
-              currentUser: user,
-              onAction: (action) => _handleAction(context, ref, t, action))),
-        ],
-        if (closed.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text('Đã xử lý (${closed.length})',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.grey[600])),
-          const SizedBox(height: 8),
-          ...closed.map((t) => _MaintenanceCard(task: t, currentUser: user, onAction: null)),
-        ],
-      ],
+    final reportButton = ElevatedButton.icon(
+      onPressed: online ? () => showReportIssueDialog(context) : null,
+      icon: const Icon(Icons.report_problem_outlined, size: 18),
+      label: const Text('Báo hỏng'),
     );
-  }
 
-  void _handleAction(BuildContext context, WidgetRef ref, MaintenanceTask task, String action) async {
-    final notifier = ref.read(maintenanceProvider.notifier);
-    try {
-      switch (action) {
-        case 'claim':
-          await notifier.claim(task.id, task.version);
-        case 'complete':
-          await notifier.complete(task.id, task.version);
-        case 'cancel':
-          await _showCancelDialog(context, ref, task);
-          return;
-        case 'assign':
-          await _showAssignDialog(context, ref, task);
-          return;
-      }
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thao tác thành công')));
-      }
-    } on ApiException catch (e) {
-      if (context.mounted) {
-        handleApiError(context, e, onReload: () => ref.read(maintenanceProvider.notifier).load());
-      }
-    }
-  }
-
-  Future<void> _showReportDialog(BuildContext context, WidgetRef ref) async {
-    final rooms = ref.read(roomsProvider).rooms;
-    if (rooms.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chưa có danh sách phòng.')));
-      return;
-    }
-    String? selectedRoomId;
-    final descCtrl = TextEditingController();
-    final locationCtrl = TextEditingController();
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: const Text('Báo hỏng'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Phòng'),
-                  items: rooms
-                      .map((r) => DropdownMenuItem(value: r.id, child: Text('Phòng ${r.number} (T${r.floor})')))
-                      .toList(),
-                  onChanged: (v) => setState(() => selectedRoomId = v),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descCtrl,
-                  maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Mô tả sự cố', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: locationCtrl,
-                  decoration: const InputDecoration(labelText: 'Vị trí (tuỳ chọn)', border: OutlineInputBorder()),
-                ),
-              ],
-            ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+          pad, Breakpoints.hasSidebar(context) ? 24 : 16, pad, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: MetaText(isStaff
+                    ? 'Nhận việc sửa, sửa xong thì báo để phòng mở lại phục vụ.'
+                    : 'Phòng có việc sửa đang mở sẽ ở trạng thái Ngừng phục vụ.'),
+              ),
+              const SizedBox(width: 12),
+              reportButton,
+            ],
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
-            ElevatedButton(
-              onPressed: (selectedRoomId != null && descCtrl.text.trim().isNotEmpty) ? () => Navigator.pop(ctx, true) : null,
-              child: const Text('Báo hỏng'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed != true || selectedRoomId == null || !context.mounted) return;
-    try {
-      final warning = await ref.read(maintenanceProvider.notifier).report(
-            roomId: selectedRoomId!,
-            description: descCtrl.text.trim(),
-            location: locationCtrl.text.trim(),
-          );
-      if (context.mounted) {
-        final msg = warning != null ? 'Đã báo hỏng. Lưu ý: $warning' : 'Đã báo hỏng thành công';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-      }
-    } on ApiException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
-      }
-    }
-  }
-
-  Future<void> _showCancelDialog(BuildContext context, WidgetRef ref, MaintenanceTask task) async {
-    final reasonCtrl = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hủy việc bảo trì'),
-        content: TextField(
-          controller: reasonCtrl,
-          decoration: const InputDecoration(labelText: 'Lý do (tuỳ chọn)', border: OutlineInputBorder()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Đóng')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hủy việc'),
+          const SizedBox(height: 16),
+          Expanded(
+            child: isStaff
+                ? _StaffView(tasks: state.tasks, me: user!, online: online)
+                : _DeskView(tasks: state.tasks, me: user, online: online),
           ),
         ],
       ),
     );
-    if (confirmed != true || !context.mounted) return;
-    try {
-      await ref.read(maintenanceProvider.notifier).cancel(task.id, task.version, reason: reasonCtrl.text.trim());
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã hủy việc bảo trì')));
-    } on ApiException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
-      }
-    }
   }
+}
 
-  Future<void> _showAssignDialog(BuildContext context, WidgetRef ref, MaintenanceTask task) async {
-    final usersState = ref.read(usersProvider);
-    final staffOnDuty = usersState.users
-        .where((u) => u.role == UserRole.staff && u.onDuty && u.status == AccountStatus.active)
-        .toList();
-    if (!context.mounted) return;
-    if (staffOnDuty.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không có nhân viên đang trực.')));
-      return;
-    }
-    String? selectedId;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: const Text('Chỉ định nhân viên'),
-          content: DropdownButtonFormField<String>(
-            decoration: const InputDecoration(labelText: 'Chọn nhân viên'),
-            items: staffOnDuty
-                .map((u) => DropdownMenuItem(value: u.id, child: Text(u.fullName)))
-                .toList(),
-            onChanged: (v) => setState(() => selectedId = v),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
-            ElevatedButton(
-              onPressed: selectedId == null ? null : () => Navigator.pop(ctx, true),
-              child: const Text('Xác nhận'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed != true || selectedId == null || !context.mounted) return;
-    try {
-      await ref.read(maintenanceProvider.notifier).assign(task.id, task.version, selectedId!);
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã chỉ định nhân viên')));
-    } on ApiException catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message), backgroundColor: Colors.red));
-      }
+bool _isToday(DateTime t) {
+  final l = t.toLocal(), n = DateTime.now();
+  return l.year == n.year && l.month == n.month && l.day == n.day;
+}
+
+Future<void> _run(BuildContext context, WidgetRef ref,
+    Future<void> Function() action, String success) async {
+  try {
+    await action();
+    if (context.mounted) showAppSnack(context, success);
+  } on ApiException catch (e) {
+    if (context.mounted) {
+      handleApiError(context, e,
+          onReload: () => ref.read(maintenanceProvider.notifier).load());
     }
   }
 }
 
-class _MaintenanceCard extends StatelessWidget {
-  final MaintenanceTask task;
-  final AppUser? currentUser;
-  final void Function(String action)? onAction;
+StatusTone _tone(MaintenanceStatus s) => switch (s) {
+      MaintenanceStatus.open => StatusTone.gold,
+      MaintenanceStatus.inProgress => StatusTone.cleaning,
+      MaintenanceStatus.done => StatusTone.ready,
+      MaintenanceStatus.cancelled => StatusTone.neutral,
+    };
 
-  const _MaintenanceCard({required this.task, required this.currentUser, required this.onAction});
+class _TaskCard extends StatelessWidget {
+  final MaintenanceTask task;
+  final List<Widget> actions;
+  final bool large;
+
+  const _TaskCard(
+      {required this.task, required this.actions, this.large = false});
 
   @override
   Widget build(BuildContext context) {
     final fmt = DateFormat('HH:mm dd/MM');
-    final isManager = currentUser?.role == UserRole.manager;
-    final isReceptionist = currentUser?.role == UserRole.receptionist;
-    final isStaff = currentUser?.role == UserRole.staff;
-    final isMyTask = task.assignee?.id == currentUser?.id;
-    final isReporter = task.reporter.id == currentUser?.id;
-    final isActive = task.status == MaintenanceStatus.open || task.status == MaintenanceStatus.inProgress;
+    final active = task.status == MaintenanceStatus.open ||
+        task.status == MaintenanceStatus.inProgress;
+    return AppCard(
+      padding: EdgeInsets.all(large ? 14 : 12),
+      borderColor: task.isOverdue && active ? AppColors.danger : null,
+      onTap: () => _showDetail(context, task, actions),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text('Phòng ${task.room.number}',
+                    style: TextStyle(
+                        fontSize: large ? 18 : 15,
+                        fontWeight: FontWeight.w700)),
+              ),
+              if (task.isOverdue && active)
+                const OverdueBadge()
+              else
+                StatusChip(task.status.label, tone: _tone(task.status)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text.rich(
+            TextSpan(children: [
+              TextSpan(
+                  text: task.description,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              if (task.location?.isNotEmpty == true)
+                TextSpan(text: ' · ${task.location}'),
+            ]),
+            style: const TextStyle(fontSize: 14, height: 1.4),
+          ),
+          const SizedBox(height: 4),
+          MetaText(
+              'Báo bởi: ${task.reporter.fullName} · ${fmt.format(task.createdAt.toLocal())}'),
+          if (task.assignee != null)
+            MetaText('Phụ trách: ${task.assignee!.fullName}'),
+          if (task.cancelReason?.isNotEmpty == true)
+            MetaText('Lý do hủy: ${task.cancelReason}'),
+          if (actions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(child: actions[i]),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
 
-    Color statusColor;
-    switch (task.status) {
-      case MaintenanceStatus.open:
-        statusColor = Colors.orange;
-      case MaintenanceStatus.inProgress:
-        statusColor = AppTheme.primary;
-      case MaintenanceStatus.done:
-        statusColor = AppTheme.statusReady;
-      case MaintenanceStatus.cancelled:
-        statusColor = Colors.grey;
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+void _showDetail(
+    BuildContext context, MaintenanceTask task, List<Widget> actions) {
+  showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    isScrollControlled: true,
+    constraints: const BoxConstraints(maxWidth: 520),
+    builder: (ctx) => SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-                  child: Text(task.status.label, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                Expanded(
+                  child: Text('Phòng ${task.room.number}',
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.w700)),
                 ),
-                if (task.isOverdue) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: Colors.deepOrange.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-                    child: const Text('Quá hạn', style: TextStyle(color: Colors.deepOrange, fontSize: 12, fontWeight: FontWeight.w600)),
-                  ),
-                ],
-                const Spacer(),
-                Text('Phòng ${task.room.number} (T${task.room.floor})',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                StatusChip(task.status.label, tone: _tone(task.status)),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(task.description, style: const TextStyle(fontSize: 14)),
-            if (task.location != null && task.location!.isNotEmpty)
-              Text('Vị trí: ${task.location}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            Text('Báo bởi: ${task.reporter.fullName} · ${fmt.format(task.createdAt.toLocal())}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            if (task.assignee != null)
-              Text('Phụ trách: ${task.assignee!.fullName}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-            if (task.cancelReason != null)
-              Text('Lý do hủy: ${task.cancelReason}', style: const TextStyle(fontSize: 12, color: Colors.red)),
+            MetaText('Tầng ${task.room.floor} · việc sửa'),
             const SizedBox(height: 8),
-            TaskStatusTimeline.maintenance(task.status),
-            if (isActive && onAction != null) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
+            Text(task.description,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            if (task.location?.isNotEmpty == true)
+              MetaText('Vị trí: ${task.location}'),
+            const SizedBox(height: 20),
+            const SectionLabel('Tiến độ'),
+            const SizedBox(height: 12),
+            TaskStatusTimeline.maintenance(task),
+            if (actions.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
                 children: [
-                  if (isStaff && task.status == MaintenanceStatus.open)
-                    _ActionButton(label: 'Nhận việc', color: AppTheme.primary, onPressed: () => onAction!('claim')),
-                  if (isStaff && isMyTask && task.status == MaintenanceStatus.inProgress)
-                    _ActionButton(label: 'Hoàn tất', color: AppTheme.statusReady, onPressed: () => onAction!('complete')),
-                  if ((isManager || isReceptionist) && task.status == MaintenanceStatus.open)
-                    _ActionButton(label: 'Chỉ định', color: Colors.blueGrey, onPressed: () => onAction!('assign')),
-                  if (isManager || (isReporter && task.status == MaintenanceStatus.open))
-                    _ActionButton(label: 'Hủy', color: Colors.red, onPressed: () => onAction!('cancel')),
+                  for (var i = 0; i < actions.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    Expanded(child: actions[i]),
+                  ],
                 ],
               ),
             ],
           ],
         ),
       ),
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Nhân viên
+
+class _StaffView extends ConsumerWidget {
+  final List<MaintenanceTask> tasks;
+  final AppUser me;
+  final bool online;
+  const _StaffView(
+      {required this.tasks, required this.me, required this.online});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final n = ref.read(maintenanceProvider.notifier);
+    const size = Size.fromHeight(48);
+    final mine = tasks
+        .where((t) =>
+            t.status == MaintenanceStatus.inProgress && t.assignee?.id == me.id)
+        .toList();
+    final open = tasks
+        .where((t) =>
+            t.status == MaintenanceStatus.open &&
+            (t.assignee == null || t.assignee!.id == me.id))
+        .toList()
+      ..sort((a, b) => a.isOverdue == b.isOverdue
+          ? a.createdAt.compareTo(b.createdAt)
+          : (a.isOverdue ? -1 : 1));
+    final doneToday = tasks
+        .where((t) =>
+            t.status == MaintenanceStatus.done &&
+            t.assignee?.id == me.id &&
+            _isToday(t.updatedAt))
+        .toList();
+
+    if (mine.isEmpty && open.isEmpty && doneToday.isEmpty) {
+      return const EmptyState(
+        icon: Icons.handyman_outlined,
+        title: 'Chưa có việc sửa nào.',
+        message: 'Khi có báo hỏng, việc sẽ hiện ở đây để bạn nhận.',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: n.load,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          if (mine.isNotEmpty) ...[
+            SectionLabel('Đang sửa · ${mine.length}'),
+            const SizedBox(height: 8),
+            for (final t in mine)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _TaskCard(task: t, large: true, actions: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(minimumSize: size),
+                    onPressed: online
+                        ? () => _run(
+                            context,
+                            ref,
+                            () => n.complete(t.id, t.version),
+                            'Đã báo sửa xong phòng ${t.room.number}. Phòng mở lại phục vụ khi không còn việc sửa nào.')
+                        : null,
+                    child: const Text('Báo đã sửa xong'),
+                  ),
+                ]),
+              ),
+          ],
+          if (open.isNotEmpty) ...[
+            SectionLabel('Chờ nhận · ${open.length}'),
+            const SizedBox(height: 8),
+            for (final t in open)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _TaskCard(task: t, large: true, actions: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(minimumSize: size),
+                    onPressed: online
+                        ? () => _run(
+                            context,
+                            ref,
+                            () => n.claim(t.id, t.version),
+                            'Đã nhận việc sửa phòng ${t.room.number}.')
+                        : null,
+                    child: const Text('Nhận việc sửa'),
+                  ),
+                ]),
+              ),
+          ],
+          if (doneToday.isNotEmpty) ...[
+            SectionLabel('Đã xong hôm nay · ${doneToday.length}'),
+            const SizedBox(height: 8),
+            for (final t in doneToday)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _TaskCard(task: t, actions: const [])),
+          ],
+        ],
+      ),
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final Color color;
-  final VoidCallback onPressed;
+// ---------------------------------------------------------------------------
+// Quản lý, lễ tân
 
-  const _ActionButton({required this.label, required this.color, required this.onPressed});
+class _DeskView extends ConsumerWidget {
+  final List<MaintenanceTask> tasks;
+  final AppUser? me;
+  final bool online;
+  const _DeskView(
+      {required this.tasks, required this.me, required this.online});
+
+  List<Widget> _actions(
+      BuildContext context, WidgetRef ref, MaintenanceTask t) {
+    if (t.status != MaintenanceStatus.open &&
+        t.status != MaintenanceStatus.inProgress) {
+      return const [];
+    }
+    final isManager = me?.role == UserRole.manager;
+    final canCancel = isManager ||
+        (t.reporter.id == me?.id && t.status == MaintenanceStatus.open);
+    return [
+      if (t.status == MaintenanceStatus.open)
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: const Size(0, 36)),
+          onPressed: online ? () => _assign(context, ref, t) : null,
+          child: Text(t.assignee == null ? 'Chỉ định' : 'Đổi người'),
+        ),
+      if (canCancel)
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 36)),
+          onPressed: online ? () => _cancel(context, ref, t) : null,
+          child: const Text('Hủy việc'),
+        ),
+    ];
+  }
+
+  Future<void> _assign(
+      BuildContext context, WidgetRef ref, MaintenanceTask t) async {
+    final staff = ref
+        .read(usersProvider)
+        .users
+        .where((u) =>
+            u.role == UserRole.staff &&
+            u.onDuty &&
+            u.status == AccountStatus.active)
+        .toList();
+    if (staff.isEmpty) {
+      showAppSnack(context, 'Chưa có nhân viên buồng phòng–bảo trì đang trực.',
+          tone: SnackTone.warn);
+      return;
+    }
+    String? selected = t.assignee?.id;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => GoldDialog(
+          title: 'Chỉ định người sửa phòng ${t.room.number}',
+          content: RadioGroup<String>(
+            groupValue: selected,
+            onChanged: (v) => setState(() => selected = v),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final u in staff)
+                  RadioListTile<String>(
+                    value: u.id,
+                    title: Text(u.fullName),
+                    subtitle: Text(u.phone),
+                    activeColor: AppColors.goldDark,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Để sau')),
+            ElevatedButton(
+              onPressed:
+                  selected == null ? null : () => Navigator.pop(ctx, true),
+              child: const Text('Chỉ định'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || selected == null || !context.mounted) return;
+    final name = staff.firstWhere((u) => u.id == selected).fullName;
+    await _run(
+        context,
+        ref,
+        () => ref
+            .read(maintenanceProvider.notifier)
+            .assign(t.id, t.version, selected!),
+        'Đã chỉ định $name sửa phòng ${t.room.number}.');
+  }
+
+  Future<void> _cancel(
+      BuildContext context, WidgetRef ref, MaintenanceTask t) async {
+    final reason = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => GoldDialog(
+        title: 'Hủy việc sửa phòng ${t.room.number}?',
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+                'Dùng khi báo nhầm hoặc sự cố không còn. Phòng mở lại phục vụ nếu không còn việc sửa nào khác.',
+                style: TextStyle(color: AppColors.muted, height: 1.5)),
+            const SizedBox(height: 14),
+            TextField(
+                controller: reason,
+                maxLength: 200,
+                decoration: const InputDecoration(labelText: 'Lý do')),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Giữ việc')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hủy việc sửa'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    await _run(
+        context,
+        ref,
+        () => ref
+            .read(maintenanceProvider.notifier)
+            .cancel(t.id, t.version, reason: reason.text.trim()),
+        'Đã hủy việc sửa phòng ${t.room.number}.');
+  }
 
   @override
-  Widget build(BuildContext context) => OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: color),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          minimumSize: const Size(0, 32),
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 12)),
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(usersProvider); // nạp sẵn danh sách nhân viên để chỉ định
+    final wide = Breakpoints.isWide(context);
+    int byOverdue(MaintenanceTask a, MaintenanceTask b) =>
+        a.isOverdue == b.isOverdue
+            ? a.createdAt.compareTo(b.createdAt)
+            : (a.isOverdue ? -1 : 1);
+    final open = tasks.where((t) => t.status == MaintenanceStatus.open).toList()
+      ..sort(byOverdue);
+    final progress = tasks
+        .where((t) => t.status == MaintenanceStatus.inProgress)
+        .toList()
+      ..sort(byOverdue);
+    final closed = tasks
+        .where((t) =>
+            t.status == MaintenanceStatus.done ||
+            t.status == MaintenanceStatus.cancelled)
+        .toList()
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    final columns = [
+      ('Chờ nhận', open),
+      ('Đang sửa', progress),
+      ('Đã xử lý', closed.take(20).toList())
+    ];
+
+    if (tasks.isEmpty) {
+      return const EmptyState(
+        icon: Icons.handyman_outlined,
+        title: 'Chưa có báo hỏng nào.',
+        message:
+            'Bấm "Báo hỏng" khi phát hiện sự cố — phòng sẽ tạm ngừng phục vụ cho tới khi sửa xong.',
       );
+    }
+
+    if (!wide) {
+      return ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          for (final (title, list) in columns) ...[
+            SectionLabel('$title · ${list.length}'),
+            const SizedBox(height: 8),
+            if (list.isEmpty)
+              const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: MetaText('Không có việc.')),
+            for (final t in list)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _TaskCard(task: t, actions: _actions(context, ref, t)),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ],
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < columns.length; i++) ...[
+            if (i > 0) const SizedBox(width: 16),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0ECE3),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 2, 4, 10),
+                      child: Text('${columns[i].$1} · ${columns[i].$2.length}',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 14)),
+                    ),
+                    Expanded(
+                      child: columns[i].$2.isEmpty
+                          ? const Center(child: MetaText('Không có việc.'))
+                          : ListView.separated(
+                              itemCount: columns[i].$2.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (_, j) {
+                                final t = columns[i].$2[j];
+                                return _TaskCard(
+                                    task: t,
+                                    actions: _actions(context, ref, t));
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }

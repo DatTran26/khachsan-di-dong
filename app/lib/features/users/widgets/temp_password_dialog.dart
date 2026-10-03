@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
 
+/// Hiện mật khẩu tạm một lần (tạo tài khoản / mở khóa / đặt lại mật khẩu).
 class TempPasswordDialog extends StatelessWidget {
   final String tempPassword;
   final String fullName;
+  final String heading;
 
   const TempPasswordDialog({
     super.key,
     required this.tempPassword,
     required this.fullName,
+    this.heading = 'Đã tạo tài khoản cho',
   });
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Mật khẩu tạm thời'),
+    return GoldDialog(
+      title: '$heading $fullName',
       content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Tài khoản của $fullName đã được tạo.'),
-          const SizedBox(height: 8),
           const Text(
-            'Giao mật khẩu dưới đây cho nhân viên. Mật khẩu chỉ hiển thị một lần.',
-            style: TextStyle(fontSize: 13, color: Colors.grey),
+            'Chuyển mật khẩu tạm dưới đây cho nhân viên. Mật khẩu chỉ hiện một lần — lần đăng nhập đầu, nhân viên phải đặt mật khẩu mới.',
+            style: TextStyle(color: AppColors.muted, height: 1.5),
           ),
           const SizedBox(height: 16),
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
+              color: AppColors.bg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.borderStrong),
             ),
             child: Row(
               children: [
@@ -41,21 +43,23 @@ class TempPasswordDialog extends StatelessWidget {
                     tempPassword,
                     style: const TextStyle(
                       fontFamily: 'monospace',
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 2,
+                      color: AppColors.goldText,
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.copy, size: 20),
-                  tooltip: 'Sao chép',
+                OutlinedButton.icon(
+                  style:
+                      OutlinedButton.styleFrom(minimumSize: const Size(0, 36)),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: tempPassword));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã sao chép mật khẩu.')),
-                    );
+                    showAppSnack(context, 'Đã sao chép mật khẩu tạm.',
+                        tone: SnackTone.info);
                   },
+                  icon: const Icon(Icons.copy, size: 16),
+                  label: const Text('Sao chép'),
                 ),
               ],
             ),
@@ -63,9 +67,9 @@ class TempPasswordDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        FilledButton(
+        ElevatedButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Đã giao cho nhân viên'),
+          child: const Text('Đã chuyển cho nhân viên'),
         ),
       ],
     );

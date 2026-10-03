@@ -1,7 +1,7 @@
 ---
 type: worklog
 status: active
-updated: 2026-09-26
+updated: 2026-09-27
 links: []
 ---
 
@@ -107,6 +107,9 @@ links: []
 | 25/09 | Bao | PR #3 `develop-bao` → `develop` (khung Flutter) — đã merge | PR #3 |
 | 25/09 | Kim | PR #4 `develop-kim` → `develop` (12 commit backend Sprint 2), CI xanh, chờ review | PR #4 |
 | 25/09 | Kim | API xem nhật ký; dữ liệu demo (`db:seed:demo`); Dockerfile backend + CI build image; 139 test pass | `server/src/modules/audit` |
+| 26/09 | Dat | Merge PR #4 (backend Sprint 2) vào `develop` | PR #4 |
+| 27/09 | Kim | Push `develop-kim` cho PR #5; PR #5 lỡ đặt đích `main` → hướng dẫn đổi đích về `develop` (`main` không bị ảnh hưởng) | PR #5 |
+| 27/09 | Kim | Script cài đặt 1 lệnh `setup.cmd` + chạy hằng ngày `dev.cmd`; backend tự sinh Prisma Client khi cài; README gốc "Bắt đầu nhanh". Đã chạy thử trên bản clone mới | `scripts/`, `README.md` |
 
 ## Quyết định đã chốt
 
@@ -127,7 +130,9 @@ links: []
 
 - [ ] **Dat**: review + merge PR #4; bật bảo vệ nhánh `develop` (bắt buộc 1 review); review lại PR #2 (đã merge khi chưa review).
 - [ ] **Bao**: sửa vòng lặp logout (`auth_provider.dart` — `_logout` không gọi `/auth/logout` khi đang xử lý 401; `rooms_provider.dart` không gọi `/rooms` trước khi đăng nhập); thêm `cupertino_icons`; địa chỉ backend qua `--dart-define`; "N/A" → "không áp dụng"; nghe các sự kiện mới (`room:created/deleted`, `housekeeping:task_updated`, `maintenance:task_updated`, `notification`).
-- [ ] **Kim**: sau khi PR #4 merge → push + mở PR #5; chạy thử realtime app ↔ backend (cần đăng nhập tài khoản demo).
+- [ ] **Dat**: đổi nhánh mặc định của repo sang `develop` + bảo vệ nhánh `main` (tránh PR lỡ vào `main` như PR #5).
+- [ ] **Bao** (hoặc Kim nếu Bao đồng ý): địa chỉ backend qua `--dart-define` + mặc định `10.0.2.2` cho máy ảo Android; Android: quyền `INTERNET` + cho HTTP ở bản debug; cấu hình Run cho VS Code/Android Studio.
+- [ ] **Kim**: sửa đích PR #5 về `develop`; chạy thử realtime app ↔ backend (cần đăng nhập tài khoản demo).
 - [ ] Câu hỏi mở chặn việc backend còn lại: check-in-out OQ-2 (cửa sổ hủy nhận phòng — FR-006), OQ-3 (ghi chú khi trả phòng), OQ-4 (lịch sử lượt lưu trú đã đóng); audit-log OQ-1 (tạm 50 dòng/lần).
 - [ ] Xác nhận lại phân công ở trên (gán theo mục "Vai trò" trong tôn chỉ: Dat = PM/BA/Flutter Web, Kim = Backend/CSDL/Triển khai, Bao = UI/Flutter Mobile/AI/QA).
 - [ ] Tôn chỉ dự án (`Ton_Chi_Du_An_WPCTeam.docx`) vẫn ghi 10 phiên — cập nhật hay ghi chú lệch.

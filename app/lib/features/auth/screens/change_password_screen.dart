@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
 import '../../../core/api/api_client.dart';
-import '../../../models/user.dart';
+import '../../../core/router/nav.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/ui.dart';
+import '../providers/auth_provider.dart';
 
+/// Đổi mật khẩu. [forced] = đang dùng mật khẩu tạm → phải đặt mới mới vào được app.
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   final bool forced;
   const ChangePasswordScreen({super.key, this.forced = false});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
@@ -18,9 +23,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   final _currentCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
-  bool _obscureCurrent = true, _obscureNew = true, _obscureConfirm = true;
+  bool _obscure = true;
   String? _error;
-  String? _success;
+
+  @override
+  void initState() {
+    super.initState();
+    _newCtrl.addListener(() => setState(() {}));
+    _confirmCtrl.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
@@ -30,202 +41,188 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     super.dispose();
   }
 
-  bool _hasLetterAndNumber(String v) =>
-      RegExp(r'[a-zA-Z]').hasMatch(v) && RegExp(r'\d').hasMatch(v);
+  bool get _longEnough => _newCtrl.text.length >= 8;
+  bool get _letterAndNumber =>
+      RegExp(r'[a-zA-Z]').hasMatch(_newCtrl.text) &&
+      RegExp(r'\d').hasMatch(_newCtrl.text);
+  bool get _matches =>
+      _newCtrl.text.isNotEmpty && _newCtrl.text == _confirmCtrl.text;
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _error = null;
-      _success = null;
-    });
+    setState(() => _error = null);
     try {
-      await ref.read(authProvider.notifier).changePassword(
-            _currentCtrl.text,
-            _newCtrl.text,
-          );
+      await ref
+          .read(authProvider.notifier)
+          .changePassword(_currentCtrl.text, _newCtrl.text);
       if (!mounted) return;
-      setState(() => _success = 'Đổi mật khẩu thành công.');
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (!mounted) return;
-      final user = ref.read(authProvider).user!;
-      _navigateHome(user);
+      showAppSnack(context, 'Đổi mật khẩu thành công.');
+      context.go(homeFor(ref.read(authProvider).user?.role));
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     }
   }
 
-  void _navigateHome(AppUser user) {
-    context.go('/dashboard');
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
+    final forced = widget.forced;
+
+    Widget rule(bool ok, String text) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(children: [
+            Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked,
+                size: 18,
+                color: ok ? AppColors.ready : const Color(0xFFBDB5A7)),
+            const SizedBox(width: 8),
+            Text(text,
+                style: TextStyle(
+                    fontSize: 13,
+                    color: ok ? AppColors.ready : AppColors.muted)),
+          ]),
+        );
+
+    InputDecoration pw(String label) => InputDecoration(
+          labelText: label,
+          prefixIcon: const Icon(Icons.lock_outline),
+        );
+
+    final form = Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_error != null) ...[
+            AppBanner(tone: BannerTone.error, message: _error!),
+            const SizedBox(height: 16),
+          ],
+          TextFormField(
+            controller: _currentCtrl,
+            obscureText: _obscure,
+            decoration: pw(forced ? 'Mật khẩu tạm' : 'Mật khẩu hiện tại'),
+            validator: (v) => (v == null || v.isEmpty)
+                ? (forced
+                    ? 'Vui lòng nhập mật khẩu tạm.'
+                    : 'Vui lòng nhập mật khẩu hiện tại.')
+                : null,
+          ),
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _newCtrl,
+            obscureText: _obscure,
+            decoration: pw('Mật khẩu mới'),
+            validator: (_) => (_longEnough && _letterAndNumber)
+                ? null
+                : 'Mật khẩu mới cần ít nhất 8 ký tự, gồm cả chữ và số.',
+          ),
+          const SizedBox(height: 14),
+          TextFormField(
+            controller: _confirmCtrl,
+            obscureText: _obscure,
+            onFieldSubmitted: (_) => _submit(),
+            decoration: pw('Nhập lại mật khẩu mới'),
+            validator: (_) => _matches ? null : 'Mật khẩu nhập lại chưa khớp.',
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 18),
+              label: Text(_obscure ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'),
+            ),
+          ),
+          AppCard(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+            child: Column(children: [
+              rule(_longEnough, 'Ít nhất 8 ký tự'),
+              rule(_letterAndNumber, 'Có cả chữ và số'),
+              rule(_matches, 'Hai lần nhập khớp nhau'),
+            ]),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: isLoading ? null : _submit,
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Lưu mật khẩu mới'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: TextButton(
+              onPressed: forced
+                  ? () => ref.read(authProvider.notifier).logout()
+                  : () =>
+                      context.go(homeFor(ref.read(authProvider).user?.role)),
+              child: Text(forced ? 'Đăng xuất' : 'Quay lại'),
+            ),
+          ),
+        ],
+      ),
+    );
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Card(
-            margin: const EdgeInsets.all(24),
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.lock_reset, color: Color(0xFF1565C0)),
-                      const SizedBox(width: 8),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(
+                  24, MediaQuery.paddingOf(context).top + 28, 24, 28),
+              decoration: const BoxDecoration(
+                color: AppColors.espresso,
+                border:
+                    Border(bottom: BorderSide(color: AppColors.gold, width: 3)),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const BrandMark(size: 40),
+                      const SizedBox(height: 14),
+                      Text(forced ? 'Đặt mật khẩu mới' : 'Đổi mật khẩu',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 6),
                       Text(
-                        widget.forced ? 'Đổi mật khẩu bắt buộc' : 'Đổi mật khẩu',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ]),
-                    if (widget.forced) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.amber[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber),
-                        ),
-                        child: const Text(
-                          'Bạn đang dùng mật khẩu tạm — vui lòng đặt mật khẩu mới để tiếp tục.',
-                          style: TextStyle(fontSize: 13),
-                        ),
+                        forced
+                            ? 'Bạn đang dùng mật khẩu tạm — vui lòng đặt mật khẩu mới để tiếp tục.'
+                            : 'Mật khẩu mới áp dụng từ lần đăng nhập sau trên mọi thiết bị.',
+                        style: const TextStyle(
+                            color: AppColors.onDarkMuted,
+                            fontSize: 14,
+                            height: 1.5),
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    _PasswordField(
-                      controller: _currentCtrl,
-                      label: 'Mật khẩu hiện tại',
-                      obscure: _obscureCurrent,
-                      onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Vui lòng nhập mật khẩu hiện tại.' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _PasswordField(
-                      controller: _newCtrl,
-                      label: 'Mật khẩu mới',
-                      obscure: _obscureNew,
-                      onToggle: () => setState(() => _obscureNew = !_obscureNew),
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu mới.';
-                        if (v.length < 8) return 'Mật khẩu mới cần ít nhất 8 ký tự, gồm cả chữ và số.';
-                        if (!_hasLetterAndNumber(v)) {
-                          return 'Mật khẩu mới cần ít nhất 8 ký tự, gồm cả chữ và số.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _PasswordField(
-                      controller: _confirmCtrl,
-                      label: 'Xác nhận mật khẩu mới',
-                      obscure: _obscureConfirm,
-                      onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
-                      validator: (v) => v != _newCtrl.text ? 'Mật khẩu xác nhận không khớp.' : null,
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      _StatusBanner(message: _error!, isError: true),
-                    ],
-                    if (_success != null) ...[
-                      const SizedBox(height: 12),
-                      _StatusBanner(message: _success!, isError: false),
-                    ],
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _submit,
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Text('Lưu mật khẩu'),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              child: Center(
+                child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: form),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
-
-class _PasswordField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final bool obscure;
-  final VoidCallback onToggle;
-  final String? Function(String?) validator;
-
-  const _PasswordField({
-    required this.controller,
-    required this.label,
-    required this.obscure,
-    required this.onToggle,
-    required this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) => TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: const Icon(Icons.lock),
-          suffixIcon: IconButton(
-            icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-            onPressed: onToggle,
-          ),
-        ),
-        validator: validator,
-      );
-}
-
-class _StatusBanner extends StatelessWidget {
-  final String message;
-  final bool isError;
-
-  const _StatusBanner({required this.message, required this.isError});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isError ? Colors.red[50] : Colors.green[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isError ? Colors.red[300]! : Colors.green[300]!),
-        ),
-        child: Row(children: [
-          Icon(
-            isError ? Icons.error_outline : Icons.check_circle_outline,
-            color: isError ? Colors.red[700] : Colors.green[700],
-            size: 18,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: isError ? Colors.red[700] : Colors.green[700],
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ]),
-      );
 }

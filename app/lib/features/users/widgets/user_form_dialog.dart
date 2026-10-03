@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
 import '../../../models/user.dart';
+import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/confirm_dialog.dart';
+import '../../../shared/widgets/ui.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/users_provider.dart';
 import 'temp_password_dialog.dart';
 
+/// Tạo / sửa tài khoản. Lễ tân không tạo hoặc gán vai trò Quản lý (BE chặn — ẩn luôn lựa chọn).
 class UserFormDialog extends ConsumerStatefulWidget {
   final AppUser? user;
 
@@ -44,33 +50,32 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
       _submitting = true;
       _error = null;
     });
+    final name = _fullName.text.trim();
     try {
       if (widget.isCreate) {
         final data = await ref.read(usersProvider.notifier).createUser(
-              fullName: _fullName.text.trim(),
+              fullName: name,
               phone: _phone.text.trim(),
               role: _role,
             );
         if (!mounted) return;
-        Navigator.of(context).pop();
+        final navigator = Navigator.of(context);
+        final rootContext = navigator.context;
+        navigator.pop();
         final tempPw = data?['tempPassword'] as String?;
-        if (tempPw != null) {
+        if (tempPw != null && rootContext.mounted) {
           await showDialog(
-            context: context,
+            context: rootContext,
             barrierDismissible: false,
-            builder: (_) => TempPasswordDialog(
-              tempPassword: tempPw,
-              fullName: _fullName.text.trim(),
-            ),
+            builder: (_) =>
+                TempPasswordDialog(tempPassword: tempPw, fullName: name),
           );
         }
       } else {
         await ref.read(usersProvider.notifier).updateUser(
               id: widget.user!.id,
               version: widget.user!.version,
-              fullName: _fullName.text.trim() != widget.user!.fullName
-                  ? _fullName.text.trim()
-                  : null,
+              fullName: name != widget.user!.fullName ? name : null,
               phone: _phone.text.trim() != widget.user!.phone
                   ? _phone.text.trim()
                   : null,
@@ -78,84 +83,92 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
             );
         if (!mounted) return;
         Navigator.of(context).pop();
+        showAppSnack(context, 'Đã cập nhật tài khoản $name.');
       }
-    } on Exception catch (e) {
+    } on ApiException catch (e) {
       setState(() {
         _submitting = false;
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = e.message;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isCreate ? 'Tạo tài khoản' : 'Chỉnh sửa tài khoản';
-    return AlertDialog(
-      title: Text(title),
-      content: SizedBox(
-        width: 360,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (_error != null)
-                Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Text(_error!, style: TextStyle(color: Colors.red[700], fontSize: 13)),
-                ),
-              TextFormField(
-                controller: _fullName,
-                decoration: const InputDecoration(labelText: 'Họ tên *'),
-                textInputAction: TextInputAction.next,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập họ tên.';
-                  return null;
-                },
-              ),
+    final actorRole = ref.watch(authProvider.select((s) => s.user?.role));
+    final roles = actorRole == UserRole.manager
+        ? UserRole.values
+        : UserRole.values.where((r) => r != UserRole.manager).toList();
+
+    return GoldDialog(
+      title: widget.isCreate ? 'Tạo tài khoản' : 'Sửa tài khoản',
+      width: 420,
+      content: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_error != null) ...[
+              AppBanner(tone: BannerTone.error, message: _error!),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _phone,
-                decoration: const InputDecoration(labelText: 'Số điện thoại *'),
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số điện thoại.';
-                  if (!RegExp(r'^0\d{9}$').hasMatch(v.trim())) {
-                    return 'Số điện thoại không hợp lệ.';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<UserRole>(
-                initialValue: _role,
-                decoration: const InputDecoration(labelText: 'Vai trò *'),
-                items: UserRole.values
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r.label)))
-                    .toList(),
-                onChanged: (v) => setState(() => _role = v!),
-              ),
             ],
-          ),
+            TextFormField(
+              controller: _fullName,
+              decoration: const InputDecoration(labelText: 'Họ tên *'),
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Vui lòng nhập họ tên.'
+                  : null,
+            ),
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: _phone,
+              decoration: const InputDecoration(
+                  labelText: 'Số điện thoại *',
+                  helperText: 'Dùng để đăng nhập.'),
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.next,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) {
+                  return 'Vui lòng nhập số điện thoại.';
+                }
+                if (!RegExp(r'^0\d{9}$').hasMatch(v.trim())) {
+                  return 'Số điện thoại cần gồm 10 chữ số và bắt đầu bằng 0.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 14),
+            DropdownButtonFormField<UserRole>(
+              initialValue: roles.contains(_role) ? _role : roles.first,
+              decoration: const InputDecoration(labelText: 'Vai trò *'),
+              items: [
+                for (final r in roles)
+                  DropdownMenuItem(value: r, child: Text(r.label))
+              ],
+              onChanged: (v) => setState(() => _role = v!),
+            ),
+            if (widget.isCreate) ...[
+              const SizedBox(height: 12),
+              const MetaText(
+                  'Hệ thống cấp mật khẩu tạm sau khi tạo. Nhân viên đổi mật khẩu ở lần đăng nhập đầu.'),
+            ],
+          ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: _submitting ? null : () => Navigator.of(context).pop(),
-          child: const Text('Huỷ'),
+          child: const Text('Hủy'),
         ),
-        FilledButton(
+        ElevatedButton(
           onPressed: _submitting ? null : _submit,
           child: _submitting
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : Text(widget.isCreate ? 'Tạo' : 'Lưu'),
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(widget.isCreate ? 'Tạo tài khoản' : 'Lưu thay đổi'),
         ),
       ],
     );

@@ -8,20 +8,45 @@ class RoomsFilter {
   final OccupancyStatus? occupancy;
   final CleaningStatus? cleaning;
   final ServiceStatus? service;
+  final bool readyOnly;
+  final String query;
 
-  const RoomsFilter({this.floor, this.occupancy, this.cleaning, this.service});
+  const RoomsFilter({
+    this.floor,
+    this.occupancy,
+    this.cleaning,
+    this.service,
+    this.readyOnly = false,
+    this.query = '',
+  });
+
+  bool get isActive =>
+      floor != null ||
+      occupancy != null ||
+      cleaning != null ||
+      service != null ||
+      readyOnly ||
+      query.isNotEmpty;
 
   RoomsFilter copyWith({
     Object? floor = _sentinel,
     Object? occupancy = _sentinel,
     Object? cleaning = _sentinel,
     Object? service = _sentinel,
+    bool? readyOnly,
+    String? query,
   }) =>
       RoomsFilter(
         floor: floor == _sentinel ? this.floor : floor as int?,
-        occupancy: occupancy == _sentinel ? this.occupancy : occupancy as OccupancyStatus?,
-        cleaning: cleaning == _sentinel ? this.cleaning : cleaning as CleaningStatus?,
-        service: service == _sentinel ? this.service : service as ServiceStatus?,
+        occupancy: occupancy == _sentinel
+            ? this.occupancy
+            : occupancy as OccupancyStatus?,
+        cleaning:
+            cleaning == _sentinel ? this.cleaning : cleaning as CleaningStatus?,
+        service:
+            service == _sentinel ? this.service : service as ServiceStatus?,
+        readyOnly: readyOnly ?? this.readyOnly,
+        query: query ?? this.query,
       );
 
   static const _sentinel = Object();
@@ -45,13 +70,39 @@ class RoomsState {
   });
 
   List<Room> get filtered {
-    return rooms.where((r) {
+    final q = filter.query.trim();
+    final list = rooms.where((r) {
       if (filter.floor != null && r.floor != filter.floor) return false;
-      if (filter.occupancy != null && r.occupancy != filter.occupancy) return false;
-      if (filter.cleaning != null && r.cleaning != filter.cleaning) return false;
+      if (filter.occupancy != null && r.occupancy != filter.occupancy) {
+        return false;
+      }
+      if (filter.cleaning != null && r.cleaning != filter.cleaning) {
+        return false;
+      }
       if (filter.service != null && r.service != filter.service) return false;
+      if (filter.readyOnly && !r.isReady) return false;
+      if (q.isNotEmpty && !r.number.contains(q)) return false;
       return true;
     }).toList();
+    list.sort(compareRooms);
+    return list;
+  }
+
+  List<Room> get sorted => [...rooms]..sort(compareRooms);
+
+  static int compareRooms(Room a, Room b) {
+    final byFloor = a.floor.compareTo(b.floor);
+    if (byFloor != 0) return byFloor;
+    final an = int.tryParse(a.number), bn = int.tryParse(b.number);
+    if (an != null && bn != null) return an.compareTo(bn);
+    return a.number.compareTo(b.number);
+  }
+
+  Room? byId(String id) {
+    for (final r in rooms) {
+      if (r.id == id) return r;
+    }
+    return null;
   }
 
   List<int> get availableFloors {
@@ -105,7 +156,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
   void _handleRoomCreated(Map<String, dynamic> roomJson) {
     final room = Room.fromJson(roomJson);
     if (state.rooms.any((r) => r.id == room.id)) return;
-    state = state.copyWith(rooms: [...state.rooms, room], lastUpdated: DateTime.now());
+    state = state
+        .copyWith(rooms: [...state.rooms, room], lastUpdated: DateTime.now());
   }
 
   void _handleRoomDeleted(String roomId) {
@@ -158,7 +210,9 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
       'guestCount': guestCount,
     };
     if (note != null && note.isNotEmpty) body['note'] = note;
-    if (expectedCheckout != null) body['expectedCheckout'] = expectedCheckout.toIso8601String();
+    if (expectedCheckout != null) {
+      body['expectedCheckout'] = expectedCheckout.toIso8601String();
+    }
     final res = await apiClient.post('/rooms/$roomId/check-in', body: body);
     return res['data'] as Map<String, dynamic>;
   }
@@ -167,7 +221,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     required String roomId,
     required int version,
   }) async {
-    final res = await apiClient.post('/rooms/$roomId/check-out', body: {'version': version});
+    final res = await apiClient
+        .post('/rooms/$roomId/check-out', body: {'version': version});
     return res['data'] as Map<String, dynamic>;
   }
 
@@ -182,8 +237,10 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     await apiClient.post('/rooms/$roomId/out-of-service', body: body);
   }
 
-  Future<void> backInService({required String roomId, required int version}) async {
-    await apiClient.post('/rooms/$roomId/back-in-service', body: {'version': version});
+  Future<void> backInService(
+      {required String roomId, required int version}) async {
+    await apiClient
+        .post('/rooms/$roomId/back-in-service', body: {'version': version});
   }
 
   Future<Map<String, dynamic>> createRoom({
@@ -229,7 +286,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
-  Future<void> deleteRoom({required String roomId, required int version}) async {
+  Future<void> deleteRoom(
+      {required String roomId, required int version}) async {
     await apiClient.delete('/rooms/$roomId', body: {'version': version});
   }
 }
@@ -237,3 +295,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
   return RoomsNotifier();
 });
+
+/// Đang kết nối realtime? Mất kết nối → khóa mọi nút ghi (realtime-sync FR: báo trạng thái + khóa ghi).
+final isOnlineProvider = Provider<bool>(
+    (ref) => ref.watch(roomsProvider.select((s) => s.isConnected)));

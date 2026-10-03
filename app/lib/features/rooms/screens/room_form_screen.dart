@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,8 +35,10 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
   void initState() {
     super.initState();
     _numberCtrl = TextEditingController(text: widget.room?.number ?? '');
-    _floorCtrl = TextEditingController(text: widget.room?.floor.toString() ?? '');
-    _selectedRoomTypeId = widget.room?.roomType.id; // initial; updated via onChanged
+    _floorCtrl =
+        TextEditingController(text: widget.room?.floor.toString() ?? '');
+    _selectedRoomTypeId =
+        widget.room?.roomType.id; // initial; updated via onChanged
   }
 
   @override
@@ -61,7 +64,8 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
               roomTypeId: _selectedRoomTypeId,
             );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật phòng')));
+          showAppSnack(
+              context, 'Đã cập nhật phòng ${_numberCtrl.text.trim()}.');
           Navigator.pop(context, true);
         }
       } else if (_isBulk) {
@@ -76,7 +80,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
           final skipped = result['skipped'] as List? ?? [];
           final msg = 'Đã tạo ${created.length} phòng'
               '${skipped.isNotEmpty ? ', bỏ qua ${skipped.length} số đã tồn tại' : ''}';
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+          showAppSnack(context, '$msg.');
           Navigator.pop(context, true);
         }
       } else {
@@ -86,13 +90,15 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
               roomTypeId: _selectedRoomTypeId!,
             );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Đã tạo phòng ${_numberCtrl.text.trim()}')));
+          showAppSnack(context, 'Đã thêm phòng ${_numberCtrl.text.trim()}.');
           Navigator.pop(context, true);
         }
       }
     } on ApiException catch (e) {
-      if (mounted) handleApiError(context, e, onReload: () => ref.read(roomsProvider.notifier).load());
+      if (mounted) {
+        handleApiError(context, e,
+            onReload: () => ref.read(roomsProvider.notifier).load());
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -117,7 +123,8 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                       Text(typesState.error!),
                       const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () => ref.read(roomTypesProvider.notifier).load(),
+                        onPressed: () =>
+                            ref.read(roomTypesProvider.notifier).load(),
                         child: const Text('Thử lại'),
                       ),
                     ],
@@ -126,7 +133,12 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
               : Form(
                   key: _formKey,
                   child: ListView(
-                    padding: const EdgeInsets.all(20),
+                    // Form hẹp ở giữa trên màn rộng (web), full chiều ngang trên mobile.
+                    padding: EdgeInsets.symmetric(
+                      horizontal: math.max(
+                          20, (MediaQuery.sizeOf(context).width - 560) / 2),
+                      vertical: 24,
+                    ),
                     children: [
                       if (!isEdit) ...[
                         Row(
@@ -134,7 +146,8 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                             ChoiceChip(
                               label: const Text('Tạo một phòng'),
                               selected: !_isBulk,
-                              onSelected: (_) => setState(() => _isBulk = false),
+                              onSelected: (_) =>
+                                  setState(() => _isBulk = false),
                             ),
                             const SizedBox(width: 10),
                             ChoiceChip(
@@ -151,11 +164,14 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                           controller: _numberCtrl,
                           decoration: const InputDecoration(
                             labelText: 'Số phòng *',
-                            border: OutlineInputBorder(),
                             hintText: 'VD: 101',
                           ),
-                          inputFormatters: [LengthLimitingTextInputFormatter(10)],
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập số phòng' : null,
+                          inputFormatters: [
+                            LengthLimitingTextInputFormatter(10)
+                          ],
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Vui lòng nhập số phòng'
+                              : null,
                         ),
                       if (_isBulk) ...[
                         Row(
@@ -164,15 +180,18 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                               child: TextFormField(
                                 controller: _fromCtrl,
                                 keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
                                 decoration: const InputDecoration(
                                   labelText: 'Từ số *',
-                                  border: OutlineInputBorder(),
                                 ),
                                 validator: (v) {
                                   if (v == null || v.isEmpty) return 'Bắt buộc';
                                   final n = int.tryParse(v);
-                                  return n == null || n < 1 ? 'Không hợp lệ' : null;
+                                  return n == null || n < 1
+                                      ? 'Không hợp lệ'
+                                      : null;
                                 },
                               ),
                             ),
@@ -181,16 +200,18 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                               child: TextFormField(
                                 controller: _toCtrl,
                                 keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
                                 decoration: const InputDecoration(
                                   labelText: 'Đến số *',
-                                  border: OutlineInputBorder(),
                                 ),
                                 validator: (v) {
                                   if (v == null || v.isEmpty) return 'Bắt buộc';
                                   final n = int.tryParse(v);
                                   if (n == null || n < 1) return 'Không hợp lệ';
-                                  final from = int.tryParse(_fromCtrl.text) ?? 0;
+                                  final from =
+                                      int.tryParse(_fromCtrl.text) ?? 0;
                                   return n < from ? 'Phải ≥ "Từ số"' : null;
                                 },
                               ),
@@ -202,15 +223,20 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                       TextFormField(
                         controller: _floorCtrl,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
                         decoration: const InputDecoration(
                           labelText: 'Tầng *',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) {
-                          if (v == null || v.isEmpty) return 'Vui lòng nhập tầng';
+                          if (v == null || v.isEmpty) {
+                            return 'Vui lòng nhập tầng';
+                          }
                           final n = int.tryParse(v);
-                          return n == null || n < 1 ? 'Tầng phải là số nguyên dương' : null;
+                          return n == null || n < 1
+                              ? 'Tầng phải là số nguyên dương'
+                              : null;
                         },
                       ),
                       const SizedBox(height: 16),
@@ -218,14 +244,15 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                         initialValue: _selectedRoomTypeId,
                         decoration: const InputDecoration(
                           labelText: 'Loại phòng *',
-                          border: OutlineInputBorder(),
                         ),
                         items: activeTypes
-                            .map((t) => DropdownMenuItem(value: t.id, child: Text(t.name)))
+                            .map((t) => DropdownMenuItem(
+                                value: t.id, child: Text(t.name)))
                             .toList(),
                         onChanged: (v) => _selectedRoomTypeId = v,
                         onSaved: (v) => _selectedRoomTypeId = v,
-                        validator: (v) => v == null ? 'Vui lòng chọn loại phòng' : null,
+                        validator: (v) =>
+                            v == null ? 'Vui lòng chọn loại phòng' : null,
                       ),
                       const SizedBox(height: 28),
                       SizedBox(
@@ -236,9 +263,12 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : Text(isEdit ? 'Lưu thay đổi' : (_isBulk ? 'Tạo theo dải' : 'Thêm phòng')),
+                              : Text(isEdit
+                                  ? 'Lưu thay đổi'
+                                  : (_isBulk ? 'Tạo theo dải' : 'Thêm phòng')),
                         ),
                       ),
                     ],

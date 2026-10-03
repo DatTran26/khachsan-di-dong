@@ -4,11 +4,13 @@ Node.js + Express 5 + TypeScript + Prisma 6 + PostgreSQL 16 + Socket.IO 4 (REST 
 
 ## Chạy lần đầu
 
+> **Cách nhanh nhất:** chạy `.\setup.cmd` rồi `.\dev.cmd` ở thư mục gốc repo — xem [README gốc](../README.md). Phần dưới là các bước làm tay.
+
 Yêu cầu: Node.js ≥ 20 và PostgreSQL 16 (khuyến nghị chạy bằng Docker).
 
 ```bash
 cd server
-npm install
+npm install                   # tự chạy `prisma generate` (postinstall)
 cp .env.example .env          # rồi sửa giá trị nếu cần
 docker compose up -d          # bật PostgreSQL (bỏ qua nếu đã cài PostgreSQL trên máy)
 npm run db:migrate            # tạo bảng
