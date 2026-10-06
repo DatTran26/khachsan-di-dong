@@ -1,7 +1,7 @@
 ---
 type: prd-product
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links: []
 ---
 
@@ -134,7 +134,7 @@ Nghiệp vụ lõi của lễ tân: nhận phòng chỉ khi phòng trống, đã
 4) Trạng thái mới lan realtime tới mọi thiết bị (`realtime-sync`).
 
 **Rủi ro chính:** nhận phòng vào phòng chưa sẵn sàng → sai nghiệp vụ cốt lõi, khách vào phòng chưa dọn. · **Đo thành công:** 100% ca nhận phòng bị chặn khi phòng chưa đủ điều kiện; 100% ca trả phòng tự tạo việc dọn.
-**OQ riêng:** OQ-4 (thông tin khách tối thiểu cần ghi khi nhận phòng).
+**OQ riêng:** OQ-4 ✅ resolved 2026-09-25 — tên khách + số người.
 
 ### 7.4 Công việc dọn phòng — `housekeeping`
 
@@ -187,7 +187,7 @@ Cơ chế nền khiến "một nguồn sự thật" thành hiện thực: thay �
 3) Hai thiết bị sửa cùng lúc → kiểm tra phiên bản, từ chối ghi đè.
 4) Thiết bị mất mạng → báo offline, khóa ghi; có mạng lại → đồng bộ lại.
 
-**Rủi ro chính:** xung đột/mất kết nối gây ghi đè trạng thái → dữ liệu sai trên toàn hệ thống. · **Đo thành công:** ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 10 phiên đồng thời); 0 ca ghi đè do xung đột.
+**Rủi ro chính:** xung đột/mất kết nối gây ghi đè trạng thái → dữ liệu sai trên toàn hệ thống. · **Đo thành công:** ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3s (50 phòng, 30 phiên đồng thời); 0 ca ghi đè do xung đột.
 **OQ riêng:** —
 
 ### 7.7 Dashboard trạng thái phòng — `room-dashboard`
@@ -247,7 +247,7 @@ Cuối ca hoặc cuối ngày, quản lý bấm tạo bản tóm tắt: hệ th�
 
 | Vai trò | Chỉ số | Baseline | Target | Mốc thời gian |
 |---|---|---|---|---|
-| North Star | % thay đổi trạng thái phòng hiển thị đúng trên thiết bị khác trong ≤3 giây | 0% — hiện cập nhật thủ công qua lễ tân, trễ hàng chục phút | ≥95% trong 100 lượt (50 phòng, 10 phiên đồng thời) | 02/11/2026 |
+| North Star | % thay đổi trạng thái phòng hiển thị đúng trên thiết bị khác trong ≤3 giây | 0% — hiện cập nhật thủ công qua lễ tân, trễ hàng chục phút | ≥95% trong 100 lượt (50 phòng, 30 phiên đồng thời) | 02/11/2026 |
 | Input | % kịch bản nghiệp vụ bắt buộc pass trên Flutter Web + Android | — | 100% | 02/11/2026 |
 | Input | Chỉ số dashboard khớp dữ liệu đối soát | — | 100% | 02/11/2026 |
 | Input | AI tóm tắt đúng (số liệu đúng, không bịa sự kiện, nêu đúng việc cần chú ý) | — | ≥18/20 tình huống | 02/11/2026 |
@@ -281,4 +281,4 @@ Cuối ca hoặc cuối ngày, quản lý bấm tạo bản tóm tắt: hệ th�
   - **Trạng thái từng phía (giữ OQ mở ở product):**
     - `housekeeping`: đã chốt hướng MVP — hệ thống tự phân công tới cá nhân; quản lý xác nhận sẵn sàng (BR-housekeeping-001). Phân công lại thủ công = P1.
     - `maintenance`: vẫn phụ thuộc maintenance OQ-2 — "tự nhận" đang là assumption chưa chốt (urd + brainstorm); chưa cascade đóng product OQ-3.
-- [ ] OQ-4: Thông tin khách tối thiểu cần ghi khi nhận phòng (chỉ tên? số người? giấy tờ giả lập?) — quyết khi `/brainstorm check-in-out`.
+- [x] OQ-4: Thông tin khách tối thiểu cần ghi khi nhận phòng — ✅ Resolved 2026-09-25 (chốt nhóm): tên khách + số người.

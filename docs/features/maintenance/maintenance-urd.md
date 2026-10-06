@@ -2,7 +2,7 @@
 type: urd
 feature: maintenance
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/maintenance/brainstorms/bao-hong-va-bao-tri.md|Brainstorm: Báo hỏng & chu trình bảo trì]]"
   - "[[Ton_Chi_Du_An_WPCTeam.txt|Tôn chỉ dự án]]"
@@ -152,7 +152,7 @@ Chu trình báo hỏng và bảo trì giúp mọi vai trò báo hỏng ngay khi 
 
 - Ngôn ngữ: tiếng Việt toàn bộ giao diện và thông báo.
 - Kênh/thiết bị: nhân viên bảo trì dùng mobile Android; lễ tân/quản lý dùng web; người báo dùng cả hai.
-- Môi trường: 1 khách sạn 50 phòng, tối đa ~10 phiên đăng nhập đồng thời (tôn chỉ).
+- Môi trường: 1 khách sạn 50 phòng, tối đa 30 phiên đăng nhập đồng thời (tôn chỉ).
 - Điều kiện sử dụng: phải đăng nhập đúng vai trò; báo xong chỉ trên việc do chính mình đang sửa; đặt/gỡ ngừng tay chỉ lễ tân/quản lý.
 - Kết nối: mất mạng không cho ghi; báo trạng thái rõ cho người dùng.
 - Trục trạng thái: bảo trì là trục riêng — "ngừng phục vụ" không đổi trục lưu trú/vệ sinh; "sẵn sàng" là tổ hợp 3 trục (trống + sạch + phục vụ).

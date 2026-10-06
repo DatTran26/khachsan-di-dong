@@ -1,0 +1,38 @@
+# Dev:        docker compose up -d                  → chỉ PostgreSQL (backend chạy bằng `npm run dev`)
+# Chạy trọn:  docker compose --profile full up -d   → PostgreSQL + backend (giống môi trường VPS)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: khachsan
+      POSTGRES_PASSWORD: khachsan
+      POSTGRES_DB: khachsan
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U khachsan"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    profiles: ["full"]
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://khachsan:khachsan@db:5432/khachsan?schema=public
+      PORT: 3000
+      # Khi lên VPS: khai báo tên miền web thật, vd "https://khachsan-demo.vn"
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      MAINTENANCE_DUE_MINUTES: ${MAINTENANCE_DUE_MINUTES:-}
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

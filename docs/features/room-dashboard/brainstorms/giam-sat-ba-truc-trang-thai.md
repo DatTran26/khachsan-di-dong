@@ -2,7 +2,7 @@
 type: brainstorm
 feature: room-dashboard
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/_product/prd.md|Product PRD]]"
   - "[[Ton_Chi_Du_An_WPCTeam.txt|Tôn chỉ dự án]]"
@@ -161,7 +161,7 @@ Edge cases khác:
 | Độ trễ cập nhật realtime | ≤ 3 giây | Từ lúc máy chủ lưu thành công | Mục tiêu nghiệm thu ≥95% lượt (tôn chỉ) |
 | Ngưỡng quá hạn việc dọn | 60 phút | Do `housekeeping` sở hữu và đánh cờ | Dashboard chỉ hiển thị cờ |
 | Ngưỡng quá hạn việc sửa | Chưa chốt — OQ-1 | Do `maintenance` sở hữu | Dashboard chỉ hiển thị cờ |
-| Phiên đồng thời | ~10 | Tôn chỉ | — |
+| Phiên đồng thời | 30 | Tôn chỉ | — |
 
 ### 7.3 Wording samples (exact strings)
 
@@ -205,7 +205,7 @@ Edge cases khác:
 ## 10. Success Criteria (preliminary)
 
 - 100% chỉ số dashboard khớp dữ liệu đối soát trong nghiệm thu (tôn chỉ/PRD).
-- ≥95% trong 100 lượt cập nhật trạng thái hiển thị trên dashboard trong ≤3 giây (50 phòng, ~10 phiên đồng thời).
+- ≥95% trong 100 lượt cập nhật trạng thái hiển thị trên dashboard trong ≤3 giây (50 phòng, 30 phiên đồng thời).
 - 100% công việc có cờ quá hạn được tô cờ và đếm đúng trên dashboard.
 - 0 màn hình/báo cáo nào trộn 3 trục trạng thái thành 1 trạng thái duy nhất.
 

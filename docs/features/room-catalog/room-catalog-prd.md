@@ -2,7 +2,7 @@
 type: prd
 feature: room-catalog
 status: draft
-updated: 2026-09-17
+updated: 2026-09-25
 links:
   - "[[docs/features/room-catalog/room-catalog-brd.md|BRD — Room Catalog]]"
   - "[[docs/features/room-catalog/room-catalog-urd.md|URD — Room Catalog]]"
@@ -106,6 +106,6 @@ Danh mục phòng hiện nằm rải trong sổ/Excel, không có nguồn số h
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Quyền của lễ tân với danh mục — chỉ tra cứu + đặt/gỡ ngừng phục vụ, hay cả thêm/sửa phòng?
+- [x] OQ-1: Quyền của lễ tân với danh mục phòng — ✅ Resolved 2026-09-25 (chốt nhóm): chỉ **quản lý** thêm/sửa/xóa phòng và loại phòng; lễ tân tra cứu + đặt/gỡ ngừng phục vụ (FR-007/008).
 - [ ] OQ-2: Cách nạp danh mục ban đầu 50 phòng — nhập tay, theo dải, hay nạp sẵn giả lập? Cho phép vượt 50?
 - [ ] OQ-3: Quy ước đánh số phòng có bắt buộc không?

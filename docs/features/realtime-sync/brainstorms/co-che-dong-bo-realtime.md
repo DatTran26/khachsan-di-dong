@@ -2,7 +2,7 @@
 type: brainstorm
 feature: realtime-sync
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[Ton_Chi_Du_An_WPCTeam.txt|Tôn chỉ dự án]]"
 ---
@@ -15,7 +15,7 @@ Cơ chế nền khiến "một nguồn sự thật" thành hiện thực: thay �
 
 ## 2. Context
 
-MVP 8 tuần (08/09–02/11/2026), 1 khách sạn giả định 50 phòng, tiếng Việt, ~10 phiên đồng thời, dữ liệu giả lập. Tôn chỉ: "dữ liệu thay đổi được đồng bộ thời gian thực giữa các thiết bị" và "cập nhật trạng thái phải có kiểm tra phiên bản để tránh ghi đè". `realtime-sync` thuộc nhóm "Nền tảng chung" cùng `auth-roles`; Sprint 1 (tới 21/09) có mốc "kiểm chứng đồng bộ realtime" trước khi các luồng vận hành Sprint 2 dùng nó.
+MVP 8 tuần (08/09–02/11/2026), 1 khách sạn giả định 50 phòng, tiếng Việt, 30 phiên đồng thời, dữ liệu giả lập. Tôn chỉ: "dữ liệu thay đổi được đồng bộ thời gian thực giữa các thiết bị" và "cập nhật trạng thái phải có kiểm tra phiên bản để tránh ghi đè". `realtime-sync` thuộc nhóm "Nền tảng chung" cùng `auth-roles`; Sprint 1 (tới 21/09) có mốc "kiểm chứng đồng bộ realtime" trước khi các luồng vận hành Sprint 2 dùng nó.
 
 ## 3. User Types (preliminary)
 
@@ -161,7 +161,7 @@ phiên bản n → phiên bản n+1 (mỗi lần lưu thành công; không lùi)
 
 | Tham số | Giá trị | Window | Behavior khi vượt |
 |---|---|---|---|
-| Độ trễ lan truyền cập nhật | ≤ 3 giây | Từ lúc máy chủ lưu tới khi thiết bị khác hiển thị | Mục tiêu nghiệm thu ≥95% trong 100 lượt (50 phòng, 10 phiên đồng thời) |
+| Độ trễ lan truyền cập nhật | ≤ 3 giây | Từ lúc máy chủ lưu tới khi thiết bị khác hiển thị | Mục tiêu nghiệm thu ≥95% trong 100 lượt (50 phòng, 30 phiên đồng thời) |
 | Ghi đè do xung đột phiên bản | 0 ca | Toàn hệ thống | Ghi cũ bị từ chối 100% |
 | Ngưỡng thời gian báo "mất kết nối" cho người dùng | **OQ-1 — chưa chốt** | Kể từ khi mất liên lạc | Hiển thị cảnh báo + khóa ghi |
 
@@ -190,7 +190,7 @@ phiên bản n → phiên bản n+1 (mỗi lần lưu thành công; không lùi)
 ## 8. Assumptions
 
 - Một máy chủ duy nhất là nguồn sự thật (MVP không có nhiều nút máy chủ).
-- Kênh realtime của stack đã chọn (Socket.IO theo tôn chỉ) đủ cho ~10 phiên đồng thời.
+- Kênh realtime của stack đã chọn (Socket.IO theo tôn chỉ) đủ cho 30 phiên đồng thời.
 - Khi mất kết nối, thiết bị vẫn cho **xem** dữ liệu cuối đã tải — chỉ khóa ghi.
 - Sự kiện phát ra mang trạng thái mới của đối tượng; thiết bị lỡ sự kiện được bù bằng "tải trạng thái mới" khi kết nối lại — không cần hàng đợi sự kiện lưu trữ.
 - Kiểm tra phiên bản áp theo đối tượng trạng thái (phòng theo trục, việc theo việc), không khóa toàn bộ phòng cho mọi loại thay đổi.
@@ -206,7 +206,7 @@ phiên bản n → phiên bản n+1 (mỗi lần lưu thành công; không lùi)
 
 ## 10. Success Criteria (preliminary)
 
-- ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác trong ≤3 giây (50 phòng, 10 phiên đồng thời — tiêu chí nghiệm thu PRD).
+- ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác trong ≤3 giây (50 phòng, 30 phiên đồng thời — tiêu chí nghiệm thu PRD).
 - 0 ca ghi đè trạng thái do xung đột phiên bản.
 - 100% thời điểm mất kết nối: thiết bị báo trạng thái rõ và khóa ghi.
 - 100% lần kết nối lại: tự tải trạng thái mới, không cần đăng nhập lại (nếu phiên còn hạn).

@@ -2,7 +2,7 @@
 type: prd
 feature: realtime-sync
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/realtime-sync/realtime-sync-brd.md|Realtime-sync BRD]]"
   - "[[docs/features/realtime-sync/realtime-sync-urd.md|Realtime-sync URD]]"
@@ -23,7 +23,7 @@ Cơ chế nền dùng chung biến "một nguồn sự thật" thành hiện th�
 
 ### Goals
 
-- G1: ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây (50 phòng, 10 phiên đồng thời).
+- G1: ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây (50 phòng, 30 phiên đồng thời).
 - G2: 0 ca ghi đè trạng thái do xung đột phiên bản.
 - G3: 100% thời điểm mất kết nối có cảnh báo + khóa ghi; 100% lần kết nối lại tự tải trạng thái mới.
 - G4: Một cơ chế dùng chung — mọi feature trạng thái đi qua cùng đường truyền, không nhân bản logic.
@@ -33,7 +33,7 @@ Cơ chế nền dùng chung biến "một nguồn sự thật" thành hiện th�
 - Không hàng đợi offline cho ghi, không đồng bộ soạn dở, không retry thông minh (PRD "chưa làm").
 - Không chứa nghiệp vụ trạng thái (báo hỏng, dọn phòng, nhận/trả) — thuộc feature vận hành tương ứng.
 - Không quản lý phiên đăng nhập (`auth-roles`); không ghi nhật ký nghiệp vụ (`audit-log`).
-- Không đồng bộ đa máy chủ/đa khách sạn; không tối ưu cho tải lớn hơn ~10 phiên.
+- Không đồng bộ đa máy chủ/đa khách sạn; không tối ưu cho tải lớn hơn 30 phiên.
 
 ## 3. Personas & Use Cases
 
@@ -87,7 +87,7 @@ Ref: `[[docs/features/realtime-sync/realtime-sync-urd.md]]` mục User Types + J
 
 ## 7. Assumptions
 
-- Một máy chủ duy nhất là nguồn sự thật; ~10 phiên đồng thời là tải đỉnh.
+- Một máy chủ duy nhất là nguồn sự thật; 30 phiên đồng thời là tải đỉnh.
 - Mất kết nối vẫn cho xem dữ liệu cuối — chỉ khóa ghi.
 - Sự kiện mang trạng thái mới của đối tượng; thiết bị lỡ sự kiện được bù bằng tải lại khi kết nối lại (không cần hàng đợi sự kiện lưu trữ).
 - Kiểm tra phiên bản áp theo đối tượng trạng thái, không khóa toàn bộ phòng.

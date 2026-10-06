@@ -2,7 +2,7 @@
 type: urd
 feature: housekeeping
 status: draft
-updated: 2026-09-15
+updated: 2026-09-23
 links:
   - "[[docs/features/housekeeping/brainstorms/chu-trinh-don-phong.md|Brainstorm: Chu trình dọn phòng]]"
   - "[[Ton_Chi_Du_An_WPCTeam.txt|Tôn chỉ dự án]]"
@@ -143,7 +143,7 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 
 - Ngôn ngữ: tiếng Việt toàn bộ giao diện và thông báo.
 - Kênh/thiết bị: nhân viên buồng phòng dùng mobile (Android/app + web responsive); quản lý và lễ tân dùng web dashboard.
-- Môi trường: 1 khách sạn 50 phòng, tối đa ~10 phiên đăng nhập đồng thời (tôn chỉ).
+- Môi trường: 1 khách sạn 50 phòng, tối đa 30 phiên đăng nhập đồng thời (tôn chỉ).
 - Điều kiện sử dụng: phải đăng nhập đúng vai trò; nhân viên chỉ thao tác việc của mình; chỉ quản lý xác nhận "sẵn sàng".
 - Kết nối: mất mạng không cho ghi; phải báo trạng thái rõ cho người dùng.
 

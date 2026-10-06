@@ -2,7 +2,7 @@
 type: urd
 feature: check-in-out
 status: draft
-updated: 2026-09-17
+updated: 2026-09-23
 links:
   - "[[docs/features/check-in-out/brainstorms/nhan-tra-phong.md|Brainstorm — Nhận/Trả phòng]]"
   - "[[docs/_product/prd.md|PRD sản phẩm — Mục 7.3]]"
@@ -110,7 +110,7 @@ Ghi nhận nhu cầu phía người dùng cho `check-in-out` — hai hành độ
 ## 8. User-side Constraints
 
 - Thiết bị: web tại quầy lễ tân; quản lý giám sát trên web; nhân viên thấy việc trên Android (qua `housekeeping`).
-- Tiếng Việt; ~10 phiên đồng thời; realtime là kỳ vọng mặc định.
+- Tiếng Việt; 30 phiên đồng thời; realtime là kỳ vọng mặc định.
 - Dữ liệu khách giả lập — không thu giấy tờ thật.
 - Lễ tân cần thao tác nhanh tại quầy — nhận/trả phải là 1–2 bước xác nhận, không form dài.
 

@@ -1,0 +1,301 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/realtime/socket_service.dart';
+import '../../../models/room.dart';
+
+class RoomsFilter {
+  final int? floor;
+  final OccupancyStatus? occupancy;
+  final CleaningStatus? cleaning;
+  final ServiceStatus? service;
+  final bool readyOnly;
+  final String query;
+
+  const RoomsFilter({
+    this.floor,
+    this.occupancy,
+    this.cleaning,
+    this.service,
+    this.readyOnly = false,
+    this.query = '',
+  });
+
+  bool get isActive =>
+      floor != null ||
+      occupancy != null ||
+      cleaning != null ||
+      service != null ||
+      readyOnly ||
+      query.isNotEmpty;
+
+  RoomsFilter copyWith({
+    Object? floor = _sentinel,
+    Object? occupancy = _sentinel,
+    Object? cleaning = _sentinel,
+    Object? service = _sentinel,
+    bool? readyOnly,
+    String? query,
+  }) =>
+      RoomsFilter(
+        floor: floor == _sentinel ? this.floor : floor as int?,
+        occupancy: occupancy == _sentinel
+            ? this.occupancy
+            : occupancy as OccupancyStatus?,
+        cleaning:
+            cleaning == _sentinel ? this.cleaning : cleaning as CleaningStatus?,
+        service:
+            service == _sentinel ? this.service : service as ServiceStatus?,
+        readyOnly: readyOnly ?? this.readyOnly,
+        query: query ?? this.query,
+      );
+
+  static const _sentinel = Object();
+}
+
+class RoomsState {
+  final List<Room> rooms;
+  final bool isLoading;
+  final String? error;
+  final RoomsFilter filter;
+  final bool isConnected;
+  final DateTime? lastUpdated;
+
+  const RoomsState({
+    this.rooms = const [],
+    this.isLoading = false,
+    this.error,
+    this.filter = const RoomsFilter(),
+    this.isConnected = true,
+    this.lastUpdated,
+  });
+
+  List<Room> get filtered {
+    final q = filter.query.trim();
+    final list = rooms.where((r) {
+      if (filter.floor != null && r.floor != filter.floor) return false;
+      if (filter.occupancy != null && r.occupancy != filter.occupancy) {
+        return false;
+      }
+      if (filter.cleaning != null && r.cleaning != filter.cleaning) {
+        return false;
+      }
+      if (filter.service != null && r.service != filter.service) return false;
+      if (filter.readyOnly && !r.isReady) return false;
+      if (q.isNotEmpty && !r.number.contains(q)) return false;
+      return true;
+    }).toList();
+    list.sort(compareRooms);
+    return list;
+  }
+
+  List<Room> get sorted => [...rooms]..sort(compareRooms);
+
+  static int compareRooms(Room a, Room b) {
+    final byFloor = a.floor.compareTo(b.floor);
+    if (byFloor != 0) return byFloor;
+    final an = int.tryParse(a.number), bn = int.tryParse(b.number);
+    if (an != null && bn != null) return an.compareTo(bn);
+    return a.number.compareTo(b.number);
+  }
+
+  Room? byId(String id) {
+    for (final r in rooms) {
+      if (r.id == id) return r;
+    }
+    return null;
+  }
+
+  List<int> get availableFloors {
+    final floors = rooms.map((r) => r.floor).toSet().toList()..sort();
+    return floors;
+  }
+
+  RoomsState copyWith({
+    List<Room>? rooms,
+    bool? isLoading,
+    String? error,
+    RoomsFilter? filter,
+    bool? isConnected,
+    DateTime? lastUpdated,
+    bool clearError = false,
+  }) =>
+      RoomsState(
+        rooms: rooms ?? this.rooms,
+        isLoading: isLoading ?? this.isLoading,
+        error: clearError ? null : (error ?? this.error),
+        filter: filter ?? this.filter,
+        isConnected: isConnected ?? this.isConnected,
+        lastUpdated: lastUpdated ?? this.lastUpdated,
+      );
+}
+
+class RoomsNotifier extends StateNotifier<RoomsState> {
+  RoomsNotifier() : super(const RoomsState()) {
+    _setupSocket();
+    load();
+  }
+
+  void _setupSocket() {
+    socketService.onRoomUpdated = _handleRoomUpdated;
+    socketService.onRoomCreated = _handleRoomCreated;
+    socketService.onRoomDeleted = _handleRoomDeleted;
+    socketService.onConnectionChanged = _handleConnectionChanged;
+  }
+
+  void _handleRoomUpdated(Map<String, dynamic> roomJson) {
+    final updated = Room.fromJson(roomJson);
+    final idx = state.rooms.indexWhere((r) => r.id == updated.id);
+    if (idx == -1) return;
+    final current = state.rooms[idx];
+    if (updated.version <= current.version) return;
+    final newRooms = [...state.rooms];
+    newRooms[idx] = updated;
+    state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
+  }
+
+  void _handleRoomCreated(Map<String, dynamic> roomJson) {
+    final room = Room.fromJson(roomJson);
+    if (state.rooms.any((r) => r.id == room.id)) return;
+    state = state
+        .copyWith(rooms: [...state.rooms, room], lastUpdated: DateTime.now());
+  }
+
+  void _handleRoomDeleted(String roomId) {
+    final newRooms = state.rooms.where((r) => r.id != roomId).toList();
+    state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
+  }
+
+  void _handleConnectionChanged(bool connected) {
+    state = state.copyWith(isConnected: connected);
+    if (connected) load();
+  }
+
+  Future<void> load() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final res = await apiClient.get('/rooms');
+      final list = (res['data'] as List)
+          .cast<Map<String, dynamic>>()
+          .map(Room.fromJson)
+          .toList();
+      state = state.copyWith(
+        rooms: list,
+        isLoading: false,
+        lastUpdated: DateTime.now(),
+      );
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  void setFilter(RoomsFilter filter) {
+    state = state.copyWith(filter: filter);
+  }
+
+  void clearFilter() {
+    state = state.copyWith(filter: const RoomsFilter());
+  }
+
+  Future<Map<String, dynamic>> checkIn({
+    required String roomId,
+    required int version,
+    required String guestName,
+    required int guestCount,
+    String? note,
+    DateTime? expectedCheckout,
+  }) async {
+    final body = <String, dynamic>{
+      'version': version,
+      'guestName': guestName,
+      'guestCount': guestCount,
+    };
+    if (note != null && note.isNotEmpty) body['note'] = note;
+    if (expectedCheckout != null) {
+      body['expectedCheckout'] = expectedCheckout.toIso8601String();
+    }
+    final res = await apiClient.post('/rooms/$roomId/check-in', body: body);
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> checkOut({
+    required String roomId,
+    required int version,
+  }) async {
+    final res = await apiClient
+        .post('/rooms/$roomId/check-out', body: {'version': version});
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> setOutOfService({
+    required String roomId,
+    required int version,
+    required String reason,
+    bool confirmOccupied = false,
+  }) async {
+    final body = <String, dynamic>{'version': version, 'reason': reason};
+    if (confirmOccupied) body['confirmOccupied'] = true;
+    await apiClient.post('/rooms/$roomId/out-of-service', body: body);
+  }
+
+  Future<void> backInService(
+      {required String roomId, required int version}) async {
+    await apiClient
+        .post('/rooms/$roomId/back-in-service', body: {'version': version});
+  }
+
+  Future<Map<String, dynamic>> createRoom({
+    required String number,
+    required int floor,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms', body: {
+      'number': number,
+      'floor': floor,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createRoomRange({
+    required int floor,
+    required int from,
+    required int to,
+    required String roomTypeId,
+  }) async {
+    final res = await apiClient.post('/rooms/bulk', body: {
+      'floor': floor,
+      'from': from,
+      'to': to,
+      'roomTypeId': roomTypeId,
+    });
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateRoom({
+    required String roomId,
+    required int version,
+    String? number,
+    int? floor,
+    String? roomTypeId,
+  }) async {
+    final body = <String, dynamic>{'version': version};
+    if (number != null) body['number'] = number;
+    if (floor != null) body['floor'] = floor;
+    if (roomTypeId != null) body['roomTypeId'] = roomTypeId;
+    final res = await apiClient.patch('/rooms/$roomId', body: body);
+    return res['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteRoom(
+      {required String roomId, required int version}) async {
+    await apiClient.delete('/rooms/$roomId', body: {'version': version});
+  }
+}
+
+final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
+  return RoomsNotifier();
+});
+
+/// Đang kết nối realtime? Mất kết nối → khóa mọi nút ghi (realtime-sync FR: báo trạng thái + khóa ghi).
+final isOnlineProvider = Provider<bool>(
+    (ref) => ref.watch(roomsProvider.select((s) => s.isConnected)));

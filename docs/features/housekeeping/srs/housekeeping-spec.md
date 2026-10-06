@@ -2,7 +2,7 @@
 type: srs-spec
 feature: housekeeping
 status: draft
-updated: 2026-09-15
+updated: 2026-09-23
 links:
   - "[[docs/features/housekeeping/housekeeping-prd.md|Housekeeping PRD]]"
 ---
@@ -47,7 +47,7 @@ links:
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| NFR-housekeeping-001 | Performance: ≥95% trong 100 lượt cập nhật trạng thái phải hiển thị trên thiết bị khác trong ≤3 giây (50 phòng, tối đa ~10 phiên đồng thời). | Đo theo tiêu chí nghiệm thu tôn chỉ | Must |
+| NFR-housekeeping-001 | Performance: ≥95% trong 100 lượt cập nhật trạng thái phải hiển thị trên thiết bị khác trong ≤3 giây (50 phòng, tối đa 30 phiên đồng thời). | Đo theo tiêu chí nghiệm thu tôn chỉ | Must |
 | NFR-housekeeping-002 | Usability: thao tác nhận việc hoặc báo hoàn tất hoàn thành trong ≤3 chạm trên mobile; toàn bộ nhãn và thông báo tiếng Việt. | Demo trên Android/Web | Must |
 | NFR-housekeeping-003 | Reliability: mất mạng không được mất dữ liệu đã xác nhận lưu — máy chủ lưu trước rồi mới phát sự kiện realtime. | Test: ngắt mạng sau khi lưu | Must |
 | NFR-housekeeping-004 | Security: mọi thay đổi trạng thái phải kiểm tra quyền vai trò ở máy chủ (nhân viên chỉ thao tác việc của mình; chỉ quản lý xác nhận/trả lại/phân công lại). | Test bằng tài khoản từng vai trò | Must |

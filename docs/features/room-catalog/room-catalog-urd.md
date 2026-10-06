@@ -2,7 +2,7 @@
 type: urd
 feature: room-catalog
 status: draft
-updated: 2026-09-17
+updated: 2026-09-25
 links:
   - "[[docs/features/room-catalog/brainstorms/danh-muc-phong.md|Brainstorm — Danh mục phòng]]"
   - "[[docs/_product/prd.md|PRD sản phẩm — Mục 7.2]]"
@@ -109,7 +109,7 @@ Tài liệu này ghi nhận nhu cầu phía người dùng cho feature `room-cat
 ## 8. User-side Constraints
 
 - Thiết bị: web (quản lý, lễ tân) và Android (nhân viên) — tiếng Việt.
-- ~10 phiên đồng thời; realtime là kỳ vọng mặc định, không phải "thỉnh thoảng kiểm tra lại".
+- 30 phiên đồng thời; realtime là kỳ vọng mặc định, không phải "thỉnh thoảng kiểm tra lại".
 - Dữ liệu giả lập 50 phòng — không dữ liệu khách thật.
 - Lễ tân dùng trên quầy trong ca làm việc; nhân viên dùng trên mobile khi di chuyển.
 
@@ -132,7 +132,7 @@ Tài liệu này ghi nhận nhu cầu phía người dùng cho feature `room-cat
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Quyền của lễ tân với danh mục phòng — chỉ tra cứu + đặt/gỡ ngừng phục vụ, hay cả thêm/sửa phòng? (mâu thuẫn giữa project-profile và PRD §7.2)
+- [x] OQ-1: Quyền của lễ tân với danh mục phòng — ✅ Resolved 2026-09-25 (chốt nhóm): chỉ **quản lý** thêm/sửa/xóa phòng và loại phòng; lễ tân tra cứu + đặt/gỡ ngừng phục vụ (FR-007/008).
 - [ ] OQ-2: Cách nạp danh mục ban đầu 50 phòng — nhập tay, theo dải, hay nạp sẵn giả lập? Cho phép vượt 50 phòng?
 - [ ] OQ-3: Quy ước đánh số phòng có bắt buộc không, hay số phòng là chuỗi tự do chỉ cần duy nhất?
 
