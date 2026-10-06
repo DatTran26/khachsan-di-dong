@@ -54,7 +54,7 @@ stateDiagram-v2
     sach --> can_don : su kien tra phong lan sau
 
     note right of sach
-        San sang = trong + sach + dang phuc vu
+        San sang = trong + sach + binh thuong
         composite BR-housekeeping-003
     end note
 ```

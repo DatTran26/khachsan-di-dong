@@ -27,6 +27,7 @@ Số hóa chu trình dọn phòng từ lúc trả phòng đến lúc phòng "s�
 - G2: Kiểm soát chất lượng qua bước xác nhận của quản lý trước khi phòng mở bán lại.
 - G3: Việc quá hạn 60 phút được cảnh báo deterministic — không phụ thuộc AI.
 - G4: Mọi thay đổi trạng thái đồng bộ realtime ≤3 giây trên mọi thiết bị.
+- G5: Mỗi lần báo hoàn tất có bộ ảnh nghiệm thu tối thiểu để quản lý kiểm tra từ xa trước khi mở bán lại.
 
 ### Non-Goals
 
@@ -35,13 +36,14 @@ Số hóa chu trình dọn phòng từ lúc trả phòng đến lúc phòng "s�
 - Không AI quyết định hay tự đổi trạng thái (AI chỉ tóm tắt — feature riêng).
 - Không xử lý nhận/trả phòng (feature nhận/trả phòng là nguồn sự kiện).
 - Không làm báo cáo lịch sử chuyên sâu (feature audit-log).
+- Không quản lý album giới thiệu cố định của phòng hoặc ảnh tiện nghi phục vụ bán phòng.
 
 ## 3. Personas & Use Cases
 
 | Persona | Bối cảnh | Use cases trong feature |
 |---------|----------|--------------------------|
-| Nhân viên buồng phòng | Mobile, di chuyển giữa các phòng | Nhận thông báo việc mới; nhận/từ chối việc; báo hoàn tất; xem danh sách việc của mình và việc quá hạn |
-| Quản lý | Web dashboard | Nhận thông báo chờ xác nhận; xác nhận/trả lại việc; xem cảnh báo quá hạn; phân công lại thủ công |
+| Nhân viên buồng phòng | Mobile, di chuyển giữa các phòng | Nhận thông báo việc mới; nhận/từ chối việc; chụp ảnh nghiệm thu; báo hoàn tất; xem danh sách việc của mình và việc quá hạn |
+| Quản lý | Web dashboard | Nhận thông báo chờ xác nhận; xem/zoom ảnh nghiệm thu; xác nhận/trả lại việc; xem cảnh báo quá hạn; phân công lại thủ công |
 | Lễ tân | Web tại quầy | Xem phòng nào "sẵn sàng" để nhận khách (read-only trong feature này) |
 
 Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Journeys.
@@ -58,6 +60,7 @@ Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Jou
 | CAP-housekeeping-06 | Phân công lại thủ công + xử lý từ chối | P1 | Phương án dự phòng khi auto-assign lệch thực tế | ~4 | UN-001, UN-003 → BO-01 |
 | CAP-housekeeping-07 | Lọc danh sách việc (nhân viên/trạng thái/phòng) | P1 | Giúp quản lý và nhân viên định vị nhanh | ~3 | UN-003, UN-005 → BO-01 |
 | CAP-housekeeping-08 | Thống kê hiệu suất dọn (TB thời gian, việc/người, tỷ lệ trả lại) | P2 | Cải tiến vận hành sau MVP | ~5 | UN-005 → BO-01 |
+| CAP-housekeeping-09 | Ảnh nghiệm thu theo từng lần dọn | P0 | Bằng chứng chất lượng để quản lý xác nhận từ xa | ~5 | UN-002, UN-004 → BO-02 |
 
 ### Done when (product level)
 
@@ -69,6 +72,7 @@ Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Jou
 - CAP-06: Quản lý giao lại được việc đang mở; lịch sử đổi người ghi đủ.
 - CAP-07: Lọc theo nhân viên/trạng thái/phòng trả kết quả đúng.
 - CAP-08: Dashboard hiển thị thời gian dọn trung bình và số việc mỗi nhân viên từ dữ liệu thật.
+- CAP-09: Nhân viên chỉ báo hoàn tất sau khi có ảnh tổng quan, khu ngủ và nhà vệ sinh; quản lý xem được ảnh theo đúng thứ tự trước khi xác nhận hoặc trả lại.
 
 ## 5. Success Metrics
 
@@ -87,13 +91,15 @@ Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Jou
 | Vai trò + danh sách nhân viên buồng phòng đang trực | Feature quản lý tài khoản | Sprint 1 (đã lên kế hoạch) | CAP-01, CAP-06 |
 | Kênh realtime Socket.IO + màn dashboard | Feature dashboard | Song song sprint 2–3 | CAP-04, CAP-05 |
 | Nhật ký thay đổi trạng thái | Feature audit-log (cùng nhóm) | Song song sprint 2 | CAP-01–05 (truy vết) |
+| Lưu trữ tệp/ảnh có kiểm soát quyền | Backend + hạ tầng | Sprint 2 | CAP-09 |
 
 ## 7. Assumptions
 
-- Nguồn "nhân viên đang trực" tồn tại trong hệ thống — OQ-1.
+- Nguồn "nhân viên đang trực" là cờ do quản lý bật/tắt trong `auth-roles`; không bao gồm lịch ca hay chấm công.
 - Thông báo việc mới/cảnh báo đi qua kênh realtime trong app, không SMS/push ngoài.
 - Ngưỡng 60 phút áp đồng nhất mọi phòng.
 - Việc "chờ xác nhận" không tính ngưỡng quá hạn (đo tới lúc nhân viên báo hoàn tất) — OQ-3.
+- Bộ ảnh tối thiểu gồm: tổng quan phòng, khu ngủ/giường và nhà vệ sinh; ảnh cận cảnh chỉ thêm khi phát hiện bất thường.
 
 ## 8. Risks (product)
 
@@ -102,12 +108,13 @@ Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Jou
 | Nhân viên không mở app → không thấy việc | Medium | Việc treo | Cảnh báo quá hạn lên dashboard quản lý; demo kèm hướng dẫn quy trình | PM/Quản lý |
 | Xác nhận quản lý thành nút thắt | Medium | Phòng sạch chờ bán | Danh sách chờ kiểm tra nổi bật; OQ-3 cân nhắc ngưỡng nhắc | PM |
 | Chia đều đơn giản lệch thực tế | Medium | Cảnh báo nhiễu, nhân viên chạy xa | MVP chấp nhận; CAP-08 đo để điều chỉnh | PM |
+| Ảnh chứa chi tiết riêng tư của khách | Medium | Rò rỉ dữ liệu hoặc chậm duyệt | Chỉ chụp sau trả phòng, hướng dẫn không chụp đồ cá nhân, giới hạn quyền xem theo công việc | PM/Quản lý |
 
 ## 9. Release Plan
 
 ### Now (Sprint 2 — khung 22/09–05/10)
 
-- CAP-housekeeping-01, 02, 03, 04, 05 — chu trình lõi + cảnh báo + realtime.
+- CAP-housekeeping-01, 02, 03, 04, 05, 09 — chu trình lõi + ảnh nghiệm thu + cảnh báo + realtime.
 
 ### Next (Sprint 3)
 
@@ -120,11 +127,11 @@ Ref: `[[docs/features/housekeeping/housekeeping-urd.md]]` mục User Types + Jou
 ## 10. Launch Readiness
 
 - Guardrail: tỷ lệ trả phòng có việc được giao = 100%; không có phòng "sẵn sàng" khi chưa xác nhận.
-- Demo script: luồng trả phòng → dọn → xác nhận → sẵn sàng → nhận khách lại phải chạy thông suốt trên Web + Android.
+- Demo script: luồng trả phòng → dọn → chụp/tải bộ ảnh nghiệm thu → quản lý xem ảnh → xác nhận hoặc trả lại → sẵn sàng → nhận khách lại phải chạy thông suốt trên Web + Android.
 - Rollback: feature độc lập; nếu lỗi có thể quay về quy trình thủ công, dữ liệu log vẫn giữ.
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Nguồn danh sách "nhân viên buồng phòng đang trực" trong MVP?
 - [ ] OQ-2: Cảnh báo quá hạn phát 1 lần hay lặp lại định kỳ tới khi hoàn tất?
 - [ ] OQ-3: Việc "chờ xác nhận" quá lâu có cần ngưỡng nhắc riêng cho quản lý?
+- [ ] OQ-4: Ảnh được lưu trong bao lâu và dung lượng/tệp tối đa là bao nhiêu? Quyết định này cần chủ khách sạn chốt trước khi triển khai lưu trữ thật.

@@ -62,7 +62,7 @@ Phần mềm theo dõi trạng thái phòng khách sạn theo thời gian thực
 
 1) Quản lý/lễ tân tạo tài khoản và gán vai trò → `auth-roles`
 2) Nhập danh mục 50 phòng của khách sạn → `room-catalog`
-3) Lễ tân nhận phòng cho khách — chỉ khi phòng trống, đã sạch và đang phục vụ → `check-in-out`
+3) Lễ tân nhận phòng cho khách — chỉ khi phòng trống, đã sạch và trục bảo trì ở trạng thái bình thường → `check-in-out`
 4) Khách trả phòng → phòng chuyển "cần dọn", hệ thống tự tạo việc dọn → `check-in-out` → `housekeeping`
 5) Nhân viên buồng nhận và hoàn tất việc dọn → phòng được xác nhận "sẵn sàng" → `housekeeping`
 6) Phòng hỏng → báo hỏng, phòng "ngừng phục vụ", sửa xong mở lại → `maintenance`
@@ -124,7 +124,7 @@ Nghiệp vụ lõi của lễ tân: nhận phòng chỉ khi phòng trống, đã
 
 **Phục vụ job:** lễ tân — "nhận khách nhanh vào phòng thật sự sẵn sàng, trả phòng cập nhật ngay không qua trung gian".
 
-**Phạm vi v1:** nhận phòng với kiểm tra điều kiện (trống + sạch + đang phục vụ) và chặn khi không đạt; trả phòng → tự tạo việc dọn; thông tin khách ghi tối thiểu (dữ liệu giả lập).
+**Phạm vi v1:** nhận phòng với kiểm tra điều kiện (trống + sạch + bảo trì bình thường) và chặn khi không đạt; trả phòng → tự tạo việc dọn; thông tin khách ghi tối thiểu (dữ liệu giả lập).
 **Chưa làm:** đặt phòng trước (booking), giờ quy định/phụ thu, thanh toán, đổi phòng giữa kỳ lưu trú.
 
 **Luồng chính:**
@@ -147,7 +147,7 @@ Quản lý chu trình dọn phòng sau khi khách trả hoặc khi cần: việc
 
 **Luồng chính:**
 1) Việc dọn được tạo (tự động khi trả phòng hoặc thủ công).
-2) Quản lý/lễ tân giao hoặc nhân viên tự nhận việc.
+2) Hệ thống giao việc cho nhân viên buồng phòng đang trực có ít việc mở nhất.
 3) Nhân viên cập nhật "đang dọn" → "hoàn tất".
 4) Phòng được xác nhận sạch → trạng thái vệ sinh "sạch", phòng sẵn sàng phục vụ.
 

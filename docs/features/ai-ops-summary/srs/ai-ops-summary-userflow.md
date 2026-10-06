@@ -26,9 +26,9 @@ flowchart TD
     n7["Dang tao / khoa nut"]
     n8{"Ky co DL?"}
     n9["Mau rong E-001"]
-    n10{"Han muc OQ-2?"}
+    n10{"Con han muc chi phi?"}
     n11["Mau E-003"]
-    n12{"AI OK OQ-5?"}
+    n12{"AI OK trong 15 giay?"}
     n14["Mau E-002"]
     n15{"Dau ra khop?"}
     n16["Mau E-005"]

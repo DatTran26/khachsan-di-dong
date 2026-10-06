@@ -7,7 +7,7 @@ updated: 2026-09-17
 # Room Catalog — States
 
 ## State: Phong — trục bảo trì
-**Related entity**: Phong
+**Related entity**: Phong.truc_bao_tri
 **Related UC**: [[../usecases/uc-dat-go-ngung-phuc-vu.md]]
 **Related FR**: FR-room-catalog-007, FR-room-catalog-008
 

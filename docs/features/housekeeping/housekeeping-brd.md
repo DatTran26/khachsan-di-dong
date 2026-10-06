@@ -83,7 +83,7 @@ Trả phòng tự sinh công việc và hệ thống tự giao đều cho nhân 
 
 ### 6.3 Assumptions
 
-- Danh sách nhân viên buồng phòng đang trực có sẵn trong hệ thống (dữ liệu giả lập) — xem OQ-1.
+- Danh sách nhân viên buồng phòng đang trực lấy từ cờ do quản lý bật/tắt trong `auth-roles`; không bao gồm lịch ca hay chấm công.
 - Khách sạn demo chấp nhận quy trình "quản lý xác nhận mới sẵn sàng".
 - Nhân viên có thiết bị Android hoặc truy cập web trên điện thoại.
 
@@ -148,6 +148,5 @@ Trả phòng tự sinh công việc và hệ thống tự giao đều cho nhân 
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Danh sách "nhân viên buồng phòng đang trực" lấy từ đâu trong MVP — giả lập cố định, hay quản lý đánh dấu theo ca?
 - [ ] OQ-2: Cảnh báo quá hạn phát 1 lần khi vượt ngưỡng, hay lặp lại định kỳ (vd mỗi 15 phút) tới khi hoàn tất?
 - [ ] OQ-3: Việc "chờ xác nhận" quá lâu (quản lý không phản hồi) có cần ngưỡng nhắc riêng không? Bao nhiêu phút?

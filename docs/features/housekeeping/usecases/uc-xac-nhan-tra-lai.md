@@ -18,7 +18,7 @@ Quản lý mở việc "chờ xác nhận" và chọn xác nhận hoặc trả l
 ## Guarantees
 
 - **Minimal Guarantee:** Trả lại không thành công nếu thiếu ghi chú; không đổi khi mất mạng/sai quyền.
-- **Success Guarantee (xác nhận):** Việc = "hoàn tất"; phòng = "sạch"; "sẵn sàng" chỉ khi trống + sạch + đang phục vụ (BR-housekeeping-003); cờ quá hạn gỡ nếu có (FR-housekeeping-008).
+- **Success Guarantee (xác nhận):** Việc = "hoàn tất"; phòng = "sạch"; "sẵn sàng" chỉ khi trống + sạch + bảo trì bình thường (BR-housekeeping-003); cờ quá hạn gỡ nếu có (FR-housekeeping-008).
 - **Success Guarantee (trả lại):** Việc = "đang làm"; phòng = "đang dọn"; ghi chú không rỗng ≤500 ký tự hiển thị cho NV.
 
 ## Main Success Scenario (Xác nhận)
@@ -27,7 +27,7 @@ Quản lý mở việc "chờ xác nhận" và chọn xác nhận hoặc trả l
 2) Quản lý bấm xác nhận sẵn sàng (BR-housekeeping-001).
 3) Hệ thống kiểm tra quyền quản lý và phiên bản.
 4) Hệ thống chuyển việc "hoàn tất", phòng "sạch" (FR-housekeeping-006).
-5) Hệ thống đánh giá composite "sẵn sàng" = trống + sạch + đang phục vụ (FR-housekeeping-007) — không lưu state riêng.
+5) Hệ thống đánh giá composite "sẵn sàng" = trống + sạch + bảo trì bình thường (FR-housekeeping-007) — không lưu state riêng.
 6) Hệ thống gỡ cờ quá hạn nếu đang bật; ghi nhật ký + realtime.
 
 ## Extensions

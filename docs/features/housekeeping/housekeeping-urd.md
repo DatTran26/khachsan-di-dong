@@ -36,7 +36,9 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 
 - Tự động tạo và tự giao công việc dọn khi phòng được trả.
 - Nhân viên nhận việc, từ chối việc, báo hoàn tất trên thiết bị di động.
+- Nhân viên chụp/tải ảnh nghiệm thu theo từng lần dọn trước khi báo hoàn tất.
 - Quản lý xác nhận "sẵn sàng" hoặc trả lại việc kèm ghi chú.
+- Quản lý xem ảnh toàn màn hình, phóng to và duyệt theo thứ tự để đối chiếu chất lượng.
 - Trạng thái vệ sinh phòng và trạng thái công việc cập nhật realtime trên mọi thiết bị.
 - Cảnh báo công việc quá hạn 60 phút bằng quy tắc.
 - Quản lý phân công lại thủ công; lọc danh sách công việc.
@@ -59,6 +61,8 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 | UN-004 | Quản lý | Nhân viên vừa báo hoàn tất | Xác nhận hoặc trả lại trước khi phòng được mở bán lại | Phòng chỉ "sẵn sàng" sau khi quản lý xác nhận; trả lại thì nhân viên nhận được ghi chú | Critical | Confirmed (user chốt: quản lý xác nhận) |
 | UN-005 | Quản lý | Ca vận hành đang chạy | Thấy ngay việc quá hạn để can thiệp | Cảnh báo xuất hiện trên dashboard khi việc vượt 60 phút chưa hoàn tất | High | Confirmed (tôn chỉ + user chốt ngưỡng 60') |
 | UN-006 | Lễ tân | Khách đến nhận phòng | Biết phòng nào "sẵn sàng" ngay lúc đó | Trạng thái phòng trên màn hình lễ tân luôn mới nhất | Critical | Confirmed (tôn chỉ: chỉ nhận phòng khi trống+sạch+phục vụ) |
+| UN-007 | Nhân viên buồng phòng | Đã dọn xong một phòng | Gửi bằng chứng nhanh theo các góc bắt buộc, không cần soạn báo cáo dài | Có đủ ảnh tổng quan, khu ngủ và nhà vệ sinh trước khi báo hoàn tất | Critical | User decision 2026-09-26 |
+| UN-008 | Quản lý | Có việc chờ xác nhận | Xem rõ ảnh theo từng lần dọn để quyết định từ xa | Có thể mở toàn màn hình, phóng to và trả lại kèm ghi chú cụ thể | Critical | User decision 2026-09-26 |
 
 ## 5. Prioritized User Journeys
 
@@ -72,9 +76,10 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 
 1) Nhân viên nhận thông báo được giao việc dọn phòng X.
 2) Đến phòng, bấm nhận việc trên điện thoại.
-3) Dọn xong, bấm báo hoàn tất.
-4) Quản lý nhận thông báo, kiểm tra, xác nhận.
-5) Phòng hiển thị "sẵn sàng"; lễ tân thấy và nhận khách.
+3) Dọn xong, chụp/tải ảnh tổng quan, khu ngủ và nhà vệ sinh; nếu có bất thường, thêm ảnh cận cảnh.
+4) Bấm báo hoàn tất sau khi bộ ảnh tối thiểu đủ.
+5) Quản lý nhận thông báo, xem ảnh, kiểm tra và xác nhận hoặc trả lại.
+6) Phòng hiển thị "sẵn sàng"; lễ tân thấy và nhận khách.
 
 **Independent verification:** Đối chiếu lịch sử trạng thái phòng X: có đủ chuỗi "cần dọn → đang dọn → chờ kiểm tra → sạch" và phòng được nhận khách sau đó.
 
@@ -132,6 +137,7 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 | Quản lý trả lại trong lúc nhân viên đang thao tác | Nhân viên thao tác trên trạng thái cũ | Thao tác sau bị từ chối, ứng dụng tải lại trạng thái mới | J3 |
 | Nhiều phòng trả dồn trong giờ cao điểm | Việc ùn một lúc | Việc vẫn được tạo và chia đều; việc nào quá hạn vẫn được cảnh báo riêng | J1, J2 |
 | Quản lý không xác nhận trong thời gian dài | Phòng sạch nhưng chưa bán được | Việc "chờ xác nhận" nổi bật trên dashboard của quản lý (không tính quá hạn 60') | J1 — OQ-3 |
+| Ảnh thiếu, mờ hoặc không tải được | Quản lý không đủ căn cứ nghiệm thu | Nhân viên không thể báo hoàn tất nếu thiếu nhóm ảnh bắt buộc; quản lý thấy trạng thái lỗi và có thể trả lại kèm yêu cầu chụp lại | J1, UN-007, UN-008 |
 
 ## 7. User-side Constraints
 
@@ -145,7 +151,7 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 
 | Assumption | Impact if Wrong | Validation Status | Next Action |
 |------------|-----------------|-------------------|-------------|
-| Danh sách "nhân viên đang trực" có sẵn trong hệ thống (dữ liệu giả lập hoặc quản lý đánh dấu theo ca) | Auto-assign không hoạt động nếu không biết ai trực | Chưa xác nhận — OQ-1 | Hỏi nguồn danh sách trực trong MVP |
+| Danh sách "nhân viên đang trực" do quản lý bật/tắt | Auto-assign chỉ chọn đúng người sẵn sàng | Đã chốt | Cờ trực thuộc `auth-roles`, không bao gồm chấm công |
 | "Chia đều" = giao cho người ít việc đang mở nhất, hòa thì ưu tiên người lâu chưa được giao | Phân công có thể lệch kỳ vọng "đều" của quản lý | Assumption hợp lý từ câu trả lời "chia đều phòng cho số lượng dọn phòng hiện có" | Kiểm chứng qua demo với quản lý |
 | Ngưỡng quá hạn 60 phút áp cho mọi loại phòng | Phòng lớn/VIP thực tế cần lâu hơn → cảnh báo nhiễu | Assumption | Theo dõi sau nghiệm thu; P2 cân nhắc theo loại phòng |
 | Thông báo đi qua realtime trong app (không SMS/push ngoài) | Nhân viên không mở app sẽ không biết việc mới | Assumption nhất quán tôn chỉ (Socket.IO) | Xác nhận khi demo |
@@ -158,9 +164,10 @@ Chu trình dọn phòng giúp nhân viên buồng phòng nhận và hoàn tất 
 | USC-002 | Nhân viên thao tác nhanh tại phòng | Chưa có | Nhận việc hoặc báo hoàn tất trong ≤3 chạm, ≤10 giây | Đo trên bản demo Android/Web | Demo sprint 2 |
 | USC-003 | Mọi thiết bị thấy cùng trạng thái | Chưa có | ≥95% trong 100 lượt cập nhật hiển thị trên thiết bị khác ≤3 giây | Đo theo tiêu chí nghiệm thu tôn chỉ | Nghiệm thu |
 | USC-004 | Không có phòng bán nhầm khi chưa đạt | Chưa có | 0 phòng đạt "sẵn sàng" mà chưa qua xác nhận quản lý; 0 lượt nhận khách vào phòng chưa sạch | Kịch bản nghiệm thu bắt buộc | Nghiệm thu |
+| USC-005 | Có bằng chứng ảnh cho việc được xác nhận | Chưa có | 100% việc hoàn tất có đủ ba nhóm ảnh tối thiểu, quản lý mở xem được trước xác nhận | Đối soát công việc và ảnh nghiệm thu | Nghiệm thu |
 
 ## 10. Open Questions
 
-- [ ] OQ-1: Danh sách "nhân viên buồng phòng đang trực" lấy từ đâu trong MVP — giả lập cố định, hay quản lý đánh dấu theo ca?
 - [ ] OQ-2: Cảnh báo quá hạn phát 1 lần khi vượt ngưỡng, hay lặp lại định kỳ (vd mỗi 15 phút) tới khi hoàn tất?
 - [ ] OQ-3: Việc "chờ xác nhận" quá lâu (quản lý không phản hồi) có cần ngưỡng nhắc riêng không? Bao nhiêu phút?
+- [ ] OQ-4: Thời hạn lưu, dung lượng tệp và quy trình xoá ảnh sau nghiệm thu do chủ khách sạn quyết định.

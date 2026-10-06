@@ -28,7 +28,7 @@ stateDiagram-v2
 | dong | huy | Khong huy sau khi da tra |
 
 ## State: Phong — truc luu tru (so huu boi feature nay)
-**Related entity**: Phong
+**Related entity**: Phong.truc_luu_tru
 
 ```mermaid
 stateDiagram-v2

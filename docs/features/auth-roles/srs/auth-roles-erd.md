@@ -19,6 +19,7 @@ erDiagram
     string ho_ten
     string vai_tro "quan_ly | le_tan | buong_phong_bao_tri"
     string trang_thai "cho_kich_hoat | hoat_dong | bi_khoa"
+    boolean dang_truc "chi ap dung vai tro buong_phong_bao_tri"
     boolean co_mk_tam
     int dem_sai_mk
     datetime tao_luc
@@ -46,3 +47,4 @@ erDiagram
 
 - Không entity "đã xóa" — chỉ khóa (BR-auth-roles-005).
 - Vai trò gộp buồng phòng–bảo trì trong MVP (OQ-2 resolved).
+- Quản lý bật/tắt `dang_truc` cho nhân viên buồng phòng–bảo trì; đây là cờ điều phối dọn phòng, không phải chấm công hay phân ca.
