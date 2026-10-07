@@ -433,4 +433,17 @@ describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
     expect(res.body.data.occupancy.rate === null || typeof res.body.data.occupancy.rate === 'number').toBe(true);
     expect((await request(app).get('/api/dashboard/summary').set(staffA.auth)).status).toBe(403);
   });
+
+  it('FR-room-dashboard-006: dashboard liệt kê từng việc quá hạn kèm phòng để tô cờ ô phòng; hoàn tất thì mất', async () => {
+    const { room, task } = await checkedOutRoom();
+    await flagOverdueTasks(new Date(Date.now() + 61 * 60_000));
+    const tasksOf = async () => (await request(app).get('/api/dashboard/summary').set(manager.auth)).body.data.overdue;
+
+    const overdue = await tasksOf();
+    expect(overdue.tasks).toContainEqual({ type: 'HOUSEKEEPING', taskId: task.id, roomId: room.id, roomNumber: room.number });
+    expect(overdue.total).toBe(overdue.tasks.length);
+
+    await prisma.housekeepingTask.update({ where: { id: task.id }, data: { status: 'DONE' } });
+    expect((await tasksOf()).tasks.map((t: { taskId: string }) => t.taskId)).not.toContain(task.id);
+  });
 });
