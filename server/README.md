@@ -181,7 +181,10 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 | POST | `/api/maintenance/tasks/:id/claim` · `/complete` | nhân viên | `{ version }` — nhận (→ đang sửa) · hoàn tất (việc của mình) |
 | POST | `/api/maintenance/tasks/:id/cancel` | người báo (việc chờ nhận), quản lý | `{ version, reason? }` |
 | POST | `/api/maintenance/tasks/:id/assign` | quản lý, lễ tân | `{ version, assigneeId }` — chỉ định người xử lý |
-| GET | `/api/dashboard/summary` | quản lý, lễ tân | Đang ở, sẵn sàng, ngừng phục vụ, số phòng theo từng trạng thái vệ sinh, việc quá hạn, lấp đầy (`rate: null` = không áp dụng) |
+| GET | `/api/dashboard/summary` | quản lý, lễ tân | Đang ở, sẵn sàng, ngừng phục vụ, số phòng theo từng trạng thái vệ sinh, việc quá hạn, lấp đầy (`rate: null` = không áp dụng). `overdue.tasks[]` = từng việc quá hạn `{ type, taskId, roomId, roomNumber }` để tô cờ ô phòng |
+| POST | `/api/ai-summaries` | **chỉ quản lý** | `{ period: CURRENT_SHIFT\|PREVIOUS_SHIFT\|TODAY }` → `{ data, notice }`. `data.source`: `AI` (đã kiểm số liệu) · `FALLBACK` (báo cáo mẫu) · `EMPTY` (kỳ rỗng, không gọi AI). Luôn có `dataAsOfText` + `label` để hiển thị; `notice` = câu báo khi không dùng được AI. Đang có lượt chạy → 409 `SUMMARY_IN_PROGRESS` |
+| GET | `/api/ai-summaries/latest` | **chỉ quản lý** | Bản gần nhất của từng kỳ `{ CURRENT_SHIFT, PREVIOUS_SHIFT, TODAY }` — không gọi AI |
+| GET | `/api/ai-summaries/budget` | **chỉ quản lý** | `{ aiConfigured, model, budgetVnd, spentVnd, remainingVnd, exhausted }` |
 | GET | `/api/audit-logs?roomId=&from=&to=&actorId=&actorRole=&action=&entityType=&field=&limit=&cursor=` | **chỉ quản lý** | Nhật ký, mới nhất trước, tải theo phần (`nextCursor`). Mỗi dòng có `line` theo mẫu *"14:32 05/10 · Trần B (lễ tân) · Trả phòng · Phòng 305 · lưu trú: đang ở → trống"*. `actorRole=SYSTEM` = việc hệ thống tự làm. Mặc định 50 dòng/lần (audit-log OQ-1 chưa chốt) |
 
 **Việc dọn phòng tự động** (housekeeping): trả phòng → hệ thống tạo đúng 1 việc (hạn 60 phút) và giao ngay cho nhân viên
@@ -191,6 +194,12 @@ cảnh báo quản lý, có người vào trực thì tự giao. Job quét 30 gi
 để truy vết, nhân viên nộp lại đủ bộ. Tệp lưu ở `UPLOAD_DIR` (mặc định `server/uploads/`, Docker: volume `uploads`).
 **Trục bảo trì của phòng tự tính**: "ngừng phục vụ" khi còn việc bảo trì mở hoặc đang ngừng tay.
 Ngưỡng quá hạn bảo trì: `MAINTENANCE_DUE_MINUTES` trong `.env` (bỏ trống = không tính — maintenance OQ-1 chưa chốt).
+
+**Tóm tắt vận hành bằng AI** (ai-ops-summary): kỳ theo ca giờ VN 06–14 / 14–22 / 22–06 hoặc "hôm nay". Chỉ gửi số
+đếm/tỷ lệ + số phòng cần chú ý cho OpenAI Responses API (Structured Outputs), chờ tối đa 15 giây. Mọi con số trong
+bản AI phải có trong dữ liệu gốc, nếu không → báo cáo mẫu. Hạn mức theo **chi phí thực tế**: trước mỗi lượt kiểm
+`đã tiêu + chi phí tối đa 1 lượt ≤ AI_BUDGET_VND` (mặc định 300.000). Không có `OPENAI_API_KEY` → luôn báo cáo mẫu.
+Đơn giá `AI_PRICE_*_VND_PER_1M` phải khớp model đang dùng (`OPENAI_MODEL`). Mọi lượt tạo đều ghi nhật ký.
 
 Quy tắc phân quyền tài khoản (BR-auth-roles-001, chốt 23/09/2026): **lễ tân** quản lý được TK không phải quản lý và không
 gán vai trò quản lý; không ai tự khóa mình; không khóa / đổi vai trò **quản lý cuối cùng**; không có xóa tài khoản.

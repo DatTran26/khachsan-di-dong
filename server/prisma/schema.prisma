@@ -120,21 +120,33 @@ enum AuditEntityType {
   @@map("audit_entity_type")
 }
 
-/// Kỳ tóm tắt AI (ai-ops-summary) — định nghĩa "ca" còn mở (OQ-1)
+/// Kỳ tóm tắt AI (ai-ops-summary). Ca cố định giờ VN: 06–14, 14–22, 22–06 (spec mục 11 Assumptions).
 enum SummaryPeriod {
-  CURRENT_SHIFT // ca hiện tại
-  PREVIOUS_SHIFT // ca trước
-  TODAY // hôm nay
+  CURRENT_SHIFT // ca hiện tại (đầu ca → T)
+  PREVIOUS_SHIFT // ca trước (trọn ca)
+  TODAY // hôm nay (00:00 → T)
 
   @@map("summary_period")
 }
 
-/// Nguồn bản tóm tắt
+/// Loại bản tóm tắt (FR-ai-ops-summary-003/004/007)
 enum SummarySource {
-  AI // do LLM tạo
-  FALLBACK // báo cáo mẫu khi AI lỗi / hết hạn mức
+  AI // do AI tạo, đã qua kiểm tra số liệu
+  FALLBACK // báo cáo mẫu từ dữ liệu gốc (AI lỗi / quá giờ / hết hạn mức / đầu ra sai / chưa cấu hình)
+  EMPTY // kỳ không có hoạt động — không gọi AI
 
   @@map("summary_source")
+}
+
+/// Lý do không dùng được bản AI — đối soát nhật ký với chi phí (NFR-ai-ops-summary-005)
+enum SummaryFailure {
+  NOT_CONFIGURED // chưa có OPENAI_API_KEY
+  QUOTA_EXCEEDED // hết ngân sách
+  TIMEOUT // quá 15 giây
+  AI_ERROR // dịch vụ AI lỗi
+  INVALID_OUTPUT // sai cấu trúc / sai số liệu / bịa sự kiện
+
+  @@map("summary_failure")
 }
 
 // ---------------------------------------------------------------------
@@ -412,33 +424,31 @@ model AuditLogChange {
 // ---------------------------------------------------------------------
 
 /// Bản tóm tắt vận hành. Số liệu gửi AI lưu dạng JSON (không định danh khách).
-/// Có lưu để xem lại hay không còn mở (OQ-4) — bảng này cho phép cả hai.
+/// Mỗi lượt tạo tóm tắt = 1 dòng (kể cả báo cáo mẫu / kỳ rỗng) → "bản gần nhất mỗi kỳ" + đối soát chi phí.
+/// Hạn mức = AI_BUDGET_VND − SUM(cost_vnd): không cần bảng hạn mức riêng (NFR-ai-ops-summary-003).
 model AiSummary {
-  id          String        @id @default(uuid()) @db.Uuid
-  period      SummaryPeriod
-  dataAsOf    DateTime      @map("data_as_of") @db.Timestamptz // thời điểm dữ liệu T
-  source      SummarySource
-  overview    String // tổng quan
-  highlights  String // nổi bật
-  attention   String // việc cần chú ý
-  metrics     Json // số liệu tổng hợp tại T
-  createdById String        @map("created_by_id") @db.Uuid
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  id            String          @id @default(uuid()) @db.Uuid
+  period        SummaryPeriod
+  periodStart   DateTime        @map("period_start") @db.Timestamptz
+  periodEnd     DateTime        @map("period_end") @db.Timestamptz
+  dataAsOf      DateTime        @map("data_as_of") @db.Timestamptz // thời điểm dữ liệu T
+  source        SummarySource
+  overview      String // tổng quan
+  highlights    Json // string[] — điểm nổi bật
+  attention     Json // việc cần chú ý (theo quy tắc, có liên kết phòng/việc)
+  metrics       Json // số liệu tổng hợp tại T (chỉ đếm/tỷ lệ, không định danh khách)
+  calledAi      Boolean         @default(false) @map("called_ai")
+  failureReason SummaryFailure? @map("failure_reason")
+  costVnd       Int             @default(0) @map("cost_vnd") // chi phí lượt gọi AI (ước tính tối đa nếu không có usage)
+  model         String?         @db.VarChar(60)
+  createdById   String          @map("created_by_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
   createdBy User @relation(fields: [createdById], references: [id])
 
+  @@index([period, createdAt])
   @@index([createdAt])
   @@map("ai_summaries")
-}
-
-/// Hạn mức AI theo ngày (hình thức & giá trị còn mở — OQ-2 ai-ops-summary).
-model AiQuota {
-  day     DateTime @id @db.Date // mỗi ngày 1 dòng
-  used    Int      @default(0) // số lần đã gọi
-  limit   Int // số lần tối đa
-  costVnd Int      @default(0) @map("cost_vnd") // chi phí ước tính đã dùng
-
-  @@map("ai_quotas")
 }
 
 // ---------------------------------------------------------------------

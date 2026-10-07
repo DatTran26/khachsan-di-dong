@@ -15,6 +15,17 @@ const envSchema = z.object({
   UPLOAD_DIR: z.string().min(1).default('uploads'),
   // Dung lượng tối đa mỗi ảnh (MB) — housekeeping OQ-4 chưa chốt, mặc định 5 MB.
   PHOTO_MAX_MB: z.coerce.number().positive().max(20).default(5),
+
+  // ---- Tóm tắt vận hành bằng AI (ai-ops-summary) — khóa API chỉ nằm ở máy chủ ----
+  // Bỏ trống = không gọi AI, luôn trả báo cáo mẫu từ dữ liệu gốc.
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().min(1).default('gpt-4o-mini'),
+  // Ngân sách AI cho toàn MVP (tôn chỉ: ≤300.000 VNĐ). Chặn ở máy chủ trước mỗi lượt gọi.
+  AI_BUDGET_VND: z.coerce.number().int().nonnegative().default(300_000),
+  // Đơn giá theo model đang dùng, VNĐ / 1 triệu token — cập nhật theo bảng giá provider khi đổi model.
+  AI_PRICE_INPUT_VND_PER_1M: z.coerce.number().nonnegative().default(4_000),
+  AI_PRICE_OUTPUT_VND_PER_1M: z.coerce.number().nonnegative().default(16_000),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(15_000), // NFR-ai-ops-summary-001
 });
 
 const parsed = envSchema.safeParse(process.env);

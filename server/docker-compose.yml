@@ -32,6 +32,9 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       MAINTENANCE_DUE_MINUTES: ${MAINTENANCE_DUE_MINUTES:-}
       UPLOAD_DIR: /app/uploads
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      AI_BUDGET_VND: ${AI_BUDGET_VND:-300000}
     ports:
       - "3000:3000"
     volumes:

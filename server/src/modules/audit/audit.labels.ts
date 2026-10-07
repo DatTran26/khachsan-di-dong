@@ -50,6 +50,7 @@ export const ACTION_LABELS: Record<string, string> = {
   'maintenance.cancelled': 'Hủy việc sửa',
   'maintenance.assigned': 'Chỉ định người sửa',
   'maintenance.task_overdue': 'Việc sửa quá hạn',
+  'ai_summary.generated': 'Tạo tóm tắt vận hành',
 };
 
 /** Nhãn trục / trường. Trường `status` đặt theo loại đối tượng (vd "việc dọn", "lượt lưu trú"). */
@@ -66,6 +67,9 @@ const FIELD_LABELS: Record<string, string> = {
   photos: 'ảnh nghiệm thu',
   hasIssue: 'bất thường',
   photoRound: 'lượt ảnh',
+  source: 'loại bản',
+  calledAi: 'gọi AI',
+  failureReason: 'lý do không dùng AI',
   cancelReason: 'lý do hủy',
   description: 'mô tả',
   overdue: 'quá hạn',
@@ -106,6 +110,15 @@ const VALUE_LABELS: Record<string, string> = {
   STAFF: 'nv buồng phòng–bảo trì',
   true: 'có',
   false: 'không',
+  // ai-ops-summary
+  AI: 'tóm tắt AI',
+  FALLBACK: 'báo cáo mẫu',
+  EMPTY: 'kỳ rỗng',
+  NOT_CONFIGURED: 'chưa cấu hình AI',
+  QUOTA_EXCEEDED: 'hết hạn mức',
+  TIMEOUT: 'quá thời gian chờ',
+  AI_ERROR: 'dịch vụ AI lỗi',
+  INVALID_OUTPUT: 'đầu ra AI không hợp lệ',
 };
 
 const STATUS_BY_ENTITY: Partial<Record<AuditEntityType, Record<string, string>>> = {

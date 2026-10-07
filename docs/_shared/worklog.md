@@ -65,10 +65,10 @@ links: []
 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
-| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện |
+| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện. 07/10 — API trả thêm `overdue.tasks` (việc quá hạn theo phòng) để tô cờ ô phòng |
 | Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
 | Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Đang làm | 25/09 — API xem nhật ký xong (theo phòng, nhật ký chung, lọc, tải theo phần, mẫu dòng 7.3); UI chưa |
-| AI tóm tắt vận hành (`ai-ops-summary`) | Bao | Chưa làm | Chưa chọn nhà cung cấp LLM |
+| AI tóm tắt vận hành (`ai-ops-summary`) | Bao · Kim (API) | Đang làm | 07/10 — API xong (`/api/ai-summaries`): OpenAI Responses + kiểm số liệu, báo cáo mẫu, hạn mức theo chi phí 300.000 VNĐ, 1 lượt/lúc, xem lại bản gần nhất. Chờ chốt model + đơn giá; UI chưa |
 | Hoàn thiện giao diện Web + Android | Dat (Web), Bao (Android) | Chưa làm | |
 
 ### Sprint 4 (20/10 – 02/11)

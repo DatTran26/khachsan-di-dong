@@ -62,6 +62,10 @@ const MATRIX: { method: 'get' | 'post' | 'patch' | 'delete'; path: string; allow
   // room-dashboard, audit-log
   { method: 'get', path: '/api/dashboard/summary', allowed: ['MANAGER', 'RECEPTIONIST'] },
   { method: 'get', path: '/api/audit-logs', allowed: ['MANAGER'] },
+  // ai-ops-summary — chỉ quản lý (BR-001)
+  { method: 'post', path: '/api/ai-summaries', allowed: ['MANAGER'] },
+  { method: 'get', path: '/api/ai-summaries/latest', allowed: ['MANAGER'] },
+  { method: 'get', path: '/api/ai-summaries/budget', allowed: ['MANAGER'] },
 ];
 
 const app = createApp();

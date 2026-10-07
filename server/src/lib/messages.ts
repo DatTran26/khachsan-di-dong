@@ -46,6 +46,15 @@ export const MSG = {
   auditRangeInvalid: 'Khoảng thời gian chưa hợp lệ — mốc bắt đầu phải trước hoặc bằng mốc kết thúc.',
   auditEmpty: 'Chưa có thay đổi nào trong phạm vi đã chọn.',
 
+  // ai-ops-summary error matrix (mục 6) + nhãn FR-006/007
+  summaryEmpty: 'Chưa có dữ liệu trong kỳ đã chọn.',
+  summaryAiFailed: 'Không tạo được tóm tắt AI lúc này — hiển thị báo cáo mẫu từ dữ liệu gốc.',
+  summaryQuotaExceeded: 'Đã hết hạn mức AI — hiển thị báo cáo mẫu từ dữ liệu gốc.',
+  summaryInProgress: 'Đang có một tóm tắt được tạo — vui lòng chờ.',
+  summaryLabelAi: 'Tham khảo — tóm tắt do AI tạo, không thay quyết định vận hành',
+  summaryLabelFallback: 'Báo cáo mẫu — dữ liệu gốc, chưa qua AI',
+  summaryDataAsOf: (time: string) => `Dữ liệu tính đến ${time}`,
+
   // realtime-sync E-002, audit-log E-005
   versionConflict: 'Dữ liệu vừa được người khác cập nhật — đã tải lại bản mới nhất.',
   notCompleted: 'Thao tác chưa hoàn tất — vui lòng thử lại.',
@@ -76,6 +85,7 @@ export const MSG = {
   maintenanceAlreadyOpen: 'Phòng này đang có việc bảo trì mở — vẫn đã ghi nhận báo hỏng mới.',
   assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
   maintenanceAssignedToOther: 'Việc này đã được giao cho người khác.',
+  summaryNotConfigured: 'Chưa cấu hình dịch vụ AI — hiển thị báo cáo mẫu từ dữ liệu gốc.',
   // housekeeping — ảnh nghiệm thu (bổ sung)
   closeupRequired: 'Đã đánh dấu bất thường — cần thêm ảnh cận cảnh trước khi báo hoàn tất.',
   photoInvalidType: 'Ảnh phải là tệp JPG, PNG hoặc WEBP.',
