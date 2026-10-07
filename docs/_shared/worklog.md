@@ -57,7 +57,7 @@ links: []
 | Làm bù các việc code của Sprint 1 (xem bảng trên) | Cả nhóm | Đang làm | Backend xong; còn chạy thử Flutter ↔ backend |
 | Đồng bộ realtime + chống ghi đè (`realtime-sync`) | Kim (backend) | Xong (server) | 23–25/09 — version + trigger, lưu rồi mới phát, socket có xác thực, kênh theo vai trò/người/phiên, sự kiện phòng/việc/thông báo. Phía app: Dat, Bao |
 | Nhận/trả phòng (`check-in-out`) | Kim (API) · Dat (UI web) | Xong (API) | 25/09 — trả phòng tự tạo + tự giao việc dọn. Chưa có UI |
-| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — tự giao, nhận/từ chối/báo xong/xác nhận/trả lại/phân công lại, quá hạn. OQ-1…3 tạm theo giả định |
+| Công việc dọn phòng (`housekeeping`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — tự giao, nhận/từ chối/báo xong/xác nhận/trả lại/phân công lại, quá hạn. OQ-1…3 tạm theo giả định. 07/10 — ảnh nghiệm thu (FR-005/007, BR-006): API tải/xem/xóa ảnh, chặn báo xong khi thiếu ảnh; UI chưa làm |
 | Báo hỏng & bảo trì (`maintenance`) | Kim (API) · Bao (UI Android) | Xong (API) | 25/09 — báo hỏng, nhận, hoàn tất, hủy, chỉ định; trục bảo trì tự tính. OQ-1…3 chưa chốt |
 | Chạy thử luồng end-to-end: nhận → trả → dọn → xác nhận sạch | Cả nhóm | Đang làm | 25/09 — test tự động backend pass (`e2e-room-lifecycle.test.ts`); chờ chạy trên app |
 

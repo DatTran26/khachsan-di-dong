@@ -48,6 +48,10 @@ const MATRIX: { method: 'get' | 'post' | 'patch' | 'delete'; path: string; allow
   { method: 'post', path: `/api/housekeeping/tasks/${id}/confirm`, allowed: ['MANAGER'] },
   { method: 'post', path: `/api/housekeeping/tasks/${id}/return`, allowed: ['MANAGER'] },
   { method: 'post', path: `/api/housekeeping/tasks/${id}/reassign`, allowed: ['MANAGER'] },
+  { method: 'get', path: `/api/housekeeping/tasks/${id}/photos`, allowed: ['MANAGER', 'STAFF'] },
+  { method: 'post', path: `/api/housekeeping/tasks/${id}/photos`, allowed: ['STAFF'] },
+  { method: 'delete', path: `/api/housekeeping/photos/${id}`, allowed: ['STAFF'] },
+  { method: 'get', path: `/api/housekeeping/photos/${id}/file`, allowed: ['MANAGER', 'STAFF'] },
   // maintenance
   { method: 'get', path: '/api/maintenance/tasks', allowed: ALL },
   { method: 'post', path: '/api/maintenance/tasks', allowed: ALL },

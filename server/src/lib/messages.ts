@@ -39,6 +39,7 @@ export const MSG = {
   taskAlreadyTaken: 'Công việc này đã có người khác nhận.',
   noStaffOnDuty: 'Chưa có nhân viên buồng phòng đang trực — công việc đang chờ giao.',
   returnNoteRequired: 'Vui lòng nhập ghi chú khi trả lại công việc.',
+  photosRequired: 'Cần đủ ảnh tổng quan, khu ngủ và nhà vệ sinh trước khi báo hoàn tất.', // E-housekeeping-007
 
   // audit-log error matrix (mục 6) + wording 7.3
   auditForbidden: 'Bạn không có quyền xem nhật ký.',
@@ -75,6 +76,12 @@ export const MSG = {
   maintenanceAlreadyOpen: 'Phòng này đang có việc bảo trì mở — vẫn đã ghi nhận báo hỏng mới.',
   assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
   maintenanceAssignedToOther: 'Việc này đã được giao cho người khác.',
+  // housekeeping — ảnh nghiệm thu (bổ sung)
+  closeupRequired: 'Đã đánh dấu bất thường — cần thêm ảnh cận cảnh trước khi báo hoàn tất.',
+  photoInvalidType: 'Ảnh phải là tệp JPG, PNG hoặc WEBP.',
+  photoTooLarge: (maxMb: number) => `Ảnh vượt quá ${maxMb} MB — vui lòng chụp lại hoặc giảm chất lượng.`,
+  photoLocked: 'Chỉ thêm/xóa ảnh khi việc đang làm và ảnh thuộc lượt hiện tại.',
+  tooManyCloseups: (max: number) => `Tối đa ${max} ảnh cận cảnh cho một lần nghiệm thu.`,
   bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
   bulkCreated: (created: number, skipped: string[]) =>
     skipped.length

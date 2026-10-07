@@ -11,6 +11,10 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().optional(),
   // Ngưỡng quá hạn việc bảo trì (phút). Bỏ trống = không tính quá hạn — maintenance OQ-1 chưa chốt.
   MAINTENANCE_DUE_MINUTES: z.coerce.number().int().positive().optional(),
+  // Thư mục lưu ảnh nghiệm thu dọn phòng (tương đối với thư mục chạy server). Docker: gắn volume vào đây.
+  UPLOAD_DIR: z.string().min(1).default('uploads'),
+  // Dung lượng tối đa mỗi ảnh (MB) — housekeeping OQ-4 chưa chốt, mặc định 5 MB.
+  PHOTO_MAX_MB: z.coerce.number().positive().max(20).default(5),
 });
 
 const parsed = envSchema.safeParse(process.env);

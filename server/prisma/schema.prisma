@@ -86,6 +86,16 @@ enum HousekeepingTaskStatus {
   @@map("housekeeping_task_status")
 }
 
+/// Nhóm ảnh nghiệm thu một lần dọn (BR-housekeeping-006). 3 nhóm đầu bắt buộc; cận cảnh khi có bất thường.
+enum HousekeepingPhotoCategory {
+  OVERVIEW // tổng quan phòng
+  BED // khu ngủ / giường
+  BATHROOM // nhà vệ sinh
+  CLOSEUP // cận cảnh bất thường
+
+  @@map("housekeeping_photo_category")
+}
+
 /// Việc bảo trì (maintenance)
 enum MaintenanceTaskStatus {
   OPEN // chờ nhận
@@ -147,14 +157,15 @@ model User {
   updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
   session                 Session?
-  stayCheckIns            Stay[]             @relation("StayCheckedInBy")
-  stayCheckOuts           Stay[]             @relation("StayCheckedOutBy")
-  housekeepingTasks       HousekeepingTask[] @relation("HousekeepingAssignee")
-  housekeepingConfirms    HousekeepingTask[] @relation("HousekeepingConfirmer")
-  maintenanceReports      MaintenanceTask[]  @relation("MaintenanceReporter")
-  maintenanceAssignments  MaintenanceTask[]  @relation("MaintenanceAssignee")
-  outOfServiceHoldsPlaced OutOfServiceHold[] @relation("HoldPlacedBy")
-  outOfServiceHoldsLifted OutOfServiceHold[] @relation("HoldLiftedBy")
+  stayCheckIns            Stay[]              @relation("StayCheckedInBy")
+  stayCheckOuts           Stay[]              @relation("StayCheckedOutBy")
+  housekeepingTasks       HousekeepingTask[]  @relation("HousekeepingAssignee")
+  housekeepingConfirms    HousekeepingTask[]  @relation("HousekeepingConfirmer")
+  housekeepingPhotos      HousekeepingPhoto[] @relation("HousekeepingPhotoUploader")
+  maintenanceReports      MaintenanceTask[]   @relation("MaintenanceReporter")
+  maintenanceAssignments  MaintenanceTask[]   @relation("MaintenanceAssignee")
+  outOfServiceHoldsPlaced OutOfServiceHold[]  @relation("HoldPlacedBy")
+  outOfServiceHoldsLifted OutOfServiceHold[]  @relation("HoldLiftedBy")
   auditLogs               AuditLog[]
   aiSummaries             AiSummary[]
 
@@ -266,16 +277,39 @@ model HousekeepingTask {
   completedAt      DateTime?              @map("completed_at") @db.Timestamptz // nhân viên báo xong
   confirmedAt      DateTime?              @map("confirmed_at") @db.Timestamptz // quản lý xác nhận
   confirmedById    String?                @map("confirmed_by_id") @db.Uuid
+  photoRound       Int                    @default(1) @map("photo_round") // lượt ảnh nghiệm thu hiện tại — tăng mỗi lần quản lý trả lại (ảnh lượt cũ giữ để truy vết)
+  hasIssue         Boolean                @default(false) @map("has_issue") // nhân viên đánh dấu bất thường khi báo xong → bắt buộc ảnh cận cảnh
   version          Int                    @default(1)
 
-  room        Room  @relation(fields: [roomId], references: [id])
-  stay        Stay? @relation(fields: [stayId], references: [id])
-  assignee    User? @relation("HousekeepingAssignee", fields: [assigneeId], references: [id])
-  confirmedBy User? @relation("HousekeepingConfirmer", fields: [confirmedById], references: [id])
+  room        Room                @relation(fields: [roomId], references: [id])
+  stay        Stay?               @relation(fields: [stayId], references: [id])
+  assignee    User?               @relation("HousekeepingAssignee", fields: [assigneeId], references: [id])
+  confirmedBy User?               @relation("HousekeepingConfirmer", fields: [confirmedById], references: [id])
+  photos      HousekeepingPhoto[]
 
   @@index([status, dueAt])
   @@index([assigneeId, status])
   @@map("housekeeping_tasks")
+}
+
+/// Ảnh nghiệm thu thuộc MỘT lần dọn (không phải album của phòng). Tệp nằm trên đĩa (UPLOAD_DIR), CSDL giữ metadata.
+/// Chỉ nhân viên phụ trách + quản lý xem được (NFR-housekeeping-006).
+model HousekeepingPhoto {
+  id           String                    @id @default(uuid()) @db.Uuid
+  taskId       String                    @map("task_id") @db.Uuid
+  round        Int // lượt ảnh của việc (HousekeepingTask.photoRound lúc tải)
+  category     HousekeepingPhotoCategory
+  storageKey   String                    @unique @map("storage_key") // tên tệp trong UPLOAD_DIR
+  mimeType     String                    @map("mime_type") @db.VarChar(20)
+  sizeBytes    Int                       @map("size_bytes")
+  uploadedById String                    @map("uploaded_by_id") @db.Uuid
+  createdAt    DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  task       HousekeepingTask @relation(fields: [taskId], references: [id])
+  uploadedBy User             @relation("HousekeepingPhotoUploader", fields: [uploadedById], references: [id])
+
+  @@index([taskId, round])
+  @@map("housekeeping_photos")
 }
 
 // ---------------------------------------------------------------------

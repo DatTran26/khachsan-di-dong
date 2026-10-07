@@ -167,7 +167,12 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 | GET | `/api/room-types` | mọi vai trò | Loại phòng |
 | POST · PATCH | `/api/room-types` · `/api/room-types/:id` | quản lý | `{ name }` · `{ name?, isActive? }` — tắt thay vì xóa |
 | GET | `/api/housekeeping/tasks?status=&assigneeId=&roomId=&mine=true&overdue=true` | quản lý, nhân viên | Việc dọn phòng |
-| POST | `/api/housekeeping/tasks/:id/accept` · `/reject` · `/complete` | nhân viên được giao | `{ version }` — nhận (phòng → đang dọn) · từ chối (giao người kế tiếp) · báo xong (phòng → chờ kiểm tra) |
+| POST | `/api/housekeeping/tasks/:id/accept` · `/reject` | nhân viên được giao | `{ version }` — nhận (phòng → đang dọn) · từ chối (giao người kế tiếp) |
+| POST | `/api/housekeeping/tasks/:id/complete` | nhân viên được giao | `{ version, hasIssue? }` — báo xong (phòng → chờ kiểm tra). Cần đủ ảnh `OVERVIEW` + `BED` + `BATHROOM` của lượt hiện tại (400 `PHOTOS_REQUIRED`); `hasIssue: true` cần thêm `CLOSEUP` (400 `CLOSEUP_REQUIRED`) |
+| POST | `/api/housekeeping/tasks/:id/photos?category=OVERVIEW\|BED\|BATHROOM\|CLOSEUP` | nhân viên được giao, việc đang làm | Body = byte ảnh, `Content-Type: image/jpeg\|png\|webp`, ≤ `PHOTO_MAX_MB` (mặc định 5 MB, 413 nếu vượt). Nhóm bắt buộc: tải lại = thay ảnh cũ; cận cảnh tối đa 5 |
+| GET | `/api/housekeeping/tasks/:id/photos` | nhân viên phụ trách, quản lý | `{ currentRound, photos[] }` — mọi lượt, lượt mới nhất trước, theo thứ tự nhóm. `photos[].url` tải bằng token |
+| GET | `/api/housekeeping/photos/:id/file` | nhân viên phụ trách, quản lý | Byte ảnh (gửi kèm `Authorization`; Flutter: `Image.network(url, headers: ...)`) |
+| DELETE | `/api/housekeeping/photos/:id` | nhân viên được giao | Xóa ảnh lượt hiện tại để chụp lại (ảnh lượt cũ khóa — 409 `PHOTO_LOCKED`) |
 | POST | `/api/housekeeping/tasks/:id/confirm` | **chỉ quản lý** | `{ version }` — việc hoàn tất, phòng → sạch |
 | POST | `/api/housekeeping/tasks/:id/return` | **chỉ quản lý** | `{ version, note }` — ghi chú bắt buộc ≤500, phòng → đang dọn |
 | POST | `/api/housekeeping/tasks/:id/reassign` | **chỉ quản lý** | `{ version, assigneeId }` — người nhận phải là nhân viên đang trực |
@@ -182,6 +187,8 @@ Lỗi luôn có dạng `{ error: { code, message, details? } }` — `message` l�
 **Việc dọn phòng tự động** (housekeeping): trả phòng → hệ thống tạo đúng 1 việc (hạn 60 phút) và giao ngay cho nhân viên
 **đang trực** (`onDuty`, quản lý/lễ tân bật qua `PATCH /api/users/:id`) có ít việc mở nhất; không ai trực → "chờ giao" +
 cảnh báo quản lý, có người vào trực thì tự giao. Job quét 30 giây/lần gắn cờ quá hạn **một lần**.
+**Ảnh nghiệm thu** theo từng lần dọn: mỗi lần quản lý trả lại, việc sang lượt ảnh mới (`photoRound` + 1) — ảnh lượt cũ giữ
+để truy vết, nhân viên nộp lại đủ bộ. Tệp lưu ở `UPLOAD_DIR` (mặc định `server/uploads/`, Docker: volume `uploads`).
 **Trục bảo trì của phòng tự tính**: "ngừng phục vụ" khi còn việc bảo trì mở hoặc đang ngừng tay.
 Ngưỡng quá hạn bảo trì: `MAINTENANCE_DUE_MINUTES` trong `.env` (bỏ trống = không tính — maintenance OQ-1 chưa chốt).
 

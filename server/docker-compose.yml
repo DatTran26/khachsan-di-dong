@@ -31,8 +31,12 @@ services:
       # Khi lên VPS: khai báo tên miền web thật, vd "https://khachsan-demo.vn"
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       MAINTENANCE_DUE_MINUTES: ${MAINTENANCE_DUE_MINUTES:-}
+      UPLOAD_DIR: /app/uploads
     ports:
       - "3000:3000"
+    volumes:
+      - uploads:/app/uploads # ảnh nghiệm thu dọn phòng — giữ qua các lần cập nhật image
 
 volumes:
   pgdata:
+  uploads:
