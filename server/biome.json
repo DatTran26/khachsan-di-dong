@@ -1,14 +1,21 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true, "root": ".." },
-  "files": { "includes": ["src/**", "prisma/**/*.ts", "tests/**", "scripts/**"] },
-  "formatter": { "enabled": false },
-  "assist": { "enabled": false },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "style": { "noNonNullAssertion": "off" }
-    }
-  }
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true,
+		"root": ".."
+	},
+	"files": {
+		"includes": ["src/**", "prisma/**/*.ts", "tests/**", "scripts/**"]
+	},
+	"formatter": { "enabled": false },
+	"assist": { "enabled": false },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"style": { "noNonNullAssertion": "off" }
+		}
+	}
 }
