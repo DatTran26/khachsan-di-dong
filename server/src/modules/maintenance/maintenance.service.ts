@@ -188,7 +188,7 @@ export async function assignTask(actor: User, taskId: string, version: number, a
     const task = await lockTask(tx, taskId, version);
     if (!OPEN_STATUSES.includes(task.status)) throw invalidState();
     const assignee = await tx.user.findUnique({ where: { id: assigneeId } });
-    if (!assignee || assignee.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
+    if (assignee?.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
       throw new AppError(400, 'ASSIGNEE_NOT_ON_DUTY', MSG.assigneeNotOnDuty);
     }
     return transition(tx, enqueue, actor, task, 'maintenance.assigned', { status: task.status, assigneeId }, [

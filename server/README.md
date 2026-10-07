@@ -65,6 +65,7 @@ Tài khoản mẫu (mật khẩu = `SEED_PASSWORD` trong `.env`):
 | `npm test` | Chạy test trên CSDL riêng `<tên DB>_test` (tự tạo, tự dọn — không đụng dữ liệu dev) |
 | `npm run bench:realtime` | Đo tiêu chí nghiệm thu realtime (30 thiết bị đã đăng nhập, 100 lượt, ≤3s) trên CSDL test |
 | `npm run typecheck` | Kiểm tra kiểu TypeScript |
+| `npm run lint` | Lint bằng Biome (cảnh báo cũng tính là lỗi) |
 | `npm run build` / `npm start` | Build ra `dist/` và chạy bản build |
 | `npm run db:migrate` | Tạo migration mới khi sửa `prisma/schema.prisma` |
 | `npm run db:studio` | Xem dữ liệu bằng giao diện web |

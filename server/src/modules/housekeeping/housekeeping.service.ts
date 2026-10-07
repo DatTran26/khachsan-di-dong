@@ -187,7 +187,7 @@ export async function reassignTask(actor: User, taskId: string, version: number,
     const task = await lockTask(tx, taskId, version);
     if (!['UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS'].includes(task.status)) throw invalidState();
     const assignee = await tx.user.findUnique({ where: { id: assigneeId } });
-    if (!assignee || assignee.role !== 'STAFF' || assignee.status !== 'ACTIVE' || !assignee.onDuty) {
+    if (assignee?.role !== 'STAFF' || assignee.status !== 'ACTIVE' || !assignee.onDuty) {
       throw new AppError(400, 'ASSIGNEE_NOT_ON_DUTY', MSG.assigneeNotOnDuty);
     }
 

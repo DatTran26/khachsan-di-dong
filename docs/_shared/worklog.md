@@ -45,7 +45,7 @@ links: []
 | Khung backend Node.js + Express + TS + Prisma + PostgreSQL | Kim | Xong | 23/09 — `server/`, 12 bảng, chống ghi đè, 14 test pass |
 | Đăng nhập & phân quyền (`auth-roles`) | Kim (backend) | Xong (API) | 23/09 — đăng nhập/phiên 12h/1 TK 1 thiết bị/khóa 5 lần/MK tạm/quản lý TK/socket có xác thực. Màn hình: Dat, Bao |
 | Danh mục phòng (`room-catalog`) + seed 50 phòng | Kim (backend) | Xong (API) | 25/09 — thêm/sửa/xóa, tạo theo dải, loại phòng, ngừng phục vụ tay |
-| GitHub Actions: typecheck + test + build cho backend | Kim | Xong | 23/09 — `.github/workflows/backend-ci.yml` (chạy thật khi push) |
+| GitHub Actions: typecheck + lint + test + build cho backend | Kim | Xong | 23/09 — `.github/workflows/backend-ci.yml` (chạy thật khi push); 07/10 thêm lint Biome |
 | Kiểm chứng realtime Socket.IO ≤3s với 30 phiên | Kim (backend) | Xong | 23/09 — 30 TB × 100 lượt: 100% ≤3s, max 43 ms (đo trên máy dev) |
 
 ### Sprint 2 (22/09 – 05/10)

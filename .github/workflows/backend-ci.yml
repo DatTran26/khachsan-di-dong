@@ -61,6 +61,10 @@ jobs:
       - name: Kiểm tra kiểu TypeScript
         run: npm run typecheck
 
+      # Biome thay ESLint: typescript-eslint chưa hỗ trợ TypeScript 7.
+      - name: Lint
+        run: npm run lint
+
       - name: Migration + seed chạy được trên CSDL trống
         run: |
           npx prisma migrate deploy
