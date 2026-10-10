@@ -34,7 +34,10 @@
 
 ## Git
 - Làm việc trên `develop-kim`; PR vào `develop`, không bao giờ PR thẳng vào `main`.
-- Chỉ commit khi được yêu cầu. Commit theo Conventional Commits (`feat(app): ...`, `fix(server): ...`).
+- Tự commit sau MỖI chức năng / MỖI lần sửa (không cần chờ nhắc): một commit = một thay đổi trọn vẹn, đã qua
+  bước "Kiểm tra sau khi sửa"; không gộp nhiều chức năng vào một commit, không commit dở dang.
+  Commit theo Conventional Commits (`feat(app): ...`, `fix(server): ...`). Chỉ add đúng file của thay đổi đó —
+  không kéo theo thay đổi chưa liên quan đang có trong working tree.
 - Commit phải mang danh tính HoangKim72 (giảng viên chấm qua lịch sử GitHub) — không đổi git user.
 - Pull `develop` khi có thay đổi chưa commit: stash → merge → stash pop, báo file bị chồng.
 - Nhịp PR: khi `develop-kim` có 4–5 commit chưa vào `develop` (linh hoạt theo tính năng — gom cho trọn
