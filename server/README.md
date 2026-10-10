@@ -193,7 +193,7 @@ cảnh báo quản lý, có người vào trực thì tự giao. Job quét 30 gi
 **Ảnh nghiệm thu** theo từng lần dọn: mỗi lần quản lý trả lại, việc sang lượt ảnh mới (`photoRound` + 1) — ảnh lượt cũ giữ
 để truy vết, nhân viên nộp lại đủ bộ. Tệp lưu ở `UPLOAD_DIR` (mặc định `server/uploads/`, Docker: volume `uploads`).
 **Trục bảo trì của phòng tự tính**: "ngừng phục vụ" khi còn việc bảo trì mở hoặc đang ngừng tay.
-Ngưỡng quá hạn bảo trì: `MAINTENANCE_DUE_MINUTES` trong `.env` (bỏ trống = không tính — maintenance OQ-1 chưa chốt).
+Ngưỡng quá hạn bảo trì: **4 giờ** từ lúc báo hỏng (maintenance OQ-1 chốt 10/10/2026); đổi bằng `MAINTENANCE_DUE_MINUTES`, `0` = tắt.
 
 **Tóm tắt vận hành bằng AI** (ai-ops-summary): kỳ theo ca giờ VN 06–14 / 14–22 / 22–06 hoặc "hôm nay". Chỉ gửi số
 đếm/tỷ lệ + số phòng cần chú ý cho OpenAI Responses API (Structured Outputs), chờ tối đa 15 giây. Mọi con số trong

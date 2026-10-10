@@ -155,10 +155,19 @@ describe('Hủy & chỉ định (FR-006, FR-009)', () => {
 });
 
 describe('Quá hạn (FR-010, OQ-1 = cấu hình)', () => {
-  it('chưa cấu hình ngưỡng → không tính quá hạn', async () => {
+  it('OQ-1 chốt 10/10: không khai báo ngưỡng → hạn = lúc báo + 4 giờ', async () => {
+    const room = await makeRoom();
+    const task = (await report(staffA, room.id)).body.data.task;
+    // createdAt do CSDL đặt, dueAt do server tính → lệch vài ms
+    expect(Math.abs(new Date(task.dueAt).getTime() - new Date(task.createdAt).getTime() - 240 * 60_000)).toBeLessThan(1_000);
+  });
+
+  it('MAINTENANCE_DUE_MINUTES=0 → tắt, không tính quá hạn', async () => {
+    process.env.MAINTENANCE_DUE_MINUTES = '0';
     const room = await makeRoom();
     const task = (await report(staffA, room.id)).body.data.task;
     expect(task.dueAt).toBeNull();
+    delete process.env.MAINTENANCE_DUE_MINUTES;
   });
 
   it('có MAINTENANCE_DUE_MINUTES → quá ngưỡng thì gắn cờ', async () => {
