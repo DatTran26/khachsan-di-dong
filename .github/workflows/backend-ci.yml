@@ -69,6 +69,8 @@ jobs:
         run: |
           npx prisma migrate deploy
           npm run db:seed
+          npm run db:seed:demo
+          npm run db:seed:peak
 
       - name: Test (tự dùng CSDL khachsan_test)
         run: npm test

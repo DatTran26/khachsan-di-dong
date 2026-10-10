@@ -27,8 +27,7 @@ export async function listOverdueTasks() {
  * Chỉ số tại thời điểm xem (room-dashboard): đang ở / sẵn sàng / cần dọn / ngừng phục vụ / việc quá hạn / lấp đầy.
  * Tính trực tiếp từ bảng — không lưu số liệu riêng nên luôn khớp dữ liệu đối soát.
  *
- * - "Cần dọn" chưa chốt đếm chỉ DIRTY hay mọi phòng chưa sạch (room-dashboard OQ-2) → trả đủ theo từng trạng thái
- *   vệ sinh để giao diện chọn, không tự quyết thay nhóm.
+ * - "Cần dọn" CHỈ đếm `DIRTY` (đã chốt — room-dashboard PRD/URD); đang dọn / chờ kiểm tra trả riêng trong `cleaning`.
  * - Lấp đầy = phòng đang ở ÷ phòng có thể phục vụ × 100%; mẫu = 0 → `rate: null` ("không áp dụng").
  * - `overdue.tasks`: từng việc quá hạn + phòng → client tô cờ ô phòng; cập nhật tiếp qua sự kiện `*:task_updated`.
  */
