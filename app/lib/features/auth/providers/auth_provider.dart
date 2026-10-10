@@ -55,14 +55,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final res = await apiClient.get('/auth/me');
       final user = AppUser.fromJson(res['data']['user'] as Map<String, dynamic>);
       state = state.copyWith(user: user, initialized: true);
-      _connectSocket(token);
+      _connectSocket(token, user);
     } catch (_) {
       await TokenStorage.clearToken();
       state = state.copyWith(initialized: true);
     }
   }
 
-  void _connectSocket(String token) {
+  /// Server từ chối socket khi còn giữ MK tạm (PASSWORD_CHANGE_REQUIRED) và socket.io không tự
+  /// thử lại lỗi từ middleware → chỉ kết nối khi đã đổi MK, nếu không app báo "Mất kết nối" mãi.
+  void _connectSocket(String token, AppUser user) {
+    if (user.mustChangePassword) return;
     socketService.connect(token);
   }
 
@@ -88,7 +91,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
       await TokenStorage.saveToken(token);
       state = state.copyWith(user: user, isLoading: false);
-      _connectSocket(token);
+      _connectSocket(token, user);
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
       rethrow;
@@ -105,6 +108,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = AppUser.fromJson(
           (res['data'] as Map<String, dynamic>)['user'] as Map<String, dynamic>);
       state = state.copyWith(user: user, isLoading: false);
+      // Đổi MK xong (phiên vẫn giữ token cũ) → giờ mới mở được kết nối realtime.
+      final token = await TokenStorage.getToken();
+      if (token != null) _connectSocket(token, user);
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
       rethrow;
