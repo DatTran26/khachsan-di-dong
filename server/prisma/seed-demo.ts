@@ -20,6 +20,7 @@ const { checkIn, checkOut } = await import('../src/modules/stays/stays.service.j
 const { acceptTask, completeTask } = await import('../src/modules/housekeeping/housekeeping.service.js');
 const { reportIssue } = await import('../src/modules/maintenance/maintenance.service.js');
 const { placeOutOfService } = await import('../src/modules/rooms/rooms.catalog.js');
+const { uploadRequiredPhotos } = await import('./demo-photos.js');
 
 async function user(phone: string) {
   const found = await prisma.user.findUnique({ where: { phone } });
@@ -62,7 +63,11 @@ async function main() {
     const task = tasks[number];
     const staff = await prisma.user.findUniqueOrThrow({ where: { id: task.assigneeId } });
     const accepted = await acceptTask(staff, task.id, task.version);
-    if (number === '106') await completeTask(staff, task.id, accepted.version);
+    if (number === '106') {
+      // Báo xong cần đủ 3 ảnh nghiệm thu (FR-housekeeping-005)
+      await uploadRequiredPhotos(staff, task.id);
+      await completeTask(staff, task.id, accepted.version);
+    }
   }
 
   const r201 = await room('201');

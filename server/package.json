@@ -21,6 +21,7 @@
     "test": "vitest run",
     "bench:realtime": "tsx scripts/realtime-benchmark.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:peak": "tsx prisma/seed-peak.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

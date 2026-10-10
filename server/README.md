@@ -16,6 +16,7 @@ docker compose up -d          # bật PostgreSQL (bỏ qua nếu đã cài Postg
 npm run db:migrate            # tạo bảng
 npm run db:seed               # 50 phòng + 8 tài khoản mẫu
 npm run db:seed:demo          # (tuỳ chọn) tình huống demo: phòng có khách, đang dọn, chờ xác nhận, đang sửa…
+npm run db:seed:peak          # (tuỳ chọn, chạy NGAY TRƯỚC demo) "ca đỉnh": nhận/trả, dọn, quá hạn, báo hỏng trong ca hiện tại → tóm tắt AI có nội dung
 npm run dev                   # http://localhost:3000/api/health
 ```
 
