@@ -157,7 +157,8 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
 
   let outcome: Outcome;
   if (!hasActivity) {
-    // Kỳ rỗng → không gọi AI (FR-003, BR-004).
+    // Kỳ rỗng → không gọi AI (FR-003, BR-004). Vẫn kèm việc cần chú ý theo quy tắc (việc quá hạn, phòng ngừng
+    // phục vụ đang tồn tại) để quản lý không bỏ sót — chốt 10/10/2026.
     outcome = { source: 'EMPTY', overview: MSG.summaryEmpty, highlights: [], notes: [], calledAi: false, failureReason: null, costVnd: 0 };
   } else {
     const payload = toAiPayload(range, metrics, attention, now);
@@ -177,7 +178,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
         source: outcome.source,
         overview: outcome.overview,
         highlights: outcome.highlights,
-        attention: { items: outcome.source === 'EMPTY' ? [] : attention, notes: outcome.notes } satisfies Attention as never,
+        attention: { items: attention, notes: outcome.notes } satisfies Attention as never,
         metrics: metrics as never,
         calledAi: outcome.calledAi,
         failureReason: outcome.failureReason,

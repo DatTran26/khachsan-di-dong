@@ -203,7 +203,13 @@ describe('Tạo tóm tắt (FR-002…004, FR-006, FR-010)', () => {
     expect(spy).not.toHaveBeenCalled();
     expect(notice).toBe(MSG.summaryEmpty);
     expect(summary).toMatchObject({ source: 'EMPTY', overview: MSG.summaryEmpty, calledAi: false, label: null });
-    expect(summary.attention.items).toEqual([]);
+  });
+
+  it('chốt 10/10: kỳ rỗng vẫn liệt kê việc cần chú ý đang tồn tại (phòng ngừng phục vụ, việc quá hạn)', async () => {
+    const oos = await prisma.room.create({ data: { number: `AIE${tag}`, floor: 7, roomTypeId, service: 'OUT_OF_SERVICE' } });
+    const { summary } = await createSummary(manager.user, 'PREVIOUS_SHIFT', new Date('2030-01-01T03:00:00Z'));
+    expect(summary.source).toBe('EMPTY');
+    expect(summary.attention.items).toContainEqual(expect.objectContaining({ type: 'OUT_OF_SERVICE', roomId: oos.id }));
   });
 });
 
