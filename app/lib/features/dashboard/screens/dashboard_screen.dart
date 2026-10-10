@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../models/housekeeping_task.dart';
-import '../../../models/maintenance_task.dart';
 import '../../../models/room.dart';
-import '../../../models/user.dart';
 import '../../../shared/widgets/room_tile.dart';
 import '../../../shared/widgets/ui.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../housekeeping/providers/housekeeping_provider.dart';
-import '../../maintenance/providers/maintenance_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../rooms/widgets/room_detail_panel.dart';
 import '../providers/dashboard_provider.dart';
@@ -28,26 +22,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int? _floor;
   _Group _group = _Group.all;
 
-  /// Phòng có việc quá hạn — chỉ đọc nguồn mà vai trò được phép gọi API.
-  Set<String> _overdueRoomIds(UserRole? role) {
-    final ids = <String>{};
-    if (role == UserRole.manager) {
-      for (final t in ref.watch(housekeepingProvider).tasks) {
-        if (t.isOverdue && t.status != HousekeepingStatus.done) {
-          ids.add(t.room.id);
-        }
-      }
-    }
-    for (final t in ref.watch(maintenanceProvider).tasks) {
-      if (t.isOverdue &&
-          (t.status == MaintenanceStatus.open ||
-              t.status == MaintenanceStatus.inProgress)) {
-        ids.add(t.room.id);
-      }
-    }
-    return ids;
-  }
-
   bool _matches(Room r, Set<String> overdue) {
     if (_floor != null && r.floor != _floor) return false;
     switch (_group) {
@@ -58,7 +32,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       case _Group.occupied:
         return r.occupancy == OccupancyStatus.occupied;
       case _Group.needsCleaning:
-        return r.cleaning != CleaningStatus.clean;
+        // "Cần dọn" chỉ là trạng thái `cần dọn` — khớp ô chỉ số (room-dashboard PRD đã chốt).
+        return r.cleaning == CleaningStatus.dirty;
       case _Group.outOfService:
         return r.service == ServiceStatus.outOfService;
       case _Group.overdue:
@@ -76,9 +51,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final roomsState = ref.watch(roomsProvider);
-    final summary = ref.watch(dashboardSummaryProvider).summary;
-    final role = ref.watch(authProvider.select((s) => s.user?.role));
-    final overdue = _overdueRoomIds(role);
+    final summaryState = ref.watch(dashboardSummaryProvider);
+    final summary = summaryState.summary;
+    // Cờ quá hạn lấy từ API chỉ số → lễ tân cũng thấy việc dọn quá hạn (FR-006).
+    final overdue = summary.overdueRoomIds;
     final rooms = roomsState.sorted;
     final wide = Breakpoints.hasSidebar(context);
     final pad = wide
@@ -104,7 +80,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _Group.occupied:
           rooms.where((r) => r.occupancy == OccupancyStatus.occupied).length,
       _Group.needsCleaning:
-          rooms.where((r) => r.cleaning != CleaningStatus.clean).length,
+          rooms.where((r) => r.cleaning == CleaningStatus.dirty).length,
       _Group.outOfService:
           rooms.where((r) => r.service == ServiceStatus.outOfService).length,
       _Group.overdue: overdue.length,
@@ -115,7 +91,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: ListView(
         padding: pad,
         children: [
-          _StatsGrid(summary: summary),
+          // Chưa tải được chỉ số lần nào → báo lỗi + thử lại, không hiện số 0 như thật (FR-010).
+          if (summaryState.error != null && summary.asOf == null)
+            ErrorState(
+              message: summaryState.error!,
+              onRetry: () =>
+                  ref.read(dashboardSummaryProvider.notifier).load(),
+            )
+          else
+            _StatsGrid(summary: summary),
           const SizedBox(height: 20),
           Wrap(
             spacing: 8,

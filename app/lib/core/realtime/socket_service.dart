@@ -19,6 +19,10 @@ class SocketService {
   SessionRevokedCallback? onSessionRevoked;
   ConnectionCallback? onConnectionChanged;
 
+  /// Có việc dọn / việc sửa đổi trạng thái (kể cả bị cờ quá hạn) — dashboard dùng để tải lại chỉ số.
+  /// Tách riêng khỏi callback của từng provider vì vai trò không xem danh sách việc vẫn cần biết.
+  void Function()? onTaskChanged;
+
   bool _connected = false;
   bool get isConnected => _connected;
 
@@ -91,6 +95,7 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         final task = data['task'] as Map<String, dynamic>?;
         if (task != null) onHousekeepingTaskUpdated?.call(task);
+        onTaskChanged?.call();
       }
     });
 
@@ -98,6 +103,7 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         final task = data['task'] as Map<String, dynamic>?;
         if (task != null) onMaintenanceTaskUpdated?.call(task);
+        onTaskChanged?.call();
       }
     });
 

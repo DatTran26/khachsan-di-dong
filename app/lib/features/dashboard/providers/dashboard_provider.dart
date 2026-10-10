@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/realtime/socket_service.dart';
 import '../../rooms/providers/rooms_provider.dart';
 
 class DashboardSummary {
@@ -12,6 +13,9 @@ class DashboardSummary {
   final int overdueHousekeeping;
   final int overdueMaintenance;
   final int overdueTotal;
+
+  /// Phòng đang có việc quá hạn (từ `overdue.tasks`) — tô cờ ô phòng cho mọi vai trò xem dashboard (FR-006).
+  final Set<String> overdueRoomIds;
   final int occupancyServiceable;
   final double? occupancyRate;
   final DateTime? asOf;
@@ -25,6 +29,7 @@ class DashboardSummary {
     required this.overdueHousekeeping,
     required this.overdueMaintenance,
     required this.overdueTotal,
+    this.overdueRoomIds = const {},
     required this.occupancyServiceable,
     this.occupancyRate,
     this.asOf,
@@ -71,6 +76,10 @@ class DashboardSummary {
       overdueHousekeeping: (overdue['housekeeping'] as num?)?.toInt() ?? 0,
       overdueMaintenance: (overdue['maintenance'] as num?)?.toInt() ?? 0,
       overdueTotal: (overdue['total'] as num?)?.toInt() ?? 0,
+      overdueRoomIds: {
+        for (final t in (overdue['tasks'] as List?) ?? const [])
+          (t as Map<String, dynamic>)['roomId'] as String,
+      },
       occupancyServiceable: (occupancy['serviceable'] as num?)?.toInt() ?? 0,
       occupancyRate: occupancy['rate'] != null
           ? (occupancy['rate'] as num).toDouble()
@@ -145,5 +154,8 @@ final dashboardSummaryProvider =
   final notifier = DashboardSummaryNotifier();
   ref.listen(roomsProvider.select((s) => s.lastUpdated),
       (_, __) => notifier.scheduleReload());
+  // Việc dọn/sửa đổi trạng thái hoặc bị cờ quá hạn không phát room:updated → nghe riêng (FR-005, ≤3s).
+  socketService.onTaskChanged = notifier.scheduleReload;
+  ref.onDispose(() => socketService.onTaskChanged = null);
   return notifier;
 });
