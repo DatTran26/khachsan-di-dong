@@ -65,8 +65,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dashboard',
             // `?phong=<id>`: mở sẵn chi tiết phòng (đi từ việc cần chú ý / cảnh báo quá hạn).
-            builder: (_, state) => DashboardScreen(
-                openRoomId: state.uri.queryParameters['phong']),
+            builder: (_, state) =>
+                DashboardScreen(openRoomId: state.uri.queryParameters['phong']),
           ),
           GoRoute(
             path: '/tom-tat',
@@ -94,7 +94,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/nhat-ky',
-            builder: (_, __) => const AuditScreen(),
+            builder: (_, state) =>
+                AuditScreen(roomId: state.uri.queryParameters['phong']),
           ),
         ],
       ),

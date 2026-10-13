@@ -41,7 +41,30 @@ class _AppShellState extends ConsumerState<AppShell> {
     final tone = kind.endsWith('OVERDUE') || kind == 'HOUSEKEEPING_RETURNED'
         ? SnackTone.warn
         : SnackTone.info;
-    showAppSnack(context, message, tone: tone);
+    final target = _notificationTarget(kind, roomId);
+    showAppSnack(
+      context,
+      message,
+      tone: tone,
+      action: target == null
+          ? null
+          : SnackBarAction(
+              label: 'Xem',
+              textColor: AppColors.goldLight,
+              onPressed: () => context.go(target)),
+    );
+  }
+
+  /// Nơi mở khi bấm "Xem" trên thông báo: quản lý/lễ tân → ô phòng trên dashboard;
+  /// nhân viên (không có dashboard) → danh sách việc của mình.
+  String? _notificationTarget(String kind, String? roomId) {
+    final role = ref.read(authProvider).user?.role;
+    if (role == UserRole.staff) {
+      if (kind.startsWith('HOUSEKEEPING')) return '/don-phong';
+      if (kind.startsWith('MAINTENANCE')) return '/bao-tri';
+      return null;
+    }
+    return roomId == null ? null : '/dashboard?phong=$roomId';
   }
 
   @override

@@ -25,7 +25,7 @@ enum SnackTone { success, info, warn, error }
 
 /// Thông báo ngắn ở cuối màn hình — thành công nói cụ thể việc vừa làm ("Đã nhận phòng 105 cho …").
 void showAppSnack(BuildContext context, String message,
-    {SnackTone tone = SnackTone.success}) {
+    {SnackTone tone = SnackTone.success, SnackBarAction? action}) {
   if (!context.mounted) return;
   final (Color bg, IconData icon) = switch (tone) {
     SnackTone.success => (AppColors.espresso, Icons.check_circle_outline),
@@ -41,6 +41,7 @@ void showAppSnack(BuildContext context, String message,
         // Web: thông báo gọn ở giữa đáy màn hình thay vì trải hết chiều ngang.
         width: MediaQuery.sizeOf(context).width >= 900 ? 520 : null,
         duration: Duration(seconds: tone == SnackTone.error ? 5 : 4),
+        action: action,
         content: Row(
           children: [
             Icon(icon,

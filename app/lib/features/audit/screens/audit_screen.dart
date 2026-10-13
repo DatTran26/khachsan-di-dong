@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/audit_entry.dart';
@@ -8,8 +9,46 @@ import '../../rooms/providers/rooms_provider.dart';
 import '../providers/audit_provider.dart';
 
 /// Nhật ký thay đổi (audit-log) — chỉ quản lý. Lọc theo thời gian, phòng, vai trò người thao tác.
-class AuditScreen extends ConsumerWidget {
-  const AuditScreen({super.key});
+/// `/nhat-ky?phong=<id>` (từ chi tiết phòng): lọc sẵn theo phòng đó.
+class AuditScreen extends ConsumerStatefulWidget {
+  final String? roomId;
+  const AuditScreen({super.key, this.roomId});
+
+  @override
+  ConsumerState<AuditScreen> createState() => _AuditScreenState();
+}
+
+class _AuditScreenState extends ConsumerState<AuditScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _applyRoom();
+  }
+
+  @override
+  void didUpdateWidget(AuditScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.roomId != old.roomId) _applyRoom();
+  }
+
+  /// Bỏ `?phong=` khỏi đường dẫn sau khi lọc — người dùng vẫn đổi/bỏ lọc phòng như thường.
+  void _applyRoom() {
+    final roomId = widget.roomId;
+    if (roomId == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final n = ref.read(auditProvider.notifier);
+      n.setFilter(ref.read(auditProvider).filter.copyWith(roomId: roomId));
+      context.go('/nhat-ky');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const _AuditBody();
+}
+
+class _AuditBody extends ConsumerWidget {
+  const _AuditBody();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

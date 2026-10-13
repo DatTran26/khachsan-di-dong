@@ -4,6 +4,18 @@ import '../../../core/api/api_client.dart';
 import '../../../core/realtime/socket_service.dart';
 import '../../rooms/providers/rooms_provider.dart';
 
+/// Một việc quá hạn đang mở (`overdue.tasks`) — để chi tiết phòng mở đúng màn việc.
+class OverdueTask {
+  final String type; // HOUSEKEEPING | MAINTENANCE
+  final String taskId;
+  final String roomId;
+
+  const OverdueTask(
+      {required this.type, required this.taskId, required this.roomId});
+
+  bool get isHousekeeping => type == 'HOUSEKEEPING';
+}
+
 class DashboardSummary {
   final int totalRooms;
   final int occupied;
@@ -16,6 +28,7 @@ class DashboardSummary {
 
   /// Phòng đang có việc quá hạn (từ `overdue.tasks`) — tô cờ ô phòng cho mọi vai trò xem dashboard (FR-006).
   final Set<String> overdueRoomIds;
+  final List<OverdueTask> overdueTasks;
   final int occupancyServiceable;
   final double? occupancyRate;
   final DateTime? asOf;
@@ -30,6 +43,7 @@ class DashboardSummary {
     required this.overdueMaintenance,
     required this.overdueTotal,
     this.overdueRoomIds = const {},
+    this.overdueTasks = const [],
     required this.occupancyServiceable,
     this.occupancyRate,
     this.asOf,
@@ -57,6 +71,9 @@ class DashboardSummary {
     return '$s%';
   }
 
+  List<OverdueTask> overdueTasksOf(String roomId) =>
+      overdueTasks.where((t) => t.roomId == roomId).toList();
+
   int get needsCleaning => cleaning['DIRTY'] ?? 0;
   int get cleaningNow => cleaning['CLEANING'] ?? 0;
   int get pendingInspection => cleaning['PENDING_INSPECTION'] ?? 0;
@@ -67,6 +84,14 @@ class DashboardSummary {
         {};
     final overdue = json['overdue'] as Map<String, dynamic>? ?? {};
     final occupancy = json['occupancy'] as Map<String, dynamic>? ?? {};
+    final tasks = [
+      for (final t in (overdue['tasks'] as List?) ?? const [])
+        OverdueTask(
+          type: (t as Map<String, dynamic>)['type'] as String,
+          taskId: t['taskId'] as String,
+          roomId: t['roomId'] as String,
+        ),
+    ];
     return DashboardSummary(
       totalRooms: (json['totalRooms'] as num?)?.toInt() ?? 0,
       occupied: (json['occupied'] as num?)?.toInt() ?? 0,
@@ -76,10 +101,8 @@ class DashboardSummary {
       overdueHousekeeping: (overdue['housekeeping'] as num?)?.toInt() ?? 0,
       overdueMaintenance: (overdue['maintenance'] as num?)?.toInt() ?? 0,
       overdueTotal: (overdue['total'] as num?)?.toInt() ?? 0,
-      overdueRoomIds: {
-        for (final t in (overdue['tasks'] as List?) ?? const [])
-          (t as Map<String, dynamic>)['roomId'] as String,
-      },
+      overdueRoomIds: {for (final t in tasks) t.roomId},
+      overdueTasks: tasks,
       occupancyServiceable: (occupancy['serviceable'] as num?)?.toInt() ?? 0,
       occupancyRate: occupancy['rate'] != null
           ? (occupancy['rate'] as num).toDouble()
