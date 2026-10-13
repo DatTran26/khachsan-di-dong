@@ -225,14 +225,70 @@ Future<void> _assign(
       'Đã giao việc dọn phòng ${task.room.number} cho $name.');
 }
 
+/// Dựng nút thao tác cho [task] theo trạng thái hiện tại (thẻ và sheet chi tiết dùng chung).
+typedef _TaskActions = List<Widget> Function(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online);
+
+/// Sheet chi tiết luôn đọc việc mới nhất theo `task.id` từ [housekeepingProvider] — thao tác trong sheet
+/// hoặc realtime đổi trạng thái thì nội dung và nút tự cập nhật theo.
 void _showDetail(
-    BuildContext context, HousekeepingTask task, List<Widget> actions) {
+    BuildContext context, HousekeepingTask task, _TaskActions actionsFor) {
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     constraints: const BoxConstraints(maxWidth: 520),
-    builder: (ctx) => SafeArea(
+    builder: (_) => _TaskDetailSheet(initial: task, actionsFor: actionsFor),
+  );
+}
+
+class _TaskDetailSheet extends ConsumerStatefulWidget {
+  final HousekeepingTask initial;
+  final _TaskActions actionsFor;
+  const _TaskDetailSheet({required this.initial, required this.actionsFor});
+
+  @override
+  ConsumerState<_TaskDetailSheet> createState() => _TaskDetailSheetState();
+}
+
+class _TaskDetailSheetState extends ConsumerState<_TaskDetailSheet> {
+  /// Lúc mở có nút thao tác không — để biết khi nào việc "hết việc cần làm" thì tự đóng.
+  /// (Sheet mở từ mục "Xong hôm nay" vốn không có nút → không tự đóng.)
+  late final bool _hadActions = widget
+      .actionsFor(context, ref, widget.initial, ref.read(isOnlineProvider))
+      .isNotEmpty;
+  bool _closing = false;
+
+  /// Đóng đúng sheet này kể cả khi đang có hộp thoại khác đè lên.
+  void _close() {
+    if (_closing) return;
+    _closing = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final route = ModalRoute.of(context);
+      if (route == null) return;
+      if (route.isCurrent) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).removeRoute(route);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final online = ref.watch(isOnlineProvider);
+    final id = widget.initial.id;
+    final latest = ref.watch(housekeepingProvider
+        .select((s) => s.tasks.where((t) => t.id == id).firstOrNull));
+    final task = latest ?? widget.initial;
+    final actions = latest == null
+        ? const <Widget>[]
+        : widget.actionsFor(context, ref, task, online);
+    // Việc không còn trong danh sách, hoặc đã hết nút cần làm (vd đã xác nhận sạch) → đóng sheet.
+    if (latest == null || (_hadActions && actions.isEmpty)) _close();
+
+    return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         child: Column(
@@ -277,8 +333,8 @@ void _showDetail(
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -435,63 +491,63 @@ class _ManagerBoard extends ConsumerWidget {
   }
 }
 
+List<Widget> _managerActions(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
+    {bool large = false}) {
+  final n = ref.read(housekeepingProvider.notifier);
+  final size = large ? const Size.fromHeight(48) : const Size(0, 36);
+  switch (task.status) {
+    case HousekeepingStatus.unassigned:
+      return [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _assign(context, ref, task) : null,
+          child: const Text('Giao cho…'),
+        ),
+      ];
+    case HousekeepingStatus.assigned:
+    case HousekeepingStatus.inProgress:
+      return [
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _assign(context, ref, task) : null,
+          child: const Text('Phân công lại'),
+        ),
+      ];
+    case HousekeepingStatus.pendingConfirm:
+      return [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: size),
+          onPressed: online
+              ? () => _run(context, ref, () => n.confirm(task.id, task.version),
+                  'Đã xác nhận phòng ${task.room.number} sạch. Phòng về Sẵn sàng.')
+              : null,
+          child: const Text('Xác nhận sạch'),
+        ),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _returnTask(context, ref, task) : null,
+          child: const Text('Trả lại'),
+        ),
+      ];
+    case HousekeepingStatus.done:
+      return const [];
+  }
+}
+
 class _ManagerTaskCard extends ConsumerWidget {
   final HousekeepingTask task;
   final bool online;
   const _ManagerTaskCard({required this.task, required this.online});
 
-  List<Widget> _actions(BuildContext context, WidgetRef ref,
-      {bool large = false}) {
-    final n = ref.read(housekeepingProvider.notifier);
-    final size = large ? const Size.fromHeight(48) : const Size(0, 36);
-    switch (task.status) {
-      case HousekeepingStatus.unassigned:
-        return [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _assign(context, ref, task) : null,
-            child: const Text('Giao cho…'),
-          ),
-        ];
-      case HousekeepingStatus.assigned:
-      case HousekeepingStatus.inProgress:
-        return [
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _assign(context, ref, task) : null,
-            child: const Text('Phân công lại'),
-          ),
-        ];
-      case HousekeepingStatus.pendingConfirm:
-        return [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(minimumSize: size),
-            onPressed: online
-                ? () => _run(
-                    context,
-                    ref,
-                    () => n.confirm(task.id, task.version),
-                    'Đã xác nhận phòng ${task.room.number} sạch. Phòng về Sẵn sàng.')
-                : null,
-            child: const Text('Xác nhận sạch'),
-          ),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _returnTask(context, ref, task) : null,
-            child: const Text('Trả lại'),
-          ),
-        ];
-      case HousekeepingStatus.done:
-        return const [];
-    }
-  }
+  void _open(BuildContext context) => _showDetail(
+      context, task, (c, r, t, o) => _managerActions(c, r, t, o, large: true));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hm = DateFormat('HH:mm');
-    final actions = _actions(context, ref);
-    openIfLinked(context, ref, task.id,
-        () => _showDetail(context, task, _actions(context, ref, large: true)));
+    final actions = _managerActions(context, ref, task, online);
+    openIfLinked(context, ref, task.id, () => _open(context));
     return AppCard(
       padding: const EdgeInsets.all(12),
       borderColor: task.isOverdue
@@ -499,8 +555,7 @@ class _ManagerTaskCard extends ConsumerWidget {
           : task.status == HousekeepingStatus.pendingConfirm
               ? const Color(0xFFE7B7D1)
               : null,
-      onTap: () =>
-          _showDetail(context, task, _actions(context, ref, large: true)),
+      onTap: () => _open(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -601,7 +656,8 @@ class _StaffList extends ConsumerWidget {
                 child: AppCard(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  onTap: () => _showDetail(context, t, const []),
+                  onTap: () =>
+                      _showDetail(context, t, (_, __, ___, ____) => const []),
                   child: Row(
                     children: [
                       Expanded(
@@ -621,76 +677,80 @@ class _StaffList extends ConsumerWidget {
   }
 }
 
+List<Widget> _staffActions(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
+    {bool vertical = false}) {
+  final n = ref.read(housekeepingProvider.notifier);
+  const size = Size.fromHeight(48);
+  if (task.status == HousekeepingStatus.assigned) {
+    return [
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => showConfirmDialog(
+                  context,
+                  title: 'Từ chối việc dọn phòng ${task.room.number}?',
+                  message:
+                      'Việc sẽ quay về Chờ giao để quản lý giao cho người khác.',
+                  confirmLabel: 'Từ chối',
+                  onConfirm: () => n.reject(task.id, task.version),
+                )
+            : null,
+        child: const Text('Từ chối'),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => _run(context, ref, () => n.accept(task.id, task.version),
+                'Đã nhận việc phòng ${task.room.number}. Phòng chuyển sang Đang dọn.')
+            : null,
+        child: const Text('Nhận việc'),
+      ),
+    ];
+  }
+  // Đã báo xong / đã xác nhận / chưa giao → nhân viên không còn gì để làm.
+  if (task.status != HousekeepingStatus.inProgress) return const [];
+  return [
+    // Báo xong cần đủ ảnh nghiệm thu → nộp ảnh và báo ở màn riêng (FR-housekeeping-005).
+    ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(minimumSize: size),
+      // Màn riêng toàn màn hình (navigator gốc) — không lồng trong khung app.
+      onPressed: () => Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+              builder: (_) => AcceptancePhotosScreen(taskId: task.id))),
+      icon: const Icon(Icons.photo_camera_outlined, size: 18),
+      label: const Text('Ảnh & báo xong'),
+    ),
+    if (vertical)
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => showReportIssueDialog(context, roomId: task.room.id)
+            : null,
+        child: const Text('Báo hỏng phòng này'),
+      ),
+  ];
+}
+
 class _StaffTaskCard extends ConsumerWidget {
   final HousekeepingTask task;
   final bool online;
   const _StaffTaskCard({required this.task, required this.online});
 
-  List<Widget> _actions(BuildContext context, WidgetRef ref,
-      {bool vertical = false}) {
-    final n = ref.read(housekeepingProvider.notifier);
-    const size = Size.fromHeight(48);
-    if (task.status == HousekeepingStatus.assigned) {
-      return [
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => showConfirmDialog(
-                    context,
-                    title: 'Từ chối việc dọn phòng ${task.room.number}?',
-                    message:
-                        'Việc sẽ quay về Chờ giao để quản lý giao cho người khác.',
-                    confirmLabel: 'Từ chối',
-                    onConfirm: () => n.reject(task.id, task.version),
-                  )
-              : null,
-          child: const Text('Từ chối'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => _run(context, ref, () => n.accept(task.id, task.version),
-                  'Đã nhận việc phòng ${task.room.number}. Phòng chuyển sang Đang dọn.')
-              : null,
-          child: const Text('Nhận việc'),
-        ),
-      ];
-    }
-    return [
-      // Báo xong cần đủ ảnh nghiệm thu → nộp ảnh và báo ở màn riêng (FR-housekeeping-005).
-      ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(minimumSize: size),
-        // Màn riêng toàn màn hình (navigator gốc) — không lồng trong khung app.
-        onPressed: () => Navigator.of(context, rootNavigator: true).push(
-            MaterialPageRoute(
-                builder: (_) => AcceptancePhotosScreen(taskId: task.id))),
-        icon: const Icon(Icons.photo_camera_outlined, size: 18),
-        label: const Text('Ảnh & báo xong'),
-      ),
-      if (vertical)
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => showReportIssueDialog(context, roomId: task.room.id)
-              : null,
-          child: const Text('Báo hỏng phòng này'),
-        ),
-    ];
-  }
+  void _open(BuildContext context) => _showDetail(
+      context, task, (c, r, t, o) => _staffActions(c, r, t, o, vertical: true));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = _actions(context, ref);
+    final actions = _staffActions(context, ref, task, online);
     final started = task.startedAt != null
         ? ' · bắt đầu ${DateFormat('HH:mm').format(task.startedAt!.toLocal())}'
         : '';
-    openIfLinked(context, ref, task.id,
-        () => _showDetail(context, task, _actions(context, ref, vertical: true)));
+    openIfLinked(context, ref, task.id, () => _open(context));
     return AppCard(
       padding: const EdgeInsets.all(14),
       borderColor: task.isOverdue ? AppColors.danger : null,
-      onTap: () =>
-          _showDetail(context, task, _actions(context, ref, vertical: true)),
+      onTap: () => _open(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

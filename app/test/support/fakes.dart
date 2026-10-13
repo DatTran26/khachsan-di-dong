@@ -6,6 +6,7 @@ import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_pr
 import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/room_types_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
+import 'package:khachsan_di_dong/features/users/providers/users_provider.dart';
 import 'package:khachsan_di_dong/models/housekeeping_photo.dart';
 import 'package:khachsan_di_dong/models/housekeeping_task.dart';
 import 'package:khachsan_di_dong/models/room.dart';
@@ -81,6 +82,10 @@ class FakeHousekeeping extends HousekeepingNotifier {
 
   @override
   Future<void> load() async {}
+
+  /// Giả lập việc đổi (thao tác xong / realtime) — thay cả danh sách.
+  void setTasks(List<HousekeepingTask> tasks) =>
+      state = HousekeepingState(tasks: tasks);
 
   @override
   Future<void> complete(String id, int version, {bool hasIssue = false}) async {
@@ -179,3 +184,12 @@ AppUser fakeUser(String role) => AppUser.fromJson({
       'createdAt': '2026-10-01T00:00:00.000Z',
     });
 
+/// Danh sách tài khoản giả — không gọi API.
+class FakeUsers extends UsersNotifier {
+  FakeUsers(List<AppUser> users) {
+    state = UsersState(users: users);
+  }
+
+  @override
+  Future<void> load() async {}
+}
