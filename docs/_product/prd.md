@@ -1,7 +1,7 @@
 ---
 type: prd-product
 status: draft
-updated: 2026-09-23
+updated: 2026-10-04
 links: []
 ---
 
@@ -259,7 +259,7 @@ Cuối ca hoặc cuối ngày, quản lý bấm tạo bản tóm tắt: hệ th�
 
 ## 9. Constraints
 
-- **Ngân sách / timeline / team:** 8 tuần (08/09–02/11/2026), 4 sprint × 2 tuần; team WPCTeam 3 người ~20h/người/tuần (~480h tổng); ngân sách tiền mặt 1.500.000 VNĐ (hạn mức lập kế hoạch, chưa phê duyệt); sprint 4 dành chủ yếu cho sửa lỗi và bàn giao.
+- **Ngân sách / timeline / team:** 8 tuần (08/09–02/11/2026), 4 sprint × 2 tuần; bàn giao 27/10, nghiệm thu 02/11 (D-17); team WPCTeam 3 người, 530h theo WBS baseline; dự toán 30.000.000 VNĐ đã được GV duyệt (D-04), gồm nhân công quy đổi, VPS/tên miền, API OpenAI ≤300.000 VNĐ và dự phòng; sprint 4 dành chủ yếu cho sửa lỗi và bàn giao.
 - **Ràng buộc tích hợp (chỉ tên hệ thống):** dịch vụ LLM bên ngoài (vd OpenAI/Google AI) cho `ai-ops-summary` — chỉ gửi số liệu tổng hợp không định danh khách; VPS Linux + tên miền demo phục vụ bản web.
 - **Ràng buộc pháp lý / vùng / compliance:** 1 khách sạn giả định 50 phòng, dữ liệu giả lập, tiếng Việt; nghiệm thu trên Flutter Web + Android (iOS mở rộng); không dùng dữ liệu khách thật.
 
