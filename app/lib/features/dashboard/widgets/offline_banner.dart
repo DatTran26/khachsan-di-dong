@@ -5,6 +5,8 @@ import '../../../shared/widgets/ui.dart';
 class OfflineBanner extends StatelessWidget {
   const OfflineBanner({super.key});
 
+  /// Banner cảnh báo full bề ngang, vùng live để trình đọc màn hình đọc lại khi hiện.
+  /// Không tự biết trạng thái mạng — widget cha chỉ dựng khi mất kết nối.
   @override
   Widget build(BuildContext context) => Semantics(
         liveRegion: true,
