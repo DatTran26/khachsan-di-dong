@@ -3,6 +3,7 @@ import 'package:khachsan_di_dong/features/ai_summary/providers/ai_summary_provid
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
 import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_provider.dart';
 import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
+import 'package:khachsan_di_dong/features/rooms/providers/room_types_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
 import 'package:khachsan_di_dong/models/housekeeping_photo.dart';
 import 'package:khachsan_di_dong/models/housekeeping_task.dart';
@@ -125,3 +126,30 @@ TaskPhotos fakeTaskPhotos(List<String> categories) => TaskPhotos.fromJson({
           },
       ],
     });
+
+/// Loại phòng giả; ghi lại thao tác thêm / đổi tên / tắt–bật.
+class FakeRoomTypes extends RoomTypesNotifier {
+  FakeRoomTypes(List<RoomType> types) {
+    state = RoomTypesState(types: types);
+  }
+
+  final calls = <String>[];
+
+  @override
+  Future<void> load() async {}
+
+  @override
+  Future<void> create(String name) async {
+    calls.add('create:$name');
+    state = RoomTypesState(
+        types: [...state.types, RoomType(id: 'new', name: name)]);
+  }
+
+  @override
+  Future<void> rename(String id, String name) async =>
+      calls.add('rename:$id:$name');
+
+  @override
+  Future<void> setActive(String id, bool isActive) async =>
+      calls.add('active:$id:$isActive');
+}

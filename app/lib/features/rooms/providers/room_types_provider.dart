@@ -41,6 +41,23 @@ class RoomTypesNotifier extends StateNotifier<RoomTypesState> {
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
+
+  /// Quản lý loại phòng (FR-room-catalog-010) — chỉ quản lý, server kiểm quyền và ghi nhật ký.
+  Future<void> create(String name) async {
+    await apiClient.post('/room-types', body: {'name': name});
+    await load();
+  }
+
+  Future<void> rename(String id, String name) async {
+    await apiClient.patch('/room-types/$id', body: {'name': name});
+    await load();
+  }
+
+  /// Tắt: phòng đang thuộc loại này giữ nguyên, chỉ không chọn được khi thêm/sửa phòng.
+  Future<void> setActive(String id, bool isActive) async {
+    await apiClient.patch('/room-types/$id', body: {'isActive': isActive});
+    await load();
+  }
 }
 
 final roomTypesProvider = StateNotifierProvider<RoomTypesNotifier, RoomTypesState>((ref) {
