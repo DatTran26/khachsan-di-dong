@@ -1,7 +1,7 @@
 ---
 type: worklog
 status: active
-updated: 2026-09-27
+updated: 2026-10-13
 links: []
 ---
 
@@ -22,7 +22,7 @@ links: []
 | Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 7/9 | 78% |
 | Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 0/5 | 0% |
 | Sprint 2 | 22/09 – 05/10 | Làm bù Sprint 1 + luồng vận hành end-to-end (nhận/trả → dọn → sửa) | 6/8 | 75% |
-| Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 1/5 | 20% |
+| Sprint 3 | 06/10 – 19/10 | Dashboard + cảnh báo quá hạn + nhật ký + AI tóm tắt | 2/5 | 40% |
 | Sprint 4 | 20/10 – 02/11 | Kiểm thử, sửa lỗi, nghiệm thu, bàn giao | 0/4 | 0% |
 
 **Tình trạng chung (26/09):**
@@ -65,10 +65,10 @@ links: []
 
 | Việc | Người | Trạng thái | Ghi chú |
 |---|---|---|---|
-| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện. 07/10 — API trả thêm `overdue.tasks` (việc quá hạn theo phòng) để tô cờ ô phòng |
-| Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần |
-| Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Đang làm | 25/09 — API xem nhật ký xong (theo phòng, nhật ký chung, lọc, tải theo phần, mẫu dòng 7.3); UI chưa |
-| AI tóm tắt vận hành (`ai-ops-summary`) | Bao · Kim (API) | Đang làm | 07/10 — API xong (`/api/ai-summaries`): OpenAI Responses + kiểm số liệu, báo cáo mẫu, hạn mức theo chi phí 300.000 VNĐ, 1 lượt/lúc, xem lại bản gần nhất. Chờ chốt model + đơn giá; UI chưa |
+| Dashboard trạng thái phòng (`room-dashboard`) | Dat (UI web) · Kim (API chỉ số) | Đang làm | 26/09 — API xong; UI đã kết nối `/api/dashboard/summary` (occupied, ready, overdue, occupancy rate); chờ hoàn thiện. 07/10 — API trả thêm `overdue.tasks` (việc quá hạn theo phòng) để tô cờ ô phòng. 13/10 — chi tiết phòng hiện việc quá hạn (mở việc, nhật ký phòng); widget test lọc/đếm; đo độ trễ `npm run bench:api` (50 phòng, máy dev): `GET /dashboard/summary` p50 3,2 ms · p95 8,3 ms |
+| Cảnh báo quá hạn (job quét định kỳ) | Kim (backend) | Xong | 25/09 — 30 giây/lần, cảnh báo 1 lần. 13/10 — thông báo trên app có nút "Xem" mở đúng ô phòng (quản lý/lễ tân) hoặc danh sách việc (nhân viên) |
+| Nhật ký thay đổi (`audit-log`) — màn xem | Dat (UI) · Kim (API) | Xong | 25/09 — API xem nhật ký xong (theo phòng, nhật ký chung, lọc, tải theo phần, mẫu dòng 7.3). Màn xem đã có trên app. 13/10 — mở từ chi tiết phòng (lọc sẵn theo phòng); sửa lỗi lượt tải cũ ghi đè kết quả lọc mới |
+| AI tóm tắt vận hành (`ai-ops-summary`) | Bao · Kim (API) | Đang làm | 07/10 — API xong (`/api/ai-summaries`): OpenAI Responses + kiểm số liệu, báo cáo mẫu, hạn mức theo chi phí 300.000 VNĐ, 1 lượt/lúc, xem lại bản gần nhất. Chờ chốt model + đơn giá. 13/10 — màn Tóm tắt (chỉ quản lý): chọn kỳ, khóa nút khi đang tạo/mất kết nối, nhãn tham khảo/báo cáo mẫu, việc cần chú ý mở dashboard; lưu `schema_version`; đo `POST /ai-summaries` (AI giả) p50 14,9 ms · p95 66,8 ms. Còn: chạy AI thật + bộ 20 kịch bản (cần khóa API, model, đơn giá) |
 | Hoàn thiện giao diện Web + Android | Dat (Web), Bao (Android) | Chưa làm | |
 
 ### Sprint 4 (20/10 – 02/11)
@@ -110,6 +110,7 @@ links: []
 | 26/09 | Dat | Merge PR #4 (backend Sprint 2) vào `develop` | PR #4 |
 | 27/09 | Kim | Push `develop-kim` cho PR #5; PR #5 lỡ đặt đích `main` → hướng dẫn đổi đích về `develop` (`main` không bị ảnh hưởng) | PR #5 |
 | 27/09 | Kim | Script cài đặt 1 lệnh `setup.cmd` + chạy hằng ngày `dev.cmd`; backend tự sinh Prisma Client khi cài; README gốc "Bắt đầu nhanh". Đã chạy thử trên bản clone mới | `scripts/`, `README.md` |
+| 13/10 | Kim | Sprint 3 phía app: màn Tóm tắt vận hành, liên kết cảnh báo quá hạn → phòng/việc/nhật ký, widget test dashboard + màn AI (15 test). Server: `schema_version` cho tóm tắt AI, script đo độ trễ `bench:api`; 347 test pass | `app/lib/features/ai_summary`, `server/scripts/api-latency-benchmark.ts` |
 
 ## Quyết định đã chốt
 
@@ -124,6 +125,8 @@ links: []
 | 25/09 | Không gộp nhánh cá nhân của nhau — lấy code thành viên khác qua `develop` sau khi PR được merge | Kim đề xuất — cần nhóm thống nhất |
 | 25/09 | PR vào `develop` phải có người review, người tạo PR không tự merge; PR nhỏ theo từng đợt (PR #5 chờ PR #4) | Kim đề xuất — cần nhóm thống nhất |
 | 25/09 | Commit đứng tên đúng tài khoản GitHub của người làm (thầy chấm theo lịch sử GitHub) | Kim đề xuất — cần nhóm thống nhất |
+| 13/10 | Không thêm cache cho chỉ số dashboard (S3-BAO-010) | 50 phòng, tính thẳng từ bảng p95 ~8 ms; cache chỉ thêm rủi ro hiện số cũ sau sự kiện. Kim đề xuất — cần nhóm thống nhất |
+| 13/10 | Không thêm request ID riêng cho lượt tạo tóm tắt (S3-BAO-011) | Nhật ký `ai_summary.generated` đã ghi ai tạo, kỳ nào, loại kết quả, có gọi AI; mỗi bản tóm tắt có id riêng. Kim đề xuất — cần nhóm thống nhất |
 | 15/09 | Phân vai: Dat PM/BA/Flutter Web · Kim Backend/CSDL/Triển khai · Bao UI/Flutter Mobile/AI/QA | Tôn chỉ đã ký 15/09 |
 
 ## Việc còn treo
