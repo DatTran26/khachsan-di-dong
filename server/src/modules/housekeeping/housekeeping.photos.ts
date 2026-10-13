@@ -22,6 +22,11 @@ type PhotoWithUploader = HousekeepingPhoto & { uploadedBy: Pick<User, 'id' | 'fu
 
 const uploaderInclude = { uploadedBy: { select: { id: true, fullName: true } } } as const;
 
+/**
+ * Metadata ảnh cho client. Không gồm `storageKey`.
+ * @param photo Ảnh kèm người tải (id, họ tên).
+ * @returns DTO với `url` tương đối `/api/housekeeping/photos/:id/file`.
+ */
 export function toPhotoDto(photo: PhotoWithUploader) {
   return {
     id: photo.id,
@@ -36,11 +41,18 @@ export function toPhotoDto(photo: PhotoWithUploader) {
   };
 }
 
+/**
+ * Quản lý xem mọi ảnh. Nhân viên chỉ xem ảnh của việc mình được giao. Lễ tân không xem.
+ * @returns `true` khi được đọc metadata và byte.
+ */
 function canView(actor: User, task: Pick<HousekeepingTask, 'assigneeId'>) {
   return actor.role === 'MANAGER' || (actor.role === 'STAFF' && task.assigneeId === actor.id);
 }
 
-/** Sắp theo lượt mới nhất trước, rồi theo thứ tự nhóm, rồi thời điểm tải. */
+/**
+ * Sắp bản sao: lượt mới nhất trước, rồi thứ tự `PHOTO_ORDER`, rồi `createdAt` tăng dần.
+ * Không sửa mảng đầu vào.
+ */
 function sortPhotos<T extends Pick<HousekeepingPhoto, 'round' | 'category' | 'createdAt'>>(photos: T[]) {
   return [...photos].sort(
     (a, b) =>
@@ -50,7 +62,10 @@ function sortPhotos<T extends Pick<HousekeepingPhoto, 'round' | 'category' | 'cr
   );
 }
 
-/** Đếm ảnh của lượt hiện tại theo nhóm — dùng khi báo hoàn tất. */
+/**
+ * Đếm ảnh của lượt hiện tại theo nhóm — dùng khi báo hoàn tất.
+ * @returns Map category → số ảnh. Nhóm không có thì `get` ra `undefined`.
+ */
 export async function countRoundPhotos(tx: Prisma.TransactionClient, task: Pick<HousekeepingTask, 'id' | 'photoRound'>) {
   const groups = await tx.housekeepingPhoto.groupBy({
     by: ['category'],
@@ -60,6 +75,10 @@ export async function countRoundPhotos(tx: Prisma.TransactionClient, task: Pick<
   return new Map(groups.map((g) => [g.category, g._count]));
 }
 
+/**
+ * Khóa việc và yêu cầu đúng nhân viên phụ trách, status `IN_PROGRESS`.
+ * Sai người → 403. Sai trạng thái → 409 `PHOTO_LOCKED`. Không kiểm version ảnh.
+ */
 async function lockOwnInProgressTask(tx: Prisma.TransactionClient, actor: User, taskId: string) {
   await tx.$queryRaw`SELECT 1 FROM housekeeping_tasks WHERE id = ${taskId}::uuid FOR UPDATE`;
   const task = await tx.housekeepingTask.findUnique({ where: { id: taskId } });
@@ -69,6 +88,10 @@ async function lockOwnInProgressTask(tx: Prisma.TransactionClient, actor: User, 
   return task;
 }
 
+/**
+ * Liệt kê mọi lượt ảnh của một việc, lượt mới đứng trước.
+ * @returns `currentRound` là lượt đang nộp, không phải lượt cao nhất nếu dữ liệu lệch (bình thường chúng trùng).
+ */
 export async function listPhotos(actor: User, taskId: string) {
   const task = await prisma.housekeepingTask.findUnique({ where: { id: taskId } });
   if (!task) throw new NotFoundError('Công việc không tồn tại.');
@@ -77,7 +100,15 @@ export async function listPhotos(actor: User, taskId: string) {
   return { currentRound: task.photoRound, photos: sortPhotos(photos).map(toPhotoDto) };
 }
 
-/** Tải 1 ảnh (body = byte ảnh). Nhóm bắt buộc: thay ảnh cũ cùng nhóm của lượt hiện tại. */
+/**
+ * Tải một ảnh (body = byte). Nhóm bắt buộc: thay ảnh cũ cùng nhóm của lượt hiện tại.
+ *
+ * Ghi đĩa trước khi mở transaction. Transaction lỗi thì xóa tệp mới. Ảnh bị thay chỉ
+ * xóa đĩa sau khi commit. Cận cảnh đủ `MAX_CLOSEUPS` → 400, không ghi đè. Không ghi nhật ký
+ * (nhật ký nằm ở lần báo hoàn tất).
+ * @param data Buffer đã giới hạn size ở route; hàm kiểm tra lại lần nữa.
+ * @returns DTO metadata, status route là 201.
+ */
 export async function uploadPhoto(actor: User, taskId: string, category: HousekeepingPhotoCategory, data: Buffer) {
   if (data.length > PHOTO_MAX_BYTES) throw new AppError(413, 'PHOTO_TOO_LARGE', MSG.photoTooLarge(env.PHOTO_MAX_MB));
   const mimeType = detectImageType(data);
@@ -114,7 +145,13 @@ export async function uploadPhoto(actor: User, taskId: string, category: Houseke
   return toPhotoDto(photo);
 }
 
-/** Xóa ảnh để chụp lại — chỉ ảnh của lượt hiện tại, trước khi báo hoàn tất. */
+/**
+ * Xóa ảnh để chụp lại — chỉ ảnh của lượt hiện tại, khi việc đang làm.
+ *
+ * Ảnh lượt cũ → 409 `PHOTO_LOCKED`. Xóa dòng rồi mới xóa tệp; nếu xóa tệp lỗi sau commit
+ * thì CSDL đã mất metadata và tệp có thể còn sót.
+ * @param photoId UUID ảnh, không phải id việc.
+ */
 export async function deletePhoto(actor: User, photoId: string) {
   const storageKey = await prisma.$transaction(async (tx) => {
     const photo = await tx.housekeepingPhoto.findUnique({ where: { id: photoId } });
@@ -127,7 +164,10 @@ export async function deletePhoto(actor: User, photoId: string) {
   await deletePhotoFile(storageKey);
 }
 
-/** Byte ảnh để hiển thị — kiểm quyền theo công việc (NFR-006). */
+/**
+ * Byte ảnh để hiển thị. Kiểm quyền theo việc chứa ảnh (NFR-006).
+ * @returns `{ data, mimeType }` để route set Content-Type. Tệp mất trên đĩa thì ném lỗi đọc file (500).
+ */
 export async function getPhotoFile(actor: User, photoId: string) {
   const photo = await prisma.housekeepingPhoto.findUnique({
     where: { id: photoId },
