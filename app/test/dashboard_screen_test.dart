@@ -116,13 +116,14 @@ void main() {
     expect(_tile('101'), findsOneWidget);
   });
 
-  testWidgets(
-      'ô phòng: 2 trạng thái; chỉ phòng ngừng phục vụ hiện thêm dòng đó',
+  testWidgets('ô phòng: 2 trạng thái; phòng ngừng phục vụ chỉ hiện dòng đó',
       (tester) async {
     await _pump(tester, _summary());
     expect(find.text('Đang phục vụ'), findsNothing);
     // Ô 103 + nhãn thẻ chỉ số (nút lọc ghi "Ngừng phục vụ · 1" nên không tính).
     expect(find.text('Ngừng phục vụ'), findsNWidgets(2));
+    // 103 trống + sạch nhưng ngừng phục vụ → không hiện "Trống": chỉ 102, 104, 201.
+    expect(find.text('Trống'), findsNWidgets(3));
   });
 
   testWidgets('lọc "Cần dọn" chỉ đếm phòng cần dọn', (tester) async {
