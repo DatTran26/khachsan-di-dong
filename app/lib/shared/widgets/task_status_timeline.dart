@@ -4,8 +4,10 @@ import '../../core/theme/app_theme.dart';
 import '../../models/housekeeping_task.dart';
 import '../../models/maintenance_task.dart';
 
+/// Trạng thái một nút trên timeline: chưa tới, đang ở, đã qua, đã hủy.
 enum _StepState { pending, current, done, cancelled }
 
+/// Một bước: [label], [state], [note] tùy chọn (giờ hoặc tên người).
 class _Step {
   final String label;
   final String? note;
@@ -13,12 +15,14 @@ class _Step {
   const _Step(this.label, this.state, [this.note]);
 }
 
+/// Bước trước [currentIdx] là xong, đúng chỉ số là hiện tại, sau là chờ.
 _StepState _stateOf(int stepIdx, int currentIdx) {
   if (stepIdx < currentIdx) return _StepState.done;
   if (stepIdx == currentIdx) return _StepState.current;
   return _StepState.pending;
 }
 
+/// `HH:mm dd/MM` local, hoặc null nếu [t] null.
 String? _time(DateTime? t) =>
     t == null ? null : DateFormat('HH:mm dd/MM').format(t.toLocal());
 
@@ -28,6 +32,7 @@ class TaskStatusTimeline extends StatelessWidget {
 
   const TaskStatusTimeline._({required List<_Step> steps}) : _steps = steps;
 
+  /// Năm bước dọn, bước hiện tại theo [HousekeepingTask.status]. Không có nhánh hủy.
   factory TaskStatusTimeline.housekeeping(HousekeepingTask task) {
     const order = [
       HousekeepingStatus.unassigned,
@@ -54,6 +59,7 @@ class TaskStatusTimeline extends StatelessWidget {
     ]);
   }
 
+  /// Việc hủy thì hai bước (báo hỏng, đã hủy). Còn lại ba bước tới sửa xong.
   factory TaskStatusTimeline.maintenance(MaintenanceTask task) {
     if (task.status == MaintenanceStatus.cancelled) {
       return TaskStatusTimeline._(steps: [
@@ -75,6 +81,7 @@ class TaskStatusTimeline extends StatelessWidget {
     ]);
   }
 
+  /// Cột nút và nhãn. Đường nối vàng nếu bước trên đã xong.
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -132,10 +139,12 @@ class TaskStatusTimeline extends StatelessWidget {
   }
 }
 
+/// Nút tròn 20px theo [_StepState].
 class _Node extends StatelessWidget {
   final _StepState state;
   const _Node({required this.state});
 
+  /// Không animation. Hủy là nền oos và dấu đóng.
   @override
   Widget build(BuildContext context) {
     switch (state) {
