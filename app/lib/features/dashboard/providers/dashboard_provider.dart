@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/realtime/socket_service.dart';
+import '../../../models/user.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
 
 /// Một việc quá hạn đang mở (`overdue.tasks`) — để chi tiết phòng mở đúng màn việc.
@@ -138,7 +140,11 @@ class DashboardSummaryState {
 }
 
 class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
-  DashboardSummaryNotifier() : super(const DashboardSummaryState()) {
+  /// `false` → vai trò không được xem chỉ số (nhân viên / chưa đăng nhập): không gọi API.
+  final bool enabled;
+
+  DashboardSummaryNotifier({this.enabled = true})
+      : super(const DashboardSummaryState()) {
     load();
   }
 
@@ -159,6 +165,7 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   }
 
   Future<void> load({bool silent = false}) async {
+    if (!enabled) return;
     if (!silent) state = state.copyWith(isLoading: true, clearError: true);
     try {
       final res = await apiClient.get('/dashboard/summary');
@@ -174,7 +181,12 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
 final dashboardSummaryProvider =
     StateNotifierProvider<DashboardSummaryNotifier, DashboardSummaryState>(
         (ref) {
-  final notifier = DashboardSummaryNotifier();
+  // Chỉ số chỉ dành cho quản lý + lễ tân (BE trả 403 cho nhân viên). App mở `/dashboard` trước khi biết
+  // vai trò, provider lại không tự hủy → phải theo vai trò, không thì nhân viên vẫn gọi API mỗi lần phòng đổi.
+  final role = ref.watch(authProvider.select((s) => s.user?.role));
+  final canView = role == UserRole.manager || role == UserRole.receptionist;
+  final notifier = DashboardSummaryNotifier(enabled: canView);
+  if (!canView) return notifier;
   ref.listen(roomsProvider.select((s) => s.lastUpdated),
       (_, __) => notifier.scheduleReload());
   // Việc dọn/sửa đổi trạng thái hoặc bị cờ quá hạn không phát room:updated → nghe riêng (FR-005, ≤3s).

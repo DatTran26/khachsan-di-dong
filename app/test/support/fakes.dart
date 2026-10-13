@@ -1,5 +1,6 @@
 import 'package:khachsan_di_dong/core/api/api_client.dart';
 import 'package:khachsan_di_dong/features/ai_summary/providers/ai_summary_provider.dart';
+import 'package:khachsan_di_dong/features/auth/providers/auth_provider.dart';
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
 import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_provider.dart';
 import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
@@ -8,6 +9,7 @@ import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
 import 'package:khachsan_di_dong/models/housekeeping_photo.dart';
 import 'package:khachsan_di_dong/models/housekeeping_task.dart';
 import 'package:khachsan_di_dong/models/room.dart';
+import 'package:khachsan_di_dong/models/user.dart';
 
 /// Notifier giả dùng chung cho widget test — không gọi API.
 
@@ -156,3 +158,24 @@ class FakeRoomTypes extends RoomTypesNotifier {
   Future<void> setActive(String id, bool isActive) async =>
       calls.add('active:$id:$isActive');
 }
+
+/// Người đang đăng nhập giả. Cần `SharedPreferences.setMockInitialValues({})` trước khi dùng
+/// (AuthNotifier gốc vẫn đọc token lúc khởi tạo — không có token thì giữ nguyên user giả).
+class FakeAuth extends AuthNotifier {
+  FakeAuth(AppUser? user) {
+    state = AuthState(user: user, initialized: true);
+  }
+}
+
+AppUser fakeUser(String role) => AppUser.fromJson({
+      'id': 'u-$role',
+      'phone': '0900000000',
+      'fullName': 'Người dùng $role',
+      'role': role,
+      'status': 'ACTIVE',
+      'mustChangePassword': false,
+      'onDuty': true,
+      'version': 1,
+      'createdAt': '2026-10-01T00:00:00.000Z',
+    });
+
