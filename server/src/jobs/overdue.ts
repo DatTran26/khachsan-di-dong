@@ -15,6 +15,17 @@ import { notification } from '../realtime/notify.js';
  * Mỗi việc chỉ cảnh báo MỘT lần (housekeeping OQ-2 chưa chốt → chọn cách tối thiểu), cho quản lý + người phụ trách.
  * Hệ thống là người thực hiện trong nhật ký (FR-audit-log-003).
  */
+/**
+ * Gắn cờ quá hạn cho việc dọn và việc sửa đến hạn mà chưa được gắn.
+ *
+ * Một transaction: với mỗi việc, set `overdueFlaggedAt`, ghi nhật ký hệ thống,
+ * phát `*:task_updated` và notification cho quản lý cùng người được giao (nếu có).
+ * Việc đã có cờ không bị chọn lại. Trigger `bump_version` vẫn tăng `version` của dòng
+ * vì đây là UPDATE — client đang giữ version cũ sẽ bị 409 ở lần ghi kế tiếp và phải tải lại.
+ * Việc dọn `PENDING_CONFIRM` không nằm trong lọc (chờ xác nhận không tính quá hạn).
+ * @param now Mốc so với `dueAt`. Mặc định thời điểm gọi. Test truyền giờ cố định.
+ * @returns Số việc dọn và việc sửa vừa gắn cờ trong lượt này (không phải tổng đang quá hạn).
+ */
 export async function flagOverdueTasks(now: Date = new Date()) {
   return withTransaction(async (tx, enqueue) => {
     const housekeeping = await tx.housekeepingTask.findMany({
@@ -80,7 +91,16 @@ export async function flagOverdueTasks(now: Date = new Date()) {
   });
 }
 
-/** Quét định kỳ. 30 giây/lần → cờ bật ≤1 phút sau khi vượt ngưỡng (SC-housekeeping-04). */
+/**
+ * Quét định kỳ. Mặc định 30 giây/lần nên cờ bật không quá khoảng một phút sau ngưỡng
+ * (SC-housekeeping-04), cộng thêm thời gian một lượt quét.
+ *
+ * Nếu lượt trước chưa xong thì bỏ qua lượt mới (`running`), không xếp hàng.
+ * Lỗi được `console.error`, không làm chết process. Timer không `unref` — giữ process sống
+ * cùng HTTP server cho đến khi `shutdown` gọi hàm trả về.
+ * @param intervalMs Khoảng cách giữa hai lần gọi. Test có thể truyền số nhỏ.
+ * @returns Hàm hủy timer. Gọi một lần khi tắt server.
+ */
 export function startOverdueJob(intervalMs = 30_000) {
   let running = false;
   const timer = setInterval(() => {
