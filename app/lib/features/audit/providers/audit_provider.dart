@@ -91,11 +91,16 @@ class AuditNotifier extends StateNotifier<AuditState> {
     await load();
   }
 
+  /// Lượt tải mới nhất — đổi lọc liên tiếp thì phản hồi của lượt cũ về sau bị bỏ, không ghi đè kết quả lọc mới.
+  int _loadSeq = 0;
+
   Future<void> load() async {
+    final seq = ++_loadSeq;
     state = state.copyWith(isLoading: true, error: null);
     try {
       final res = await apiClient.get('/audit-logs',
           query: {...state.filter.toQuery(), 'limit': _pageSize});
+      if (seq != _loadSeq) return;
       state = state.copyWith(
         entries: _parse(res),
         nextCursor: res['nextCursor'] as String?,
@@ -103,6 +108,7 @@ class AuditNotifier extends StateNotifier<AuditState> {
         isLoading: false,
       );
     } on ApiException catch (e) {
+      if (seq != _loadSeq) return;
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }

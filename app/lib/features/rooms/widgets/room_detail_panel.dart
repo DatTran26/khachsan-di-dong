@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../../shared/utils/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../dashboard/providers/dashboard_provider.dart';
 import '../../maintenance/widgets/report_issue_dialog.dart';
 import '../../stays/providers/stays_provider.dart';
 import '../providers/rooms_provider.dart';
@@ -139,6 +141,9 @@ class RoomDetailPanel extends ConsumerWidget {
             ],
           ),
         ),
+        // Nhân viên không xem được chỉ số dashboard (403) → không hiện mục quá hạn ở đây.
+        if (isManager || isReceptionist)
+          _OverdueSection(roomId: room.id, isManager: isManager),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
           child: Column(
@@ -191,6 +196,12 @@ class RoomDetailPanel extends ConsumerWidget {
                       online ? () => _backInService(context, ref, room) : null,
                   icon: const Icon(Icons.play_circle_outline, size: 18),
                   label: const Text('Mở lại phục vụ'),
+                ),
+              if (isManager)
+                TextButton.icon(
+                  onPressed: () => context.go('/nhat-ky?phong=${room.id}'),
+                  icon: const Icon(Icons.history_rounded, size: 18),
+                  label: const Text('Nhật ký phòng'),
                 ),
               if (isManager)
                 TextButton.icon(
@@ -568,5 +579,56 @@ Future<void> confirmCheckOut(BuildContext context, WidgetRef ref, Room room,
   );
   if (ok && context.mounted) {
     showAppSnack(context, 'Đã trả phòng ${room.number}. Việc dọn đã được tạo.');
+  }
+}
+
+/// Việc quá hạn của phòng (FR-room-dashboard-006) — mở đúng màn việc để xử lý.
+/// Lễ tân không có màn dọn phòng → chỉ thấy nút mở việc sửa.
+class _OverdueSection extends ConsumerWidget {
+  final String roomId;
+  final bool isManager;
+  const _OverdueSection({required this.roomId, required this.isManager});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasks = ref.watch(dashboardSummaryProvider
+        .select((s) => s.summary.overdueTasksOf(roomId)));
+    if (tasks.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        decoration: BoxDecoration(
+          color: AppColors.dangerBg,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(color: const Color(0xFFF2C4C6)),
+        ),
+        child: Column(
+          children: [
+            for (final t in tasks)
+              Row(
+                children: [
+                  const OverdueBadge(),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                        t.isHousekeeping
+                            ? 'Việc dọn phòng quá hạn'
+                            : 'Việc sửa quá hạn',
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600)),
+                  ),
+                  if (!t.isHousekeeping || isManager)
+                    TextButton(
+                      onPressed: () => context.go(
+                          '${t.isHousekeeping ? '/don-phong' : '/bao-tri'}?viec=${t.taskId}'),
+                      child: const Text('Mở việc'),
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

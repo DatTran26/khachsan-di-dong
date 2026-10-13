@@ -16,8 +16,9 @@ import { maintenanceInclude, toMaintenanceTaskDto } from './maintenance.dto.js';
  * Trục bảo trì của phòng TỰ TÍNH: "ngừng phục vụ" khi còn ≥1 việc mở HOẶC đang có ngừng phục vụ tay;
  * ngược lại "bình thường" (FR-002/003).
  *
+ * - OQ-1 ngưỡng quá hạn: chốt 10/10/2026 = 4 giờ (mặc định 240 phút). Đổi bằng MAINTENANCE_DUE_MINUTES; 0 = tắt.
+ *
  * Chưa chốt (ghi rõ để nhóm quyết):
- * - OQ-1 ngưỡng quá hạn: đọc MAINTENANCE_DUE_MINUTES trong .env; bỏ trống = không tính quá hạn.
  * - OQ-2 giao việc: nhân viên TỰ NHẬN (giả định trong URD); quản lý/lễ tân chỉ định được (FR-009, P1).
  * - OQ-3 sửa khi phòng có khách: không chặn.
  */
@@ -26,8 +27,13 @@ type Enqueue = (event: PendingEvent) => void;
 const OPEN_STATUSES: MaintenanceTaskStatus[] = ['OPEN', 'IN_PROGRESS'];
 const invalidState = () => new AppError(409, 'INVALID_STATE', MSG.invalidState);
 
+export const DEFAULT_MAINTENANCE_DUE_MINUTES = 240;
+
+/** Ngưỡng quá hạn việc sửa (phút). Không khai báo → 4 giờ; khai báo 0 → không tính quá hạn. */
 function dueMinutes(): number | null {
-  const minutes = Number(process.env.MAINTENANCE_DUE_MINUTES);
+  const raw = process.env.MAINTENANCE_DUE_MINUTES;
+  if (raw === undefined || raw.trim() === '') return DEFAULT_MAINTENANCE_DUE_MINUTES;
+  const minutes = Number(raw);
   return Number.isFinite(minutes) && minutes > 0 ? minutes : null;
 }
 
@@ -188,7 +194,7 @@ export async function assignTask(actor: User, taskId: string, version: number, a
     const task = await lockTask(tx, taskId, version);
     if (!OPEN_STATUSES.includes(task.status)) throw invalidState();
     const assignee = await tx.user.findUnique({ where: { id: assigneeId } });
-    if (!assignee || assignee.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
+    if (assignee?.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
       throw new AppError(400, 'ASSIGNEE_NOT_ON_DUTY', MSG.assigneeNotOnDuty);
     }
     return transition(tx, enqueue, actor, task, 'maintenance.assigned', { status: task.status, assigneeId }, [

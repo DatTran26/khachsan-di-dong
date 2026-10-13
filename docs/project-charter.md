@@ -1,8 +1,8 @@
 ---
 type: project-charter
 status: draft — chờ GV. Nguyễn Hữu Trung ký duyệt
-version: 1.0
-updated: 2026-09-29
+version: 1.1
+updated: 2026-10-04
 links:
   - "[[docs/_product/prd.md|Product PRD (updated 2026-09-29)]]"
   - "[[project-profile.md|Project Profile (updated 2026-09-29)]]"
@@ -12,7 +12,7 @@ links:
 
 # Project Charter — WPCTeam_KhachSanDiDong
 
-**Tài liệu đầu vào:** `prd.md` (2026-09-29, gồm Decision Log D-01 → D-16), `project-profile.md` (2026-09-29), `ai-ops-summary-urd.md` (2026-09-29), WBS baseline `KhachSanSach.xlsx`, Resource Sheet MS Project, các quyết định WPCTeam xác nhận trong chat ngày 29/09/2026.
+**Tài liệu đầu vào:** `prd.md` (2026-09-29, gồm Decision Log D-01 → D-16; D-17 bổ sung ngày 04/10/2026), `project-profile.md` (2026-09-29), `ai-ops-summary-urd.md` (2026-09-29), WBS baseline `KhachSanSach.xlsx`, Resource Sheet MS Project, các quyết định WPCTeam xác nhận trong chat ngày 29/09/2026.
 
 **Quy ước nhãn:** **(XN)** đã xác nhận · **(SL)** suy luận · **(GĐ)** giả định · **(KN)** khuyến nghị.
 
@@ -24,13 +24,13 @@ links:
 
 **Mục đích (XN):** xây dựng MVP phần mềm theo dõi trạng thái 50 phòng của 1 khách sạn giả định theo thời gian thực, chạy trên Flutter Web và Android. Mọi vai trò cùng nhìn và cập nhật một nguồn trạng thái duy nhất; lễ tân không còn nhập hộ; quản lý có dashboard, cảnh báo quá hạn theo quy tắc và bản tóm tắt vận hành do AI tạo (chỉ để tham khảo).
 
-**Bối cảnh (XN):** đồ án môn học của WPCTeam, thực hiện 08/09–27/10/2026 (~7 tuần). Không có mục tiêu kinh doanh.
+**Bối cảnh (XN):** đồ án môn học của WPCTeam, thực hiện 08/09–02/11/2026 (8 tuần): bàn giao 27/10, nghiệm thu 02/11 (D-17). Không có mục tiêu kinh doanh.
 
 ---
 
 ## 2. Mục tiêu SMART
 
-Hạn chung cho mọi mục tiêu: **27/10/2026** (D-01).
+Bàn giao sản phẩm: **27/10/2026** (D-01); đo và nghiệm thu mọi mục tiêu: **02/11/2026** (D-17).
 
 | Mã | Mục tiêu (S) | Đo lường (M) | Khả thi / Liên quan (A/R) | Nguồn |
 |---|---|---|---|---|
@@ -78,7 +78,7 @@ Hạn chung cho mọi mục tiêu: **27/10/2026** (D-01).
 
 | Bên liên quan | Vai trò | Ảnh hưởng / Quan tâm | Nguồn |
 |---|---|---|---|
-| GV. Nguyễn Hữu Trung | Nhà tài trợ (sponsor): phê duyệt charter, phạm vi, ngân sách. Khách hàng nghiệm thu ngày 27/10/2026 | Cao / Cao | D-03 |
+| GV. Nguyễn Hữu Trung | Nhà tài trợ (sponsor): phê duyệt charter, phạm vi, ngân sách. Khách hàng nghiệm thu ngày 02/11/2026 | Cao / Cao | D-03, D-17 |
 | Tấn Đạt | PO, BA, PM, Tech Lead, DevOps (vận hành VPS) | Cao / Cao | XN |
 | Ngọc Hoàng | Backend, Mobile | Cao / Cao | XN |
 | Bảo | UI/UX, Frontend, QA | Cao / Cao | XN |
@@ -102,10 +102,11 @@ Nguồn: WBS baseline `KhachSanSach.xlsx`. Các sprint **được phép chồng 
 | Sprint 1 — Nền tảng | 08/09 → 28/09/2026 | Cổng 28/09: quản lý đăng nhập, sửa phòng, seed 50 phòng, RBAC chặn ghi, realtime hai client | Chờ nhóm xác thực |
 | Sprint 2 — Vận hành | 17/09 → 09/10/2026 | Cổng 09/10: nhận/trả, dọn, xác nhận, báo hỏng chặn nhận phòng, audit sau commit | Chờ nhóm xác thực |
 | Sprint 3 — Dashboard và AI | 21/09 → 16/10/2026 | Cổng 16/10: dashboard khớp fixture, AI không gửi PII, fallback 15 giây, trần 300.000 VNĐ | Chưa đến |
-| Sprint 4 — Bàn giao | 15/10 → 27/10/2026 | Đóng băng phạm vi 15/10; UAT 25–26/10 | Chưa đến |
+| Sprint 4 — Bàn giao | 15/10 → 02/11/2026 | Đóng băng phạm vi 15/10; UAT 25–26/10; bàn giao 27/10; dự phòng đến 02/11 | Chưa đến |
 | **Bàn giao chính thức** | **27/10/2026** | Web HTTPS, APK, CI xanh, runbook rollback, hồ sơ bàn giao | Chưa đến |
+| **Nghiệm thu** | **02/11/2026** | GV. Nguyễn Hữu Trung nghiệm thu theo mục 8 | Chưa đến |
 
-**Nhận xét (SL):** Hạn mới 27/10 sớm hơn mốc 02/11 cũ 6 ngày, nên không còn khoảng đệm sau bàn giao. Mọi trễ ở cổng Sprint 3 (16/10) sẽ lấn trực tiếp vào thời gian UAT.
+**Nhận xét (SL):** Bàn giao 27/10 sớm hơn hạn nghiệm thu 02/11, để lại khoảng 5 ngày làm việc dự phòng (D-17). Trễ ở cổng Sprint 3 (16/10) sẽ lấn vào UAT trước, rồi mới đến khoảng dự phòng.
 
 ---
 
@@ -141,7 +142,7 @@ Nguồn: Resource Sheet và WBS baseline MS Project; dự toán đã được GV
 
 | Mã | Ràng buộc |
 |---|---|
-| C-1 | Hạn bàn giao cứng 27/10/2026; 4 sprint được phép chồng lấn |
+| C-1 | Bàn giao 27/10/2026; hạn nghiệm thu cứng 02/11/2026; 4 sprint được phép chồng lấn |
 | C-2 | 3 người; nỗ lực theo WBS 530h (Đạt 145h, Hoàng 222h, Bảo 163h) |
 | C-3 | Tổng chi ≤30.000.000 VNĐ; API OpenAI ≤300.000 VNĐ |
 | C-4 | Nghiệm thu trên Flutter Web và Android; iOS không bắt buộc |
@@ -154,7 +155,7 @@ Nguồn: Resource Sheet và WBS baseline MS Project; dự toán đã được GV
 
 | Mã | Giả định | Hậu quả nếu sai | Trạng thái |
 |---|---|---|---|
-| A-1 | Cả 3 thành viên duy trì được năng lực đều đặn tới 27/10 | Hụt năng lực, phải cắt phạm vi | (GĐ) |
+| A-1 | Cả 3 thành viên duy trì được năng lực đều đặn tới 02/11 | Hụt năng lực, phải cắt phạm vi | (GĐ) |
 | A-2 | 530h theo WBS là đủ và phân bổ lại được phần quá tải của Hoàng (222h so với tham chiếu 160h) | Trễ cổng Sprint 2–3; phát sinh tăng ca | (GĐ) Rủi ro cao |
 | A-3 | OpenAI trả được đầu ra có cấu trúc ổn định | Khó kiểm tra và hiển thị thống nhất | (GĐ) |
 | A-4 | Kịch bản giả lập đủ sát khách sạn thật | Demo đẹp nhưng nghiệp vụ không thực tế | (GĐ) |
@@ -166,7 +167,7 @@ Nguồn: Resource Sheet và WBS baseline MS Project; dự toán đã được GV
 
 ## 8. Tiêu chí thành công
 
-Tất cả được đo tại buổi nghiệm thu ngày 27/10/2026, do GV. Nguyễn Hữu Trung nghiệm thu.
+Tất cả được đo tại buổi nghiệm thu ngày 02/11/2026, do GV. Nguyễn Hữu Trung nghiệm thu.
 
 | Loại | Tiêu chí | Ngưỡng |
 |---|---|---|
@@ -193,7 +194,7 @@ Chi tiết từng quyết định xem `prd.md` mục 12.
 
 | ID | Quyết định |
 |---|---|
-| D-01 | Hạn bàn giao 27/10/2026 (thay 02/11/2026) |
+| D-01 | Hạn bàn giao sản phẩm 27/10/2026; hạn nghiệm thu vẫn là 02/11/2026 (xem D-17) |
 | D-02 | Sprint được phép chồng lấn |
 | D-03 | Sponsor và người nghiệm thu: GV. Nguyễn Hữu Trung |
 | D-04 | Dự toán 30.000.000 VNĐ đã duyệt; dự phòng 4.780.000 VNĐ là đủ |
@@ -209,6 +210,7 @@ Chi tiết từng quyết định xem `prd.md` mục 12.
 | D-14 | Quá hạn: dọn 60 phút, bảo trì 4 giờ, tính từ lúc tạo; quét mỗi 1 phút |
 | D-15 | Từ chối → gán người kế tiếp; hết người → hàng chờ quản lý |
 | D-16 | Sửa xong không tự chuyển "cần dọn" |
+| D-17 | (04/10/2026) Sprint 4 vẫn kết thúc 02/11/2026: bàn giao sản phẩm 27/10 (D-01), 28/10–01/11 là dự phòng, nghiệm thu 02/11 |
 
 ---
 
@@ -217,7 +219,7 @@ Chi tiết từng quyết định xem `prd.md` mục 12.
 **Đã kiểm tra:**
 - Mọi câu hỏi mở cấp product trong PRD đã đóng (OQ-1 → OQ-12).
 - Ngân sách tái tạo được từ Resource Sheet, khớp 24.920.000 VNĐ.
-- Mốc 27/10 thống nhất giữa PRD, URD, WBS và charter.
+- Mốc bàn giao 27/10 và nghiệm thu 02/11 (D-17) thống nhất giữa charter, tôn chỉ v1.1, WBS và báo cáo.
 - Phân quyền thống nhất giữa PRD và project-profile.
 
 **Còn mở:**

@@ -13,7 +13,7 @@ import { flagOverdueTasks } from '../src/jobs/overdue.js';
 import { MSG } from '../src/lib/messages.js';
 import { prisma } from '../src/lib/prisma.js';
 import { attachRealtime, closeRealtime } from '../src/realtime/socket.js';
-import { createUserWithToken } from './helpers.js';
+import { REQUIRED_PHOTO_CATEGORIES, TEST_JPEG, createUserWithToken } from './helpers.js';
 
 type Actor = { user: User; token: string; auth: Record<string, string> };
 type Note = { kind: string; message: string; taskId?: string };
@@ -64,6 +64,18 @@ async function checkedOutRoom() {
 
 const act = (actor: Actor, taskId: string, action: string, body: object) =>
   request(app).post(`/api/housekeeping/tasks/${taskId}/${action}`).set(actor.auth).send(body);
+/** Tải đủ bộ ảnh bắt buộc của lượt hiện tại rồi báo dọn xong. */
+async function completeWithPhotos(actor: Actor, taskId: string, version: number) {
+  for (const category of REQUIRED_PHOTO_CATEGORIES) {
+    const res = await request(app)
+      .post(`/api/housekeeping/tasks/${taskId}/photos?category=${category}`)
+      .set(actor.auth)
+      .set('Content-Type', 'image/jpeg')
+      .send(TEST_JPEG);
+    expect(res.status).toBe(201);
+  }
+  return act(actor, taskId, 'complete', { version });
+}
 const taskOf = (id: string) => prisma.housekeepingTask.findUniqueOrThrow({ where: { id } });
 const roomOf = (id: string) => prisma.room.findUniqueOrThrow({ where: { id } });
 
@@ -179,7 +191,7 @@ describe('Nhân viên nhận / từ chối / báo xong (FR-004, FR-005, FR-012)'
     const { room, task } = await checkedOutRoom();
     const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
     await act(owner, task.id, 'accept', { version: task.version });
-    const res = await act(owner, task.id, 'complete', { version: task.version + 1 });
+    const res = await completeWithPhotos(owner, task.id, task.version + 1);
 
     expect(res.body.data.status).toBe('PENDING_CONFIRM');
     expect((await roomOf(room.id)).cleaning).toBe('PENDING_INSPECTION');
@@ -199,7 +211,7 @@ describe('Quản lý xác nhận / trả lại / phân công lại (FR-006, FR-0
     const { room, task } = await checkedOutRoom();
     const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
     await act(owner, task.id, 'accept', { version: task.version });
-    await act(owner, task.id, 'complete', { version: task.version + 1 });
+    await completeWithPhotos(owner, task.id, task.version + 1);
     return { room, task: await taskOf(task.id), owner };
   }
 
@@ -244,6 +256,138 @@ describe('Quản lý xác nhận / trả lại / phân công lại (FR-006, FR-0
   });
 });
 
+describe('Ảnh nghiệm thu (FR-005, FR-007, FR-015, BR-006, NFR-006, E-007)', () => {
+  const upload = (actor: Actor, taskId: string, category: string, body: Buffer = TEST_JPEG) =>
+    request(app)
+      .post(`/api/housekeeping/tasks/${taskId}/photos?category=${category}`)
+      .set(actor.auth)
+      .set('Content-Type', 'image/jpeg')
+      .send(body);
+  const photosOf = (actor: Actor, taskId: string) =>
+    request(app).get(`/api/housekeeping/tasks/${taskId}/photos`).set(actor.auth);
+
+  /** Việc "đang làm" của nhân viên phụ trách. */
+  async function inProgressTask() {
+    const { room, task } = await checkedOutRoom();
+    const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
+    const other = owner === staffA ? staffB : staffA;
+    await act(owner, task.id, 'accept', { version: task.version });
+    return { room, task: await taskOf(task.id), owner, other };
+  }
+
+  it('E-007: thiếu nhóm ảnh bắt buộc → không báo xong được, việc vẫn "đang làm"', async () => {
+    const { task, owner } = await inProgressTask();
+    await upload(owner, task.id, 'OVERVIEW');
+    await upload(owner, task.id, 'BED');
+    const res = await act(owner, task.id, 'complete', { version: task.version });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatchObject({ code: 'PHOTOS_REQUIRED', message: MSG.photosRequired });
+    expect((await taskOf(task.id)).status).toBe('IN_PROGRESS');
+  });
+
+  it('BR-006: đánh dấu bất thường → bắt buộc ảnh cận cảnh', async () => {
+    const { task, owner } = await inProgressTask();
+    for (const category of REQUIRED_PHOTO_CATEGORIES) await upload(owner, task.id, category);
+
+    const missing = await act(owner, task.id, 'complete', { version: task.version, hasIssue: true });
+    expect(missing.body.error).toMatchObject({ code: 'CLOSEUP_REQUIRED', message: MSG.closeupRequired });
+
+    expect((await upload(owner, task.id, 'CLOSEUP')).status).toBe(201);
+    const ok = await act(owner, task.id, 'complete', { version: task.version, hasIssue: true });
+    expect(ok.body.data).toMatchObject({ status: 'PENDING_CONFIRM', hasIssue: true });
+  });
+
+  it('FR-015: lần nộp ảnh được ghi nhật ký cùng lúc báo xong', async () => {
+    const { task, owner } = await inProgressTask();
+    await completeWithPhotos(owner, task.id, task.version);
+    const log = await prisma.auditLog.findFirstOrThrow({
+      where: { entityId: task.id, action: 'housekeeping.task_completed' },
+      include: { changes: true },
+    });
+    expect(log.changes).toEqual(expect.arrayContaining([expect.objectContaining({ field: 'photos', after: '3 ảnh (lượt 1)' })]));
+  });
+
+  it('tải lại cùng nhóm → thay ảnh cũ (mỗi nhóm bắt buộc giữ 1 ảnh), tệp cũ không còn', async () => {
+    const { task, owner } = await inProgressTask();
+    const first = (await upload(owner, task.id, 'OVERVIEW')).body.data;
+    const second = (await upload(owner, task.id, 'OVERVIEW')).body.data;
+
+    const list = (await photosOf(owner, task.id)).body.data;
+    expect(list.photos.map((p: { id: string }) => p.id)).toEqual([second.id]);
+    expect((await request(app).get(first.url).set(owner.auth)).status).toBe(404);
+  });
+
+  it('chỉ nhận JPG/PNG/WEBP theo nội dung tệp; vượt dung lượng → 413', async () => {
+    const { task, owner } = await inProgressTask();
+    const fake = await upload(owner, task.id, 'OVERVIEW', Buffer.from('không phải ảnh'));
+    expect(fake.body.error).toMatchObject({ code: 'PHOTO_INVALID_TYPE', message: MSG.photoInvalidType });
+
+    const big = Buffer.concat([TEST_JPEG, Buffer.alloc(5 * 1024 * 1024)]);
+    const tooLarge = await upload(owner, task.id, 'OVERVIEW', big);
+    expect(tooLarge.status).toBe(413);
+    expect(tooLarge.body.error.code).toBe('PHOTO_TOO_LARGE');
+    expect(await prisma.housekeepingPhoto.count({ where: { taskId: task.id } })).toBe(0);
+  });
+
+  it('chỉ thêm ảnh khi đã nhận việc (đang làm)', async () => {
+    const { task } = await checkedOutRoom();
+    const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
+    const res = await upload(owner, task.id, 'OVERVIEW');
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('PHOTO_LOCKED');
+  });
+
+  it('NFR-006: chỉ nhân viên phụ trách + quản lý xem ảnh; người khác không thêm / xem được', async () => {
+    const { task, owner, other } = await inProgressTask();
+    const photo = (await upload(owner, task.id, 'BATHROOM')).body.data;
+
+    expect((await upload(other, task.id, 'OVERVIEW')).status).toBe(403);
+    expect((await photosOf(other, task.id)).status).toBe(403);
+    expect((await request(app).get(photo.url).set(other.auth)).status).toBe(403);
+    expect((await photosOf(receptionist, task.id)).status).toBe(403);
+    expect((await request(app).get(photo.url).set(receptionist.auth)).status).toBe(403);
+
+    const file = await request(app).get(photo.url).set(manager.auth);
+    expect(file.status).toBe(200);
+    expect(file.headers['content-type']).toBe('image/jpeg');
+    expect(Buffer.from(file.body).equals(TEST_JPEG)).toBe(true);
+  });
+
+  it('FR-007: quản lý xem gallery theo thứ tự nhóm ảnh', async () => {
+    const { task, owner } = await inProgressTask();
+    for (const category of ['CLOSEUP', 'BATHROOM', 'OVERVIEW', 'BED']) await upload(owner, task.id, category);
+    const list = (await photosOf(manager, task.id)).body.data;
+    expect(list.photos.map((p: { category: string }) => p.category)).toEqual(['OVERVIEW', 'BED', 'BATHROOM', 'CLOSEUP']);
+  });
+
+  it('FR-008: trả lại → lượt ảnh mới, ảnh lượt cũ giữ để truy vết và không xóa được; phải nộp lại đủ bộ', async () => {
+    const { task, owner } = await inProgressTask();
+    await completeWithPhotos(owner, task.id, task.version);
+    const pending = await taskOf(task.id);
+    const returned = await act(manager, task.id, 'return', { version: pending.version, note: 'Nhà vệ sinh còn bẩn' });
+    expect(returned.body.data.photoRound).toBe(2);
+
+    const oldPhotos = (await photosOf(manager, task.id)).body.data.photos;
+    expect(oldPhotos).toHaveLength(3);
+    expect(oldPhotos.every((p: { round: number }) => p.round === 1)).toBe(true);
+    const del = await request(app).delete(`/api/housekeeping/photos/${oldPhotos[0].id}`).set(owner.auth);
+    expect(del.status).toBe(409);
+
+    const again = await act(owner, task.id, 'complete', { version: returned.body.data.version });
+    expect(again.body.error.code).toBe('PHOTOS_REQUIRED');
+    expect((await completeWithPhotos(owner, task.id, returned.body.data.version)).body.data.status).toBe('PENDING_CONFIRM');
+    expect((await photosOf(manager, task.id)).body.data.photos).toHaveLength(6);
+  });
+
+  it('nhân viên xóa ảnh lượt hiện tại để chụp lại', async () => {
+    const { task, owner } = await inProgressTask();
+    const photo = (await upload(owner, task.id, 'BED')).body.data;
+    expect((await request(app).delete(`/api/housekeeping/photos/${photo.id}`).set(owner.auth)).status).toBe(204);
+    expect((await photosOf(owner, task.id)).body.data.photos).toHaveLength(0);
+  });
+});
+
 describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
   it('FR-010: lọc việc của tôi / theo trạng thái; lễ tân không xem danh sách việc', async () => {
     const { task } = await checkedOutRoom();
@@ -267,7 +411,7 @@ describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
     let current = await taskOf(task.id);
     await act(owner, task.id, 'accept', { version: current.version });
     current = await taskOf(task.id);
-    await act(owner, task.id, 'complete', { version: current.version });
+    await completeWithPhotos(owner, task.id, current.version);
     current = await taskOf(task.id);
     const done = await act(manager, task.id, 'confirm', { version: current.version });
     expect(done.body.data.isOverdue).toBe(false);
@@ -277,7 +421,7 @@ describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
     const { task } = await checkedOutRoom();
     const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
     await act(owner, task.id, 'accept', { version: task.version });
-    await act(owner, task.id, 'complete', { version: task.version + 1 });
+    await completeWithPhotos(owner, task.id, task.version + 1);
     await flagOverdueTasks(new Date(Date.now() + 61 * 60_000));
     expect((await taskOf(task.id)).overdueFlaggedAt).toBeNull();
   });
@@ -288,5 +432,18 @@ describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
     expect(res.body.data).toMatchObject({ overdue: { housekeeping: expect.any(Number) }, cleaning: expect.any(Object) });
     expect(res.body.data.occupancy.rate === null || typeof res.body.data.occupancy.rate === 'number').toBe(true);
     expect((await request(app).get('/api/dashboard/summary').set(staffA.auth)).status).toBe(403);
+  });
+
+  it('FR-room-dashboard-006: dashboard liệt kê từng việc quá hạn kèm phòng để tô cờ ô phòng; hoàn tất thì mất', async () => {
+    const { room, task } = await checkedOutRoom();
+    await flagOverdueTasks(new Date(Date.now() + 61 * 60_000));
+    const tasksOf = async () => (await request(app).get('/api/dashboard/summary').set(manager.auth)).body.data.overdue;
+
+    const overdue = await tasksOf();
+    expect(overdue.tasks).toContainEqual({ type: 'HOUSEKEEPING', taskId: task.id, roomId: room.id, roomNumber: room.number });
+    expect(overdue.total).toBe(overdue.tasks.length);
+
+    await prisma.housekeepingTask.update({ where: { id: task.id }, data: { status: 'DONE' } });
+    expect((await tasksOf()).tasks.map((t: { taskId: string }) => t.taskId)).not.toContain(task.id);
   });
 });

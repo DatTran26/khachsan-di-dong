@@ -1,7 +1,22 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/realtime/socket_service.dart';
+import '../../../models/user.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
+
+/// Một việc quá hạn đang mở (`overdue.tasks`) — để chi tiết phòng mở đúng màn việc.
+class OverdueTask {
+  final String type; // HOUSEKEEPING | MAINTENANCE
+  final String taskId;
+  final String roomId;
+
+  const OverdueTask(
+      {required this.type, required this.taskId, required this.roomId});
+
+  bool get isHousekeeping => type == 'HOUSEKEEPING';
+}
 
 class DashboardSummary {
   final int totalRooms;
@@ -12,6 +27,10 @@ class DashboardSummary {
   final int overdueHousekeeping;
   final int overdueMaintenance;
   final int overdueTotal;
+
+  /// Phòng đang có việc quá hạn (từ `overdue.tasks`) — tô cờ ô phòng cho mọi vai trò xem dashboard (FR-006).
+  final Set<String> overdueRoomIds;
+  final List<OverdueTask> overdueTasks;
   final int occupancyServiceable;
   final double? occupancyRate;
   final DateTime? asOf;
@@ -25,6 +44,8 @@ class DashboardSummary {
     required this.overdueHousekeeping,
     required this.overdueMaintenance,
     required this.overdueTotal,
+    this.overdueRoomIds = const {},
+    this.overdueTasks = const [],
     required this.occupancyServiceable,
     this.occupancyRate,
     this.asOf,
@@ -52,6 +73,9 @@ class DashboardSummary {
     return '$s%';
   }
 
+  List<OverdueTask> overdueTasksOf(String roomId) =>
+      overdueTasks.where((t) => t.roomId == roomId).toList();
+
   int get needsCleaning => cleaning['DIRTY'] ?? 0;
   int get cleaningNow => cleaning['CLEANING'] ?? 0;
   int get pendingInspection => cleaning['PENDING_INSPECTION'] ?? 0;
@@ -62,6 +86,14 @@ class DashboardSummary {
         {};
     final overdue = json['overdue'] as Map<String, dynamic>? ?? {};
     final occupancy = json['occupancy'] as Map<String, dynamic>? ?? {};
+    final tasks = [
+      for (final t in (overdue['tasks'] as List?) ?? const [])
+        OverdueTask(
+          type: (t as Map<String, dynamic>)['type'] as String,
+          taskId: t['taskId'] as String,
+          roomId: t['roomId'] as String,
+        ),
+    ];
     return DashboardSummary(
       totalRooms: (json['totalRooms'] as num?)?.toInt() ?? 0,
       occupied: (json['occupied'] as num?)?.toInt() ?? 0,
@@ -71,6 +103,8 @@ class DashboardSummary {
       overdueHousekeeping: (overdue['housekeeping'] as num?)?.toInt() ?? 0,
       overdueMaintenance: (overdue['maintenance'] as num?)?.toInt() ?? 0,
       overdueTotal: (overdue['total'] as num?)?.toInt() ?? 0,
+      overdueRoomIds: {for (final t in tasks) t.roomId},
+      overdueTasks: tasks,
       occupancyServiceable: (occupancy['serviceable'] as num?)?.toInt() ?? 0,
       occupancyRate: occupancy['rate'] != null
           ? (occupancy['rate'] as num).toDouble()
@@ -106,7 +140,11 @@ class DashboardSummaryState {
 }
 
 class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
-  DashboardSummaryNotifier() : super(const DashboardSummaryState()) {
+  /// `false` → vai trò không được xem chỉ số (nhân viên / chưa đăng nhập): không gọi API.
+  final bool enabled;
+
+  DashboardSummaryNotifier({this.enabled = true})
+      : super(const DashboardSummaryState()) {
     load();
   }
 
@@ -127,6 +165,7 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   }
 
   Future<void> load({bool silent = false}) async {
+    if (!enabled) return;
     if (!silent) state = state.copyWith(isLoading: true, clearError: true);
     try {
       final res = await apiClient.get('/dashboard/summary');
@@ -142,8 +181,16 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
 final dashboardSummaryProvider =
     StateNotifierProvider<DashboardSummaryNotifier, DashboardSummaryState>(
         (ref) {
-  final notifier = DashboardSummaryNotifier();
+  // Chỉ số chỉ dành cho quản lý + lễ tân (BE trả 403 cho nhân viên). App mở `/dashboard` trước khi biết
+  // vai trò, provider lại không tự hủy → phải theo vai trò, không thì nhân viên vẫn gọi API mỗi lần phòng đổi.
+  final role = ref.watch(authProvider.select((s) => s.user?.role));
+  final canView = role == UserRole.manager || role == UserRole.receptionist;
+  final notifier = DashboardSummaryNotifier(enabled: canView);
+  if (!canView) return notifier;
   ref.listen(roomsProvider.select((s) => s.lastUpdated),
       (_, __) => notifier.scheduleReload());
+  // Việc dọn/sửa đổi trạng thái hoặc bị cờ quá hạn không phát room:updated → nghe riêng (FR-005, ≤3s).
+  socketService.onTaskChanged = notifier.scheduleReload;
+  ref.onDispose(() => socketService.onTaskChanged = null);
   return notifier;
 });

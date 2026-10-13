@@ -26,7 +26,7 @@ class AppColors {
   static const Color onDark = Color(0xFFD9D0C1);
 
   // Trạng thái
-  static const Color ready = Color(0xFF2E7D32);
+  static const Color ready = Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
   static const Color readyBg = Color(0xFFE7F3E8);
   static const Color occupied = Color(0xFF1E5FAE);
   static const Color occupiedBg = Color(0xFFE5EEF9);
@@ -83,6 +83,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.bg,
+      // Ô đang được chọn bằng phím Tab phải nhìn rõ (WCAG 2.4.7) — mặc định Material chỉ phủ mờ 10%.
+      focusColor: AppColors.gold.withValues(alpha: .35),
       textTheme: text,
       primaryTextTheme: text,
       dividerColor: AppColors.divider,

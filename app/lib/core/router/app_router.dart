@@ -11,7 +11,9 @@ import '../../features/stays/screens/stays_screen.dart';
 import '../../features/housekeeping/screens/housekeeping_screen.dart';
 import '../../features/maintenance/screens/maintenance_screen.dart';
 import '../../features/audit/screens/audit_screen.dart';
+import '../../features/ai_summary/screens/ai_summary_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
+import '../../shared/widgets/task_link.dart';
 import 'nav.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -63,7 +65,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (_, __) => const DashboardScreen(),
+            // `?phong=<id>`: mở sẵn chi tiết phòng (đi từ việc cần chú ý / cảnh báo quá hạn).
+            builder: (_, state) =>
+                DashboardScreen(openRoomId: state.uri.queryParameters['phong']),
+          ),
+          GoRoute(
+            path: '/tom-tat',
+            builder: (_, __) => const AiSummaryScreen(),
           ),
           GoRoute(
             path: '/phong',
@@ -75,11 +83,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/don-phong',
-            builder: (_, __) => const HousekeepingScreen(),
+            // `?viec=<id>`: mở sẵn chi tiết việc (đi từ cảnh báo quá hạn / chi tiết phòng).
+            builder: (_, state) => TaskLinkScope(
+              path: '/don-phong',
+              taskId: state.uri.queryParameters['viec'],
+              child: const HousekeepingScreen(),
+            ),
           ),
           GoRoute(
             path: '/bao-tri',
-            builder: (_, __) => const MaintenanceScreen(),
+            builder: (_, state) => TaskLinkScope(
+              path: '/bao-tri',
+              taskId: state.uri.queryParameters['viec'],
+              child: const MaintenanceScreen(),
+            ),
           ),
           GoRoute(
             path: '/tai-khoan',
@@ -87,7 +104,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/nhat-ky',
-            builder: (_, __) => const AuditScreen(),
+            builder: (_, state) =>
+                AuditScreen(roomId: state.uri.queryParameters['phong']),
           ),
         ],
       ),

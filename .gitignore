@@ -17,3 +17,6 @@ Thumbs.db
 *.pem
 *.key
 secrets/
+
+# Ảnh nghiệm thu tải lên khi chạy dev
+server/uploads/

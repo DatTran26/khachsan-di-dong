@@ -10,6 +10,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/rooms_provider.dart';
 import '../widgets/room_detail_panel.dart';
 import 'room_form_screen.dart';
+import 'room_types_screen.dart';
 
 /// Phòng (room-catalog + check-in-out).
 /// Web: bảng phòng + khung chi tiết bên phải. Mobile: lưới ô phòng, bấm để mở chi tiết.
@@ -209,6 +210,13 @@ class _Toolbar extends StatelessWidget {
                 : ServiceStatus.outOfService,
           )),
         ),
+        if (canCreate)
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RoomTypesScreen())),
+            icon: const Icon(Icons.category_outlined, size: 18),
+            label: const Text('Loại phòng'),
+          ),
         if (canCreate)
           ElevatedButton.icon(
             onPressed: () => Navigator.of(context).push(

@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { corsOptions } from './config/cors.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { aiSummaryRouter } from './modules/ai-summary/ai-summary.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
@@ -28,6 +29,7 @@ export function createApp() {
   app.use('/api/maintenance', maintenanceRouter);
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/audit-logs', auditRouter);
+  app.use('/api/ai-summaries', aiSummaryRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -34,3 +34,9 @@ export async function createUserWithToken(role: Role, overrides: Partial<User> =
   const { token } = await prisma.$transaction((tx) => openSession(tx, user, 'test', () => {}));
   return { user, token, auth: { Authorization: `Bearer ${token}` } };
 }
+
+/** Ảnh JPEG tối thiểu (đúng byte đầu tệp) cho test ảnh nghiệm thu. */
+export const TEST_JPEG = Buffer.from('ffd8ffe000104a46494600010100000100010000ffd9', 'hex');
+
+/** 3 nhóm ảnh bắt buộc trước khi báo dọn xong (BR-housekeeping-006). */
+export const REQUIRED_PHOTO_CATEGORIES = ['OVERVIEW', 'BED', 'BATHROOM'] as const;

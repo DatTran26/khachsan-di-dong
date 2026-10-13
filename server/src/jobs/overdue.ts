@@ -11,7 +11,7 @@ import { notification } from '../realtime/notify.js';
  * Đánh cờ "quá hạn" theo QUY TẮC (không phụ thuộc AI — tôn chỉ):
  * - Việc dọn: quá 60 phút từ lúc tạo mà nhân viên chưa báo hoàn tất (BR-housekeeping-002 — thời gian chờ quản lý
  *   xác nhận không tính). Cờ tự gỡ khi việc hoàn tất (FR-008) — DTO tính `isOverdue` theo trạng thái.
- * - Việc sửa: quá `dueAt` (chỉ khi đã cấu hình MAINTENANCE_DUE_MINUTES — maintenance OQ-1).
+ * - Việc sửa: quá `dueAt` = lúc báo + 4 giờ (maintenance OQ-1, đổi bằng MAINTENANCE_DUE_MINUTES; 0 = tắt).
  * Mỗi việc chỉ cảnh báo MỘT lần (housekeeping OQ-2 chưa chốt → chọn cách tối thiểu), cho quản lý + người phụ trách.
  * Hệ thống là người thực hiện trong nhật ký (FR-audit-log-003).
  */

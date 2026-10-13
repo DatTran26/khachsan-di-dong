@@ -86,9 +86,10 @@ class HousekeepingNotifier extends StateNotifier<HousekeepingState> {
     await load();
   }
 
-  Future<void> complete(String id, int version) async {
-    await apiClient
-        .post('/housekeeping/tasks/$id/complete', body: {'version': version});
+  /// [hasIssue]: nhân viên đánh dấu bất thường → server bắt buộc có ảnh cận cảnh (BR-housekeeping-006).
+  Future<void> complete(String id, int version, {bool hasIssue = false}) async {
+    await apiClient.post('/housekeeping/tasks/$id/complete',
+        body: {'version': version, if (hasIssue) 'hasIssue': true});
     await load();
   }
 

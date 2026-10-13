@@ -4,7 +4,7 @@ import '../../models/user.dart';
 /// Một mục điều hướng. Quyền xem bám đúng phân quyền API phía BE:
 /// - Tổng quan (`/dashboard/summary`), Lưu trú (`/stays`): quản lý + lễ tân.
 /// - Dọn phòng (`/housekeeping/tasks`): quản lý + nhân viên.
-/// - Nhật ký (`/audit-logs`): chỉ quản lý.
+/// - Nhật ký (`/audit-logs`), Tóm tắt AI (`/ai-summaries`): chỉ quản lý.
 /// - Tài khoản (`/users`): quản lý + lễ tân.
 class NavItem {
   final String path;
@@ -31,6 +31,8 @@ const _users = NavItem('/tai-khoan', 'Tài khoản', 'Tài khoản',
     Icons.manage_accounts_outlined, Icons.manage_accounts_rounded);
 const _audit = NavItem('/nhat-ky', 'Nhật ký', 'Nhật ký thay đổi',
     Icons.history_rounded, Icons.history_rounded);
+const _aiSummary = NavItem('/tom-tat', 'Tóm tắt', 'Tóm tắt vận hành',
+    Icons.auto_awesome_outlined, Icons.auto_awesome);
 
 // Nhân viên dùng mobile: nhãn theo công việc của họ.
 const _staffHousekeeping = NavItem('/don-phong', 'Việc dọn', 'Việc dọn của tôi',
@@ -43,6 +45,7 @@ List<NavItem> navItemsFor(UserRole? role) {
     case UserRole.manager:
       return const [
         _dashboard,
+        _aiSummary,
         _rooms,
         _stays,
         _housekeeping,

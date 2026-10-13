@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import express from 'express';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../src/app.js';
 import { VersionConflictError } from '../src/lib/errors.js';
 import { prisma } from '../src/lib/prisma.js';
@@ -36,7 +36,18 @@ describe('GET /api/health', () => {
   it('trả ok khi kết nối được CSDL', async () => {
     const res = await request(app).get('/api/health');
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe('ok');
+    expect(res.body).toMatchObject({ status: 'ok', db: 'up' });
+  });
+
+  it('trả 503 khi không kết nối được CSDL', async () => {
+    const spy = vi.spyOn(prisma, '$queryRaw').mockRejectedValueOnce(new Error('connection refused'));
+    try {
+      const res = await request(app).get('/api/health');
+      expect(res.status).toBe(503);
+      expect(res.body).toMatchObject({ status: 'error', db: 'down' });
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
 

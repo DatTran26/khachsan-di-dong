@@ -10,6 +10,7 @@ import { notification } from '../../realtime/notify.js';
 import { applyRoomChange, roomLabel } from '../rooms/rooms.service.js';
 import { autoAssign, serializeAssignment } from './housekeeping.assignment.js';
 import { housekeepingInclude, toHousekeepingTaskDto } from './housekeeping.dto.js';
+import { REQUIRED_CATEGORIES, countRoundPhotos } from './housekeeping.photos.js';
 
 /**
  * Chu trình việc dọn (housekeeping-states.md):
@@ -135,13 +136,36 @@ export async function rejectTask(actor: User, taskId: string, version: number) {
   });
 }
 
-/** Báo hoàn tất → "chờ xác nhận", phòng → "chờ kiểm tra", báo quản lý (FR-005). */
-export async function completeTask(actor: User, taskId: string, version: number) {
+/**
+ * Báo hoàn tất → "chờ xác nhận", phòng → "chờ kiểm tra", báo quản lý (FR-005, FR-006).
+ * Chỉ khi lượt ảnh hiện tại đủ 3 nhóm bắt buộc; đánh dấu bất thường thì cần thêm ảnh cận cảnh (BR-006, E-007).
+ */
+export async function completeTask(actor: User, taskId: string, version: number, hasIssue = false) {
   return withTransaction(async (tx, enqueue) => {
     const task = await lockTask(tx, taskId, version);
     assertOwnTask(actor, task);
     if (task.status !== 'IN_PROGRESS') throw invalidState();
-    const dto = await transition(tx, enqueue, actor, task, 'housekeeping.task_completed', { status: 'PENDING_CONFIRM', completedAt: new Date() }, 'PENDING_INSPECTION');
+    const counts = await countRoundPhotos(tx, task);
+    if (REQUIRED_CATEGORIES.some((category) => !counts.get(category))) {
+      throw new AppError(400, 'PHOTOS_REQUIRED', MSG.photosRequired);
+    }
+    if (hasIssue && !counts.get('CLOSEUP')) throw new AppError(400, 'CLOSEUP_REQUIRED', MSG.closeupRequired);
+    const photoCount = [...counts.values()].reduce((sum, n) => sum + n, 0);
+
+    const dto = await transition(
+      tx,
+      enqueue,
+      actor,
+      task,
+      'housekeeping.task_completed',
+      { status: 'PENDING_CONFIRM', completedAt: new Date(), hasIssue },
+      'PENDING_INSPECTION',
+      // Lần nộp ảnh được ghi vào nhật ký (FR-housekeeping-015).
+      [
+        { field: 'photos', after: `${photoCount} ảnh (lượt ${task.photoRound})` },
+        ...(hasIssue ? [{ field: 'hasIssue', before: 'false', after: 'true' }] : []),
+      ],
+    );
     enqueue(notification(CHANNELS.role('MANAGER'), 'HOUSEKEEPING_PENDING_CONFIRM', MSG.taskPendingConfirm(roomLabel(task.room)), { taskId, roomId: task.roomId }));
     return dto;
   });
@@ -158,7 +182,10 @@ export async function confirmTask(actor: User, taskId: string, version: number) 
   });
 }
 
-/** Trả lại kèm ghi chú (≤500) → "đang làm", phòng → "đang dọn", báo nhân viên (FR-006, BR-005). */
+/**
+ * Trả lại kèm ghi chú (≤500) → "đang làm", phòng → "đang dọn", báo nhân viên (FR-008, BR-005).
+ * Sang lượt ảnh mới — ảnh lượt cũ giữ nguyên để truy vết, nhân viên phải nộp lại bộ ảnh.
+ */
 export async function returnTask(actor: User, taskId: string, version: number, note: string) {
   return withTransaction(async (tx, enqueue) => {
     const task = await lockTask(tx, taskId, version);
@@ -169,9 +196,12 @@ export async function returnTask(actor: User, taskId: string, version: number, n
       actor,
       task,
       'housekeeping.task_returned',
-      { status: 'IN_PROGRESS', returnNote: note, completedAt: null },
+      { status: 'IN_PROGRESS', returnNote: note, completedAt: null, hasIssue: false, photoRound: { increment: 1 } },
       'CLEANING',
-      [{ field: 'returnNote', after: note }],
+      [
+        { field: 'returnNote', after: note },
+        { field: 'photoRound', before: String(task.photoRound), after: String(task.photoRound + 1) },
+      ],
     );
     if (task.assigneeId) {
       enqueue(notification(CHANNELS.user(task.assigneeId), 'HOUSEKEEPING_RETURNED', MSG.taskReturned(roomLabel(task.room), note), { taskId, roomId: task.roomId }));
@@ -187,7 +217,7 @@ export async function reassignTask(actor: User, taskId: string, version: number,
     const task = await lockTask(tx, taskId, version);
     if (!['UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS'].includes(task.status)) throw invalidState();
     const assignee = await tx.user.findUnique({ where: { id: assigneeId } });
-    if (!assignee || assignee.role !== 'STAFF' || assignee.status !== 'ACTIVE' || !assignee.onDuty) {
+    if (assignee?.role !== 'STAFF' || assignee.status !== 'ACTIVE' || !assignee.onDuty) {
       throw new AppError(400, 'ASSIGNEE_NOT_ON_DUTY', MSG.assigneeNotOnDuty);
     }
 

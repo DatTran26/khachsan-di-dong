@@ -19,6 +19,10 @@ class SocketService {
   SessionRevokedCallback? onSessionRevoked;
   ConnectionCallback? onConnectionChanged;
 
+  /// Có việc dọn / việc sửa đổi trạng thái (kể cả bị cờ quá hạn) — dashboard dùng để tải lại chỉ số.
+  /// Tách riêng khỏi callback của từng provider vì vai trò không xem danh sách việc vẫn cần biết.
+  void Function()? onTaskChanged;
+
   bool _connected = false;
   bool get isConnected => _connected;
 
@@ -55,6 +59,12 @@ class SocketService {
           const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID'];
           if (authCodes.contains(code)) {
             onSessionRevoked?.call(code, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          } else {
+            // Lỗi từ middleware server (vd INTERNAL_ERROR) → socket.io không tự thử lại; tự thử sau 3s.
+            final socket = _socket;
+            Future.delayed(const Duration(seconds: 3), () {
+              if (identical(socket, _socket) && !_connected) socket?.connect();
+            });
           }
         }
       }
@@ -85,6 +95,7 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         final task = data['task'] as Map<String, dynamic>?;
         if (task != null) onHousekeepingTaskUpdated?.call(task);
+        onTaskChanged?.call();
       }
     });
 
@@ -92,6 +103,7 @@ class SocketService {
       if (data is Map<String, dynamic>) {
         final task = data['task'] as Map<String, dynamic>?;
         if (task != null) onMaintenanceTaskUpdated?.call(task);
+        onTaskChanged?.call();
       }
     });
 

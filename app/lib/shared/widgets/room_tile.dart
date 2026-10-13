@@ -4,7 +4,8 @@ import '../../core/theme/app_theme.dart';
 import '../../models/room.dart';
 import 'ui.dart';
 
-/// Ô phòng trên lưới: số phòng + 3 trục trạng thái tách biệt (lưu trú / vệ sinh / bảo trì).
+/// Ô phòng trên lưới: số phòng + lưu trú + vệ sinh; phòng ngừng phục vụ chỉ hiện "Ngừng phục vụ".
+/// Đủ 3 trục vẫn có trong tooltip / nhãn đọc màn hình.
 /// - Đầu ô tô màu theo trạng thái tổng hợp.
 /// - Ngừng phục vụ: gạch chéo toàn ô, viền nét đứt, chữ xám trầm.
 /// - Quá hạn: viền đỏ + nhãn "QH".
@@ -12,7 +13,6 @@ class RoomTile extends StatelessWidget {
   final Room room;
   final bool overdue;
   final bool selected;
-  final bool compact; // mobile: chỉ 2 dòng (lưu trú, vệ sinh/bảo trì)
   final VoidCallback? onTap;
 
   const RoomTile({
@@ -20,14 +20,14 @@ class RoomTile extends StatelessWidget {
     required this.room,
     this.overdue = false,
     this.selected = false,
-    this.compact = false,
     this.onTap,
   });
 
   bool get _oos => room.service == ServiceStatus.outOfService;
 
   /// Chiều cao ô trên lưới, co giãn theo cỡ chữ hệ thống (đầu ô ~31px + 3 dòng trạng thái ~16px + lề).
-  static double extent(BuildContext context) => MediaQuery.textScalerOf(context).scale(106);
+  static double extent(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(106);
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +62,14 @@ class RoomTile extends StatelessWidget {
       ),
     );
 
+    // Ngừng phục vụ: chỉ một dòng đó — lưu trú / vệ sinh không còn ý nghĩa khi phòng không nhận khách.
     final axes = <(String, StatusTone)>[
-      (room.occupancy.label, room.occupancy.tone),
-      (room.cleaning.label, room.cleaning.tone),
-      if (!compact || _oos) (room.service.label, room.service.tone),
+      if (_oos)
+        (room.service.label, room.service.tone)
+      else ...[
+        (room.occupancy.label, room.occupancy.tone),
+        (room.cleaning.label, room.cleaning.tone),
+      ],
     ];
 
     final body = Padding(

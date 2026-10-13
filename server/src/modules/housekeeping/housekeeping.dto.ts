@@ -20,6 +20,8 @@ export function toHousekeepingTaskDto(task: TaskWithRefs) {
     isOverdue: task.overdueFlaggedAt !== null && task.status !== 'DONE',
     dueAt: task.dueAt,
     returnNote: task.returnNote,
+    photoRound: task.photoRound, // lượt ảnh nghiệm thu hiện tại (tăng khi bị trả lại)
+    hasIssue: task.hasIssue, // nhân viên đánh dấu bất thường lúc báo xong
     createdAt: task.createdAt,
     assignedAt: task.assignedAt,
     startedAt: task.startedAt,
