@@ -1,7 +1,9 @@
 /// Nhóm ảnh nghiệm thu (BR-housekeeping-006) — khớp enum `HousekeepingPhotoCategory` phía BE.
 enum PhotoCategory { overview, bed, bathroom, closeup }
 
+/// Mã API và nhãn nhóm ảnh.
 extension PhotoCategoryX on PhotoCategory {
+  /// `OVERVIEW`, `BED`, `BATHROOM`, `CLOSEUP`.
   String get value => switch (this) {
         PhotoCategory.overview => 'OVERVIEW',
         PhotoCategory.bed => 'BED',
@@ -9,6 +11,7 @@ extension PhotoCategoryX on PhotoCategory {
         PhotoCategory.closeup => 'CLOSEUP',
       };
 
+  /// Nhãn trên ô ảnh nghiệm thu.
   String get label => switch (this) {
         PhotoCategory.overview => 'Tổng quan phòng',
         PhotoCategory.bed => 'Khu ngủ / giường',
@@ -16,6 +19,7 @@ extension PhotoCategoryX on PhotoCategory {
         PhotoCategory.closeup => 'Cận cảnh',
       };
 
+  /// Parse mã API. Chuỗi lạ thành [PhotoCategory.closeup], không ném.
   static PhotoCategory parse(String v) => PhotoCategory.values
       .firstWhere((c) => c.value == v, orElse: () => PhotoCategory.closeup);
 }
@@ -28,6 +32,7 @@ const requiredPhotoCategories = [
 ];
 const maxCloseups = 5;
 
+/// Một ảnh đã lưu. [round] là lượt dọn; lượt cũ giữ khi việc bị trả lại.
 class HousekeepingPhoto {
   final String id;
   final PhotoCategory category;
@@ -43,6 +48,7 @@ class HousekeepingPhoto {
     required this.createdAt,
   });
 
+  /// Dựng từ một phần tử `photos`. [sizeBytes] và [round] nhận `num`.
   factory HousekeepingPhoto.fromJson(Map<String, dynamic> json) =>
       HousekeepingPhoto(
         id: json['id'] as String,
@@ -60,9 +66,11 @@ class TaskPhotos {
 
   const TaskPhotos({required this.currentRound, this.photos = const []});
 
+  /// Ảnh đúng [currentRound]. Không gồm lượt trước.
   List<HousekeepingPhoto> get current =>
       photos.where((p) => p.round == currentRound).toList();
 
+  /// Ảnh nhóm [c] của lượt hiện tại, hoặc null nếu chưa có. Không xét lượt cũ.
   HousekeepingPhoto? of(PhotoCategory c) {
     for (final p in current) {
       if (p.category == c) return p;
@@ -70,14 +78,18 @@ class TaskPhotos {
     return null;
   }
 
+  /// Ảnh cận cảnh của lượt hiện tại.
   List<HousekeepingPhoto> get closeups =>
       current.where((p) => p.category == PhotoCategory.closeup).toList();
 
+  /// Số nhóm bắt buộc đã có ảnh ở lượt hiện tại, từ 0 đến 3.
   int get requiredDone =>
       requiredPhotoCategories.where((c) => of(c) != null).length;
 
+  /// Đủ ba nhóm bắt buộc. Không tính cận cảnh.
   bool get hasAllRequired => requiredDone == requiredPhotoCategories.length;
 
+  /// Dựng từ `GET .../photos`. Thiếu `photos` thì danh sách rỗng.
   factory TaskPhotos.fromJson(Map<String, dynamic> json) => TaskPhotos(
         currentRound: (json['currentRound'] as num).toInt(),
         photos: [
