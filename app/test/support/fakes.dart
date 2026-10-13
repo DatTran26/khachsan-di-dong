@@ -1,7 +1,11 @@
 import 'package:khachsan_di_dong/core/api/api_client.dart';
 import 'package:khachsan_di_dong/features/ai_summary/providers/ai_summary_provider.dart';
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
+import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_provider.dart';
+import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
+import 'package:khachsan_di_dong/models/housekeeping_photo.dart';
+import 'package:khachsan_di_dong/models/housekeeping_task.dart';
 import 'package:khachsan_di_dong/models/room.dart';
 
 /// Notifier giả dùng chung cho widget test — không gọi API.
@@ -59,4 +63,65 @@ Room fakeRoom(String number,
           service == 'IN_SERVICE',
       'version': 1,
       'updatedAt': '2026-10-13T00:00:00.000Z',
+    });
+
+/// Danh sách việc dọn giả; ghi lại các lần báo xong.
+class FakeHousekeeping extends HousekeepingNotifier {
+  FakeHousekeeping(List<HousekeepingTask> tasks) : super(mine: true) {
+    state = HousekeepingState(tasks: tasks);
+  }
+
+  final completed = <(String, bool)>[];
+
+  @override
+  Future<void> load() async {}
+
+  @override
+  Future<void> complete(String id, int version, {bool hasIssue = false}) async {
+    completed.add((id, hasIssue));
+    state = HousekeepingState(tasks: [
+      for (final t in state.tasks)
+        t.id == id ? t.copyWith(status: HousekeepingStatus.pendingConfirm) : t,
+    ]);
+  }
+}
+
+/// Ảnh nghiệm thu giả — không gọi API.
+class FakeTaskPhotos extends TaskPhotosNotifier {
+  FakeTaskPhotos(super.taskId, TaskPhotos data) {
+    state = TaskPhotosState(data: data);
+  }
+
+  @override
+  Future<void> load() async {}
+}
+
+HousekeepingTask fakeHousekeepingTask(
+        {String id = 't1',
+        String status = 'IN_PROGRESS',
+        String? returnNote}) =>
+    HousekeepingTask.fromJson({
+      'id': id,
+      'room': {'id': 'r104', 'number': '104', 'floor': 1},
+      'assignee': {'id': 'u4', 'fullName': 'Phạm Thị Buồng Phòng'},
+      'status': status,
+      'isOverdue': false,
+      'dueAt': '2026-10-13T05:00:00.000Z',
+      'returnNote': returnNote,
+      'createdAt': '2026-10-13T04:00:00.000Z',
+      'version': 3,
+    });
+
+TaskPhotos fakeTaskPhotos(List<String> categories) => TaskPhotos.fromJson({
+      'currentRound': 1,
+      'photos': [
+        for (var i = 0; i < categories.length; i++)
+          {
+            'id': 'p$i',
+            'category': categories[i],
+            'round': 1,
+            'sizeBytes': 1000,
+            'createdAt': '2026-10-13T04:30:00.000Z',
+          },
+      ],
     });

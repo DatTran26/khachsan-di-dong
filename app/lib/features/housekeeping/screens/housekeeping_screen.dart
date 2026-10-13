@@ -15,6 +15,8 @@ import '../../maintenance/widgets/report_issue_dialog.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../users/providers/users_provider.dart';
 import '../providers/housekeeping_provider.dart';
+import '../widgets/photo_gallery.dart';
+import 'acceptance_photos_screen.dart';
 
 /// Dọn phòng.
 /// - Quản lý: bảng điều phối 4 cột (Chờ giao · Đã giao · Đang dọn · Chờ xác nhận).
@@ -231,7 +233,7 @@ void _showDetail(
     isScrollControlled: true,
     constraints: const BoxConstraints(maxWidth: 520),
     builder: (ctx) => SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -261,6 +263,12 @@ void _showDetail(
             const SectionLabel('Tiến độ'),
             const SizedBox(height: 12),
             TaskStatusTimeline.housekeeping(task),
+            // Đã báo xong → quản lý đối chiếu ảnh trước khi xác nhận / trả lại (FR-housekeeping-007).
+            if (task.status == HousekeepingStatus.pendingConfirm ||
+                task.status == HousekeepingStatus.done) ...[
+              const SizedBox(height: 20),
+              PhotoReviewSection(taskId: task.id),
+            ],
             if (actions.isNotEmpty) ...[
               const SizedBox(height: 20),
               for (final a in actions)
@@ -649,13 +657,15 @@ class _StaffTaskCard extends ConsumerWidget {
       ];
     }
     return [
-      ElevatedButton(
+      // Báo xong cần đủ ảnh nghiệm thu → nộp ảnh và báo ở màn riêng (FR-housekeeping-005).
+      ElevatedButton.icon(
         style: ElevatedButton.styleFrom(minimumSize: size),
-        onPressed: online
-            ? () => _run(context, ref, () => n.complete(task.id, task.version),
-                'Đã báo xong phòng ${task.room.number} — chờ quản lý xác nhận.')
-            : null,
-        child: const Text('Báo đã dọn xong'),
+        // Màn riêng toàn màn hình (navigator gốc) — không lồng trong khung app.
+        onPressed: () => Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute(
+                builder: (_) => AcceptancePhotosScreen(taskId: task.id))),
+        icon: const Icon(Icons.photo_camera_outlined, size: 18),
+        label: const Text('Ảnh & báo xong'),
       ),
       if (vertical)
         OutlinedButton(

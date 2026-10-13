@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,9 @@ import 'package:khachsan_di_dong/features/ai_summary/providers/ai_summary_provid
 import 'package:khachsan_di_dong/features/ai_summary/screens/ai_summary_screen.dart';
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
 import 'package:khachsan_di_dong/features/dashboard/screens/dashboard_screen.dart';
+import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_provider.dart';
+import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
+import 'package:khachsan_di_dong/features/housekeeping/screens/acceptance_photos_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
 import 'package:khachsan_di_dong/models/ai_summary.dart';
 
@@ -112,6 +116,14 @@ Future<void> _pump(WidgetTester tester, Size size, Widget screen) async {
       roomsProvider.overrideWith((ref) => FakeRooms(_rooms)),
       dashboardSummaryProvider
           .overrideWith((ref) => FakeDashboardSummary(_summary)),
+      housekeepingProvider.overrideWith((ref) => FakeHousekeeping([
+            fakeHousekeepingTask(
+                returnNote: 'Nhà vệ sinh còn tóc trên sàn, chụp lại giúp.'),
+          ])),
+      taskPhotosProvider.overrideWith((ref, id) =>
+          FakeTaskPhotos(id, fakeTaskPhotos(['OVERVIEW', 'BED', 'CLOSEUP']))),
+      photoBytesProvider.overrideWith((ref, id) async => base64Decode(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')),
       aiSummaryProvider.overrideWith((ref) => FakeAiSummary(AiSummaryState(
             latest: {SummaryPeriod.currentShift: _aiSummary},
             notice: 'Đã hết hạn mức AI — hiển thị báo cáo mẫu từ dữ liệu gốc.',
@@ -165,6 +177,15 @@ void main() {
     testWidgets('Tổng quan — $name: không tràn, đạt a11y', (tester) async {
       final handle = tester.ensureSemantics();
       await _pump(tester, size, const DashboardScreen());
+      expect(tester.takeException(), isNull);
+      await _expectAccessible(tester);
+      handle.dispose();
+    });
+
+    testWidgets('Ảnh nghiệm thu — $name: không tràn, đạt a11y', (tester) async {
+      final handle = tester.ensureSemantics();
+      await _pump(tester, size, const AcceptancePhotosScreen(taskId: 't1'));
+      await tester.pump();
       expect(tester.takeException(), isNull);
       await _expectAccessible(tester);
       handle.dispose();

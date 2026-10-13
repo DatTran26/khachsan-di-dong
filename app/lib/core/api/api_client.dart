@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import '../storage/token_storage.dart';
 
@@ -96,6 +97,36 @@ class ApiClient {
               ? null
               : Options(receiveTimeout: receiveTimeout));
       return res.data!;
+    } catch (e) {
+      throw _wrap(e);
+    }
+  }
+
+  /// Gửi byte ảnh thô (BE đọc thân yêu cầu là tệp ảnh, tự nhận loại theo byte đầu tệp).
+  Future<Map<String, dynamic>> postBytes(String path, List<int> bytes,
+      {Map<String, dynamic>? query}) async {
+    try {
+      final res = await _dio.post<Map<String, dynamic>>(path,
+          data: Stream.fromIterable([bytes]),
+          queryParameters: query,
+          options: Options(
+            contentType: 'application/octet-stream',
+            headers: {Headers.contentLengthHeader: bytes.length},
+            sendTimeout: const Duration(seconds: 60),
+            receiveTimeout: const Duration(seconds: 60),
+          ));
+      return res.data!;
+    } catch (e) {
+      throw _wrap(e);
+    }
+  }
+
+  /// Tải byte (ảnh) kèm token — ảnh nghiệm thu không có link công khai.
+  Future<Uint8List> getBytes(String path) async {
+    try {
+      final res = await _dio.get<List<int>>(path,
+          options: Options(responseType: ResponseType.bytes));
+      return Uint8List.fromList(res.data!);
     } catch (e) {
       throw _wrap(e);
     }
