@@ -15,11 +15,14 @@ import '../providers/ai_summary_provider.dart';
 class AiSummaryScreen extends ConsumerWidget {
   const AiSummaryScreen({super.key});
 
+  /// [AiSummaryNotifier.generate]. [ApiException] (vd 409 đang có lượt khác) qua [handleApiError].
+  /// Null nghĩa thành công hoặc bấm khi đang tạo — không báo thêm.
   Future<void> _generate(BuildContext context, WidgetRef ref) async {
     final error = await ref.read(aiSummaryProvider.notifier).generate();
     if (error != null && context.mounted) handleApiError(context, error);
   }
 
+  /// Chọn kỳ và nút tạo. Mất mạng hoặc đang tạo thì tắt nút. Không sửa dữ liệu phòng.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(aiSummaryProvider);
@@ -125,6 +128,7 @@ class _BudgetLine extends StatelessWidget {
   final AiBudget budget;
   const _BudgetLine({required this.budget});
 
+  /// Câu hạn mức. Chưa cấu hình hoặc hết hạn thì nói sẽ ra báo cáo mẫu. Không chặn nút tạo.
   @override
   Widget build(BuildContext context) {
     final vnd = NumberFormat.decimalPattern('vi');
@@ -149,10 +153,12 @@ class _BudgetLine extends StatelessWidget {
   }
 }
 
+/// Một bản tóm tắt: nguồn, tổng quan, điểm nổi bật, việc cần chú ý.
 class _SummaryCard extends StatelessWidget {
   final AiSummary summary;
   const _SummaryCard({required this.summary});
 
+  /// Không gọi API. Nút tới dashboard nằm ở từng [_AttentionRow].
   @override
   Widget build(BuildContext context) {
     final created =
@@ -198,11 +204,13 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
+/// Nhãn nguồn. [ai] true là vàng "tham khảo", không thì nền trung tính (báo cáo mẫu).
 class _SourceLabel extends StatelessWidget {
   final String text;
   final bool ai;
   const _SourceLabel({required this.text, required this.ai});
 
+  /// Icon và [text]. Không bấm được.
   @override
   Widget build(BuildContext context) {
     final fg = ai ? AppColors.goldText : AppColors.neutral;
@@ -229,10 +237,12 @@ class _SourceLabel extends StatelessWidget {
   }
 }
 
+/// Một dòng gạch đầu dòng trong điểm nổi bật.
 class _Bullet extends StatelessWidget {
   final String text;
   const _Bullet(this.text);
 
+  /// [text] xuống dòng được. Không parse markdown.
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 4),
@@ -253,6 +263,7 @@ class _AttentionRow extends StatelessWidget {
   final AttentionItem item;
   const _AttentionRow({required this.item});
 
+  /// Icon khác nhau cho ngừng phục vụ và quá hạn. Nút chuyển `/dashboard?phong=`.
   @override
   Widget build(BuildContext context) {
     final oos = item.type == 'OUT_OF_SERVICE';
