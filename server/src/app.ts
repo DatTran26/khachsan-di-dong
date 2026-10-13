@@ -14,6 +14,15 @@ import { roomsRouter } from './modules/rooms/rooms.routes.js';
 import { staysRouter } from './modules/stays/stays.routes.js';
 import { usersRouter } from './modules/users/users.routes.js';
 
+/**
+ * Dựng ứng dụng Express: CORS, JSON body, toàn bộ router `/api/*`, rồi 404 và error handler.
+ *
+ * Không lắng nghe cổng — `server.ts` bọc bằng `http.createServer` để gắn Socket.IO cùng cổng.
+ * `express.json()` dùng limit mặc định của Express (khoảng 100 KB). Ảnh nghiệm thu không
+ * đi qua parser này; route housekeeping gắn `express.raw` riêng.
+ * CORS đọc `process.env.CORS_ORIGINS` tại lúc gọi, cùng quy tắc với socket.
+ * @returns App đã gắn middleware. Chưa có realtime.
+ */
 export function createApp() {
   const app = express();
   app.use(cors(corsOptions(process.env.CORS_ORIGINS)));
