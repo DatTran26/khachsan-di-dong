@@ -3,6 +3,10 @@
  * - auth-roles brainstorm mục 7.2 (wording đã chốt, FR-auth-roles-018)
  * - realtime-sync / audit-log error matrix
  * Câu nào docs chưa có được đánh dấu "(bổ sung)" để nhóm duyệt.
+ *
+ * Các thuộc tính là chuỗi cố định hoặc hàm thuần trả về một chuỗi. Chúng không đọc
+ * CSDL và không được ghi vào nhật ký khi nội dung chứa mật khẩu tạm — chỗ gọi phải
+ * tách câu hiển thị khỏi `changes`.
  */
 export const MSG = {
   // auth-roles 7.2
@@ -16,12 +20,16 @@ export const MSG = {
   mustChangePassword: 'Bạn đang dùng mật khẩu tạm — vui lòng đặt mật khẩu mới để tiếp tục.',
   sessionRevoked: 'Tài khoản vừa đăng nhập trên thiết bị khác (hoặc đã bị khóa) — phiên này đã kết thúc.',
   passwordChanged: 'Đổi mật khẩu thành công.',
+  /** @param fullName Họ tên vừa tạo. @param tempPassword MK tạm plaintext — chỉ để hiện một lần, không ghi nhật ký. */
   accountCreated: (fullName: string, tempPassword: string) =>
     `Đã tạo tài khoản cho ${fullName}. Mật khẩu tạm: ${tempPassword} — hãy chuyển cho nhân viên.`,
+  /** @param fullName Họ tên tài khoản vừa bị khóa bởi quản lý/lễ tân. */
   accountLockedDone: (fullName: string) => `Đã khóa tài khoản ${fullName}.`,
+  /** @param tempPassword MK tạm mới sau khi mở khóa. */
   accountUnlocked: (tempPassword: string) => `Đã mở khóa tài khoản. Mật khẩu tạm mới: ${tempPassword}`,
 
   // room-catalog error matrix (mục 6)
+  /** @param number Số phòng bị trùng, đã chuẩn hóa thành chuỗi. */
   roomNumberTaken: (number: string) => `Số phòng ${number} đã tồn tại trong danh mục.`,
   roomDeleteBusy: 'Không thể xóa — phòng đang có khách / có việc đang mở.',
   roomDeleteHasHistory: "Phòng đã có lịch sử hoạt động — không xóa được. Hãy đặt 'Ngừng phục vụ' để rút phòng khỏi vận hành.",
@@ -31,6 +39,7 @@ export const MSG = {
 
   // check-in-out error matrix (mục 6)
   checkInOccupied: 'Phòng đang có khách — không thể nhận.',
+  /** @param cleaningLabel Nhãn tiếng Việt của trục vệ sinh hiện tại (`CLEANING_LABELS`). */
   checkInNotClean: (cleaningLabel: string) => `Phòng chưa dọn xong (${cleaningLabel}) — không thể nhận.`,
   checkInOutOfService: 'Phòng đang ngừng phục vụ — không thể nhận.',
   guestNameRequired: 'Vui lòng nhập tên khách.',
@@ -53,6 +62,7 @@ export const MSG = {
   summaryInProgress: 'Đang có một tóm tắt được tạo — vui lòng chờ.',
   summaryLabelAi: 'Tham khảo — tóm tắt do AI tạo, không thay quyết định vận hành',
   summaryLabelFallback: 'Báo cáo mẫu — dữ liệu gốc, chưa qua AI',
+  /** @param time Mốc giờ Việt Nam đã format, không phải `Date`. */
   summaryDataAsOf: (time: string) => `Dữ liệu tính đến ${time}`,
 
   // realtime-sync E-002, audit-log E-005
@@ -65,6 +75,7 @@ export const MSG = {
   lastManagerRole: 'Không thể đổi vai trò — đây là tài khoản quản lý cuối cùng.',
   cannotLockSelf: 'Bạn không thể tự khóa tài khoản của mình.',
   notLocked: 'Tài khoản này không ở trạng thái bị khóa.',
+  /** @param tempPassword MK tạm mới. Người gọi trả về API một lần, không ghi vào `changes`. */
   passwordReset: (tempPassword: string) => `Đã đặt lại mật khẩu. Mật khẩu tạm mới: ${tempPassword}`,
   accountUpdated: 'Đã cập nhật tài khoản.',
   loginRequired: 'Vui lòng đăng nhập để tiếp tục.',
@@ -73,14 +84,21 @@ export const MSG = {
   occupiedConfirmRequired: 'Phòng đang có khách — khách vẫn ở hết kỳ. Xác nhận lại để đặt ngừng phục vụ.',
   roomHasOpenMaintenance: 'Phòng còn việc bảo trì đang mở — chưa thể mở lại phục vụ.',
   roomTypeInactive: 'Loại phòng này đang ngừng dùng — vui lòng chọn loại khác.',
+  /** @param name Tên loại phòng bị trùng (so khớp unique ở CSDL). */
   roomTypeTaken: (name: string) => `Loại phòng ${name} đã tồn tại.`,
   guestCountInvalid: 'Số người phải từ 1 trở lên.',
   // housekeeping / maintenance — thông báo đẩy (bổ sung)
+  /** @param room Nhãn phòng (`Phòng 203`), không phải UUID. */
   taskAssignedToYou: (room: string) => `Bạn có việc dọn mới: ${room}.`,
+  /** @param room Nhãn phòng vừa được báo hoàn tất. */
   taskPendingConfirm: (room: string) => `${room} đã dọn xong — chờ quản lý xác nhận.`,
+  /** @param room Nhãn phòng. @param note Ghi chú trả lại, đã bắt buộc khác rỗng ở route. */
   taskReturned: (room: string, note: string) => `Việc dọn ${room} bị trả lại: ${note}`,
+  /** @param room Nhãn phòng của việc dọn vừa bị cờ quá hạn. */
   taskOverdue: (room: string) => `Việc dọn ${room} đã quá hạn.`,
+  /** @param room Nhãn phòng của việc sửa vừa bị cờ quá hạn. */
   maintenanceOverdue: (room: string) => `Việc sửa ${room} đã quá hạn.`,
+  /** @param room Nhãn phòng vừa có báo hỏng. */
   maintenanceReported: (room: string) => `Có báo hỏng mới ở ${room}.`,
   maintenanceAlreadyOpen: 'Phòng này đang có việc bảo trì mở — vẫn đã ghi nhận báo hỏng mới.',
   assigneeNotOnDuty: 'Người được chọn không phải nhân viên buồng phòng–bảo trì đang trực.',
@@ -89,10 +107,16 @@ export const MSG = {
   // housekeeping — ảnh nghiệm thu (bổ sung)
   closeupRequired: 'Đã đánh dấu bất thường — cần thêm ảnh cận cảnh trước khi báo hoàn tất.',
   photoInvalidType: 'Ảnh phải là tệp JPG, PNG hoặc WEBP.',
+  /** @param maxMb Trần cấu hình `PHOTO_MAX_MB`, không phải kích thước tệp thực. */
   photoTooLarge: (maxMb: number) => `Ảnh vượt quá ${maxMb} MB — vui lòng chụp lại hoặc giảm chất lượng.`,
   photoLocked: 'Chỉ thêm/xóa ảnh khi việc đang làm và ảnh thuộc lượt hiện tại.',
+  /** @param max Số ảnh cận cảnh tối đa của một lượt (`MAX_CLOSEUPS`). */
   tooManyCloseups: (max: number) => `Tối đa ${max} ảnh cận cảnh cho một lần nghiệm thu.`,
   bulkRangeInvalid: 'Khoảng số phòng không hợp lệ — số đầu phải nhỏ hơn hoặc bằng số cuối, tối đa 100 phòng mỗi lần.',
+  /**
+   * @param created Số phòng thực sự insert.
+   * @param skipped Số phòng đã có sẵn, bị bỏ qua. Rỗng thì câu không liệt kê số.
+   */
   bulkCreated: (created: number, skipped: string[]) =>
     skipped.length
       ? `Đã tạo ${created} phòng. Bỏ qua ${skipped.length} số đã tồn tại: ${skipped.join(', ')}.`
