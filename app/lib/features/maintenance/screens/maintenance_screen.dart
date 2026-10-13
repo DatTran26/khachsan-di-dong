@@ -8,6 +8,7 @@ import '../../../models/user.dart';
 import '../../../shared/utils/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/widgets/task_link.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
@@ -97,7 +98,7 @@ StatusTone _tone(MaintenanceStatus s) => switch (s) {
       MaintenanceStatus.cancelled => StatusTone.neutral,
     };
 
-class _TaskCard extends StatelessWidget {
+class _TaskCard extends ConsumerWidget {
   final MaintenanceTask task;
   final List<Widget> actions;
   final bool large;
@@ -106,10 +107,12 @@ class _TaskCard extends StatelessWidget {
       {required this.task, required this.actions, this.large = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final fmt = DateFormat('HH:mm dd/MM');
     final active = task.status == MaintenanceStatus.open ||
         task.status == MaintenanceStatus.inProgress;
+    openIfLinked(
+        context, ref, task.id, () => _showDetail(context, task, actions));
     return AppCard(
       padding: EdgeInsets.all(large ? 14 : 12),
       borderColor: task.isOverdue && active ? AppColors.danger : null,

@@ -620,8 +620,8 @@ class _OverdueSection extends ConsumerWidget {
                   ),
                   if (!t.isHousekeeping || isManager)
                     TextButton(
-                      onPressed: () => context
-                          .go(t.isHousekeeping ? '/don-phong' : '/bao-tri'),
+                      onPressed: () => context.go(
+                          '${t.isHousekeeping ? '/don-phong' : '/bao-tri'}?viec=${t.taskId}'),
                       child: const Text('Mở việc'),
                     ),
                 ],

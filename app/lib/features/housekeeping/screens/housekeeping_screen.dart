@@ -8,6 +8,7 @@ import '../../../models/user.dart';
 import '../../../shared/utils/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/widgets/task_link.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../maintenance/widgets/report_issue_dialog.dart';
@@ -481,6 +482,8 @@ class _ManagerTaskCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final hm = DateFormat('HH:mm');
     final actions = _actions(context, ref);
+    openIfLinked(context, ref, task.id,
+        () => _showDetail(context, task, _actions(context, ref, large: true)));
     return AppCard(
       padding: const EdgeInsets.all(12),
       borderColor: task.isOverdue
@@ -671,6 +674,8 @@ class _StaffTaskCard extends ConsumerWidget {
     final started = task.startedAt != null
         ? ' · bắt đầu ${DateFormat('HH:mm').format(task.startedAt!.toLocal())}'
         : '';
+    openIfLinked(context, ref, task.id,
+        () => _showDetail(context, task, _actions(context, ref, vertical: true)));
     return AppCard(
       padding: const EdgeInsets.all(14),
       borderColor: task.isOverdue ? AppColors.danger : null,
