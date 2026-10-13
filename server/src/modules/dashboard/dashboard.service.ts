@@ -3,7 +3,14 @@ import { prisma } from '../../lib/prisma.js';
 
 const roomRef = { select: { id: true, number: true } } as const;
 
-/** Việc quá hạn đang mở, kèm phòng — để tô cờ đúng ô phòng (FR-room-dashboard-006) và làm "việc cần chú ý" (AI FR-012). */
+/**
+ * Việc quá hạn đang mở, kèm phòng — để tô cờ đúng ô phòng (FR-room-dashboard-006)
+ * và làm "việc cần chú ý" (AI FR-012).
+ *
+ * Việc dọn: đã gắn `overdueFlaggedAt` và chưa `DONE` (kể cả đang chờ xác nhận).
+ * Việc sửa: đã gắn cờ và còn `OPEN` hoặc `IN_PROGRESS`. Không lọc theo vai trò.
+ * @returns Mảng phẳng, dọn trước rồi sửa, mỗi phần tử có `type`, `taskId`, `roomId`, `roomNumber`.
+ */
 export async function listOverdueTasks() {
   const [housekeeping, maintenance] = await Promise.all([
     prisma.housekeepingTask.findMany({
@@ -30,6 +37,10 @@ export async function listOverdueTasks() {
  * - "Cần dọn" CHỈ đếm `DIRTY` (đã chốt — room-dashboard PRD/URD); đang dọn / chờ kiểm tra trả riêng trong `cleaning`.
  * - Lấp đầy = phòng đang ở ÷ phòng có thể phục vụ × 100%; mẫu = 0 → `rate: null` ("không áp dụng").
  * - `overdue.tasks`: từng việc quá hạn + phòng → client tô cờ ô phòng; cập nhật tiếp qua sự kiện `*:task_updated`.
+ *
+ * Không nhận filter. Đọc toàn bộ phòng mỗi lần gọi — không cache.
+ * Tử số lấp đầy là mọi phòng `OCCUPIED`, mẫu số là tổng phòng trừ phòng `OUT_OF_SERVICE`.
+ * @returns Object chỉ số kèm `asOf`. `occupancy.rate` là phần trăm một chữ số thập phân, hoặc `null`.
  */
 export async function getSummary() {
   const [rooms, overdueTasks] = await Promise.all([
