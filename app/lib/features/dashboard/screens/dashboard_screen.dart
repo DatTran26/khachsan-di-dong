@@ -126,7 +126,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ref.read(dashboardSummaryProvider.notifier).load(),
             )
           else
-            _StatsGrid(summary: summary),
+            _StatsGrid(
+              summary: summary,
+              group: _group,
+              // Bấm thẻ chỉ số = lọc lưới theo nhóm đó; bấm lại thẻ đang chọn = bỏ lọc.
+              onSelect: (g) =>
+                  setState(() => _group = _group == g ? _Group.all : g),
+            ),
           const SizedBox(height: 20),
           Wrap(
             spacing: 8,
@@ -245,34 +251,57 @@ class _FloorHeader extends StatelessWidget {
 
 class _StatsGrid extends StatelessWidget {
   final DashboardSummary summary;
-  const _StatsGrid({required this.summary});
+  final _Group group;
+  final ValueChanged<_Group> onSelect;
+  const _StatsGrid(
+      {required this.summary, required this.group, required this.onSelect});
+
+  _StatCard _card(_Group g,
+          {required String label,
+          required String value,
+          required String sub,
+          required Color color,
+          bool alert = false,
+          bool hero = false}) =>
+      _StatCard(
+        label: label,
+        value: value,
+        sub: sub,
+        color: color,
+        alert: alert,
+        hero: hero,
+        selected: group == g,
+        onTap: () => onSelect(g),
+      );
 
   @override
   Widget build(BuildContext context) {
     final cards = [
-      _StatCard(
+      _card(_Group.occupied,
           label: 'Đang ở',
           value: '${summary.occupied}',
           sub: 'phòng có khách',
           color: AppColors.occupied),
-      _StatCard(
+      _card(_Group.ready,
           label: 'Sẵn sàng',
           value: '${summary.ready}',
           sub: 'nhận khách được ngay',
           color: AppColors.ready),
-      _StatCard(
+      _card(
+        _Group.needsCleaning,
         label: 'Cần dọn',
         value: '${summary.needsCleaning}',
         sub:
             '+${summary.cleaningNow} đang dọn · ${summary.pendingInspection} chờ kiểm tra',
         color: AppColors.dirty,
       ),
-      _StatCard(
+      _card(_Group.outOfService,
           label: 'Ngừng phục vụ',
           value: '${summary.outOfService}',
           sub: 'đang chờ sửa',
           color: AppColors.oos),
-      _StatCard(
+      _card(
+        _Group.overdue,
         label: 'Quá hạn',
         value: '${summary.overdueTotal}',
         sub:
@@ -280,7 +309,9 @@ class _StatsGrid extends StatelessWidget {
         color: AppColors.danger,
         alert: summary.overdueTotal > 0,
       ),
-      _StatCard(
+      // Lấp đầy = phòng đang ở ÷ phòng phục vụ được → lọc các phòng đang ở.
+      _card(
+        _Group.occupied,
         label: 'Lấp đầy',
         value: summary.occupancyRateLabel,
         sub:
@@ -313,14 +344,18 @@ class _StatCard extends StatelessWidget {
   final Color color;
   final bool alert;
   final bool hero;
+  final bool selected;
+  final VoidCallback onTap;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.sub,
     required this.color,
+    required this.onTap,
     this.alert = false,
     this.hero = false,
+    this.selected = false,
   });
 
   @override
@@ -328,66 +363,81 @@ class _StatCard extends StatelessWidget {
     final bg = hero
         ? AppColors.espresso
         : (alert ? const Color(0xFFFFF8F8) : AppColors.surface);
-    final border = hero
-        ? AppColors.espresso
-        : (alert ? const Color(0xFFF2C4C6) : AppColors.border);
+    // Đang lọc theo thẻ này → viền vàng dày, như ô phòng đang chọn.
+    final border = selected
+        ? (hero ? AppColors.goldLight : AppColors.gold)
+        : hero
+            ? AppColors.espresso
+            : (alert ? const Color(0xFFF2C4C6) : AppColors.border);
     final labelColor = hero
         ? AppColors.onDarkMuted
         : (alert ? AppColors.danger : AppColors.muted);
     final valueColor = hero
         ? AppColors.goldLight
         : (alert ? AppColors.danger : AppColors.text);
-    return Container(
-      // Cao đủ cho nhãn + số + 2 dòng mô tả; co giãn theo cỡ chữ hệ thống để không tràn.
-      height: MediaQuery.textScalerOf(context).scale(134),
-      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-      decoration: BoxDecoration(
+    final radius = BorderRadius.circular(AppTheme.radiusMd);
+    return Semantics(
+      button: true,
+      selected: selected,
+      hint: selected ? 'Bấm để bỏ lọc' : 'Bấm để lọc lưới phòng',
+      child: Material(
         color: bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(3)),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(label,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: border, width: selected ? 2 : 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            // Cao đủ cho nhãn + số + 2 dòng mô tả; co giãn theo cỡ chữ hệ thống để không tràn.
+            height: MediaQuery.textScalerOf(context).scale(134),
+            padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                          color: color, borderRadius: BorderRadius.circular(3)),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(label,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: labelColor,
+                              fontWeight: FontWeight.w500)),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(value,
+                      style: TextStyle(
+                          fontSize: 28,
+                          height: 1.15,
+                          fontWeight: FontWeight.w700,
+                          color: valueColor)),
+                ),
+                const SizedBox(height: 2),
+                Text(sub,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 13,
-                        color: labelColor,
-                        fontWeight: FontWeight.w500)),
-              ),
-            ],
+                        fontSize: 12,
+                        height: 1.3,
+                        color: hero ? AppColors.onDarkMuted : AppColors.muted)),
+              ],
+            ),
           ),
-          const Spacer(),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 28,
-                    height: 1.15,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor)),
-          ),
-          const SizedBox(height: 2),
-          Text(sub,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 12,
-                  height: 1.3,
-                  color: hero ? AppColors.onDarkMuted : AppColors.muted)),
-        ],
+        ),
       ),
     );
   }

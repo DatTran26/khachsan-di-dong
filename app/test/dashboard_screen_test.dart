@@ -103,6 +103,28 @@ void main() {
     }
   });
 
+  testWidgets('bấm thẻ chỉ số = lọc lưới; bấm lại thì bỏ lọc', (tester) async {
+    await _pump(tester, _summary());
+    await tester.tap(find.text('đang chờ sửa')); // thẻ "Ngừng phục vụ"
+    await tester.pump();
+    expect(_tile('103'), findsOneWidget);
+    for (final n in ['101', '102', '104', '201']) {
+      expect(_tile(n), findsNothing);
+    }
+    await tester.tap(find.text('đang chờ sửa'));
+    await tester.pump();
+    expect(_tile('101'), findsOneWidget);
+  });
+
+  testWidgets(
+      'ô phòng: 2 trạng thái; chỉ phòng ngừng phục vụ hiện thêm dòng đó',
+      (tester) async {
+    await _pump(tester, _summary());
+    expect(find.text('Đang phục vụ'), findsNothing);
+    // Ô 103 + nhãn thẻ chỉ số (nút lọc ghi "Ngừng phục vụ · 1" nên không tính).
+    expect(find.text('Ngừng phục vụ'), findsNWidgets(2));
+  });
+
   testWidgets('lọc "Cần dọn" chỉ đếm phòng cần dọn', (tester) async {
     await _pump(tester, _summary());
     await tester.tap(find.text('Cần dọn · 1'));
