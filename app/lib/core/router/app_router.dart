@@ -11,6 +11,7 @@ import '../../features/stays/screens/stays_screen.dart';
 import '../../features/housekeeping/screens/housekeeping_screen.dart';
 import '../../features/maintenance/screens/maintenance_screen.dart';
 import '../../features/audit/screens/audit_screen.dart';
+import '../../features/ai_summary/screens/ai_summary_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
 import 'nav.dart';
 
@@ -63,7 +64,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (_, __) => const DashboardScreen(),
+            // `?phong=<id>`: mở sẵn chi tiết phòng (đi từ việc cần chú ý / cảnh báo quá hạn).
+            builder: (_, state) => DashboardScreen(
+                openRoomId: state.uri.queryParameters['phong']),
+          ),
+          GoRoute(
+            path: '/tom-tat',
+            builder: (_, __) => const AiSummaryScreen(),
           ),
           GoRoute(
             path: '/phong',

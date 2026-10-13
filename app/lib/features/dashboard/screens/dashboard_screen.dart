@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/room.dart';
 import '../../../shared/widgets/room_tile.dart';
@@ -12,7 +13,10 @@ enum _Group { all, ready, occupied, needsCleaning, outOfService, overdue }
 
 /// Tổng quan (room-dashboard): 6 chỉ số tại thời điểm xem + lưới phòng realtime theo tầng.
 class DashboardScreen extends ConsumerStatefulWidget {
-  const DashboardScreen({super.key});
+  /// Phòng cần mở chi tiết ngay khi vào màn (`/dashboard?phong=<id>`).
+  final String? openRoomId;
+
+  const DashboardScreen({super.key, this.openRoomId});
 
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
@@ -21,6 +25,29 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int? _floor;
   _Group _group = _Group.all;
+
+  @override
+  void initState() {
+    super.initState();
+    _openRequestedRoom();
+  }
+
+  @override
+  void didUpdateWidget(DashboardScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.openRoomId != old.openRoomId) _openRequestedRoom();
+  }
+
+  /// Bỏ `?phong=` khỏi đường dẫn rồi mở chi tiết phòng — lần sau đi tới cùng phòng vẫn mở lại được.
+  void _openRequestedRoom() {
+    final roomId = widget.openRoomId;
+    if (roomId == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.go('/dashboard');
+      showRoomDetailSheet(context, roomId);
+    });
+  }
 
   bool _matches(Room r, Set<String> overdue) {
     if (_floor != null && r.floor != _floor) return false;

@@ -86,9 +86,15 @@ class ApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body}) async {
+  /// [receiveTimeout]: chờ lâu hơn mặc định cho lệnh chậm có chủ đích (vd tạo tóm tắt AI, server chờ AI ≤15s).
+  Future<Map<String, dynamic>> post(String path,
+      {Map<String, dynamic>? body, Duration? receiveTimeout}) async {
     try {
-      final res = await _dio.post<Map<String, dynamic>>(path, data: body);
+      final res = await _dio.post<Map<String, dynamic>>(path,
+          data: body,
+          options: receiveTimeout == null
+              ? null
+              : Options(receiveTimeout: receiveTimeout));
       return res.data!;
     } catch (e) {
       throw _wrap(e);
