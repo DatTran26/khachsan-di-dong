@@ -441,6 +441,7 @@ model AiSummary {
   failureReason SummaryFailure? @map("failure_reason")
   costVnd       Int             @default(0) @map("cost_vnd") // chi phí lượt gọi AI (ước tính tối đa nếu không có usage)
   model         String?         @db.VarChar(60)
+  schemaVersion Int             @default(1) @map("schema_version") // phiên bản dạng dữ liệu gửi AI / đầu ra / metrics / attention
   createdById   String          @map("created_by_id") @db.Uuid
   createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz
 

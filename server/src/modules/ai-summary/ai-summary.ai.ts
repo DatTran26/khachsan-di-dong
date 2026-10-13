@@ -6,6 +6,13 @@ import { env } from '../../config/env.js';
  * `aiClient.generate` tách riêng để test thay bằng bản giả (không gọi mạng thật trong test).
  */
 
+/**
+ * Phiên bản dạng dữ liệu tóm tắt: gói gửi AI, cấu trúc đầu ra (SCHEMA), `metrics`, `attention` lưu trong DB.
+ * Đổi bất kỳ dạng nào ở trên → tăng số này. Bản lưu khác phiên bản không được trả lại làm "bản gần nhất"
+ * (app đọc theo dạng hiện tại) — tạo bản mới thay vì đọc sai.
+ */
+export const SUMMARY_SCHEMA_VERSION = 1;
+
 export const MAX_OUTPUT_TOKENS = 1_000;
 /** Ước lượng token đầu vào tối đa của 1 lượt (prompt + số liệu ~ vài nghìn ký tự) — dùng để chặn trước khi gọi. */
 const MAX_INPUT_TOKENS = 4_000;
@@ -75,7 +82,9 @@ export const aiClient = {
           input: JSON.stringify(payload),
           max_output_tokens: MAX_OUTPUT_TOKENS,
           store: false,
-          text: { format: { type: 'json_schema', name: 'tom_tat_van_hanh', strict: true, schema: SCHEMA } },
+          text: {
+            format: { type: 'json_schema', name: `tom_tat_van_hanh_v${SUMMARY_SCHEMA_VERSION}`, strict: true, schema: SCHEMA },
+          },
         }),
         signal: AbortSignal.timeout(env.AI_TIMEOUT_MS),
       });

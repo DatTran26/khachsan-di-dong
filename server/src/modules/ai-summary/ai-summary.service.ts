@@ -4,7 +4,15 @@ import { writeAudit } from '../../lib/audit.js';
 import { AppError } from '../../lib/errors.js';
 import { MSG } from '../../lib/messages.js';
 import { prisma } from '../../lib/prisma.js';
-import { AiFormatError, AiTimeoutError, MAX_CALL_COST_VND, aiClient, costOf, type AiOutput } from './ai-summary.ai.js';
+import {
+  AiFormatError,
+  AiTimeoutError,
+  MAX_CALL_COST_VND,
+  SUMMARY_SCHEMA_VERSION,
+  aiClient,
+  costOf,
+  type AiOutput,
+} from './ai-summary.ai.js';
 import { ACTIVITY_LABELS, buildPeriodMetrics, type AttentionItem, type PeriodMetrics } from './ai-summary.metrics.js';
 import { formatVnTime, periodLabel, resolvePeriod, type PeriodRange } from './ai-summary.period.js';
 import { validateAiOutput } from './ai-summary.validate.js';
@@ -90,6 +98,7 @@ export function toSummaryDto(s: AiSummary & { createdBy: Pick<User, 'id' | 'full
   return {
     id: s.id,
     period: s.period,
+    schemaVersion: s.schemaVersion,
     periodLabel: periodLabel(s.period, s.periodStart),
     periodStart: s.periodStart,
     periodEnd: s.periodEnd,
@@ -184,6 +193,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
         failureReason: outcome.failureReason,
         costVnd: outcome.costVnd,
         model: outcome.calledAi ? env.OPENAI_MODEL : null,
+        schemaVersion: SUMMARY_SCHEMA_VERSION,
         createdById: actor.id,
       },
       include: createdByInclude,
@@ -219,12 +229,16 @@ export async function createSummary(actor: User, period: SummaryPeriod, now: Dat
   }
 }
 
-/** Bản gần nhất của mỗi kỳ — xem lại không gọi AI (FR-013). */
+/** Bản gần nhất của mỗi kỳ — xem lại không gọi AI (FR-013). Chỉ lấy bản cùng phiên bản dạng dữ liệu hiện tại. */
 export async function latestSummaries() {
   const periods: SummaryPeriod[] = ['CURRENT_SHIFT', 'PREVIOUS_SHIFT', 'TODAY'];
   const rows = await Promise.all(
     periods.map((period) =>
-      prisma.aiSummary.findFirst({ where: { period }, orderBy: { createdAt: 'desc' }, include: createdByInclude }),
+      prisma.aiSummary.findFirst({
+        where: { period, schemaVersion: SUMMARY_SCHEMA_VERSION },
+        orderBy: { createdAt: 'desc' },
+        include: createdByInclude,
+      }),
     ),
   );
   return Object.fromEntries(periods.map((p, i) => [p, rows[i] ? toSummaryDto(rows[i]) : null]));

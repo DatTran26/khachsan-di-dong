@@ -15,6 +15,7 @@ import {
   AiServiceError,
   AiTimeoutError,
   MAX_CALL_COST_VND,
+  SUMMARY_SCHEMA_VERSION,
   aiClient,
   costOf,
   type AiOutput,
@@ -315,6 +316,29 @@ describe('Một lượt mỗi lúc, xem lại, quyền (FR-008, FR-011, FR-013)'
     expect(res.body.data.TODAY.id).toBe(made.body.data.id);
     expect(Object.keys(res.body.data).sort()).toEqual(['CURRENT_SHIFT', 'PREVIOUS_SHIFT', 'TODAY']);
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('S3-BAO-012: bản lưu mang phiên bản dạng dữ liệu; bản khác phiên bản không trả làm bản gần nhất', async () => {
+    vi.spyOn(aiClient, 'generate').mockImplementation(async (payload) => ({ output: goodOutput(payload), usage: USAGE }));
+    const made = await create(manager.auth, 'PREVIOUS_SHIFT');
+    expect(made.body.data.schemaVersion).toBe(SUMMARY_SCHEMA_VERSION);
+
+    // Bản dạng dữ liệu cũ (vd do bản server trước ghi) nhưng mới hơn về thời gian → phải bị bỏ qua.
+    const row = await prisma.aiSummary.findUniqueOrThrow({ where: { id: made.body.data.id } });
+    const { id: _id, createdAt: _at, ...rest } = row;
+    await prisma.aiSummary.create({
+      data: {
+        ...rest,
+        highlights: rest.highlights as never,
+        attention: rest.attention as never,
+        metrics: rest.metrics as never,
+        schemaVersion: SUMMARY_SCHEMA_VERSION - 1,
+        createdAt: new Date(Date.now() + 60_000),
+      },
+    });
+
+    const res = await request(app).get('/api/ai-summaries/latest').set(manager.auth);
+    expect(res.body.data.PREVIOUS_SHIFT.id).toBe(made.body.data.id);
   });
 
   it('E-006 / BR-001: lễ tân, nhân viên không tạo / xem được', async () => {
