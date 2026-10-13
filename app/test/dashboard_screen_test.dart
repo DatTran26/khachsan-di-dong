@@ -4,52 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
 import 'package:khachsan_di_dong/features/dashboard/screens/dashboard_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
-import 'package:khachsan_di_dong/models/room.dart';
 
-class _FakeRooms extends RoomsNotifier {
-  _FakeRooms(List<Room> rooms) {
-    state = RoomsState(rooms: rooms);
-  }
-
-  @override
-  Future<void> load() async {}
-}
-
-class _FakeSummary extends DashboardSummaryNotifier {
-  _FakeSummary(DashboardSummary summary) {
-    state = DashboardSummaryState(summary: summary);
-  }
-
-  @override
-  Future<void> load({bool silent = false}) async {}
-}
-
-Room _room(String number,
-        {String occupancy = 'VACANT',
-        String cleaning = 'CLEAN',
-        String service = 'IN_SERVICE'}) =>
-    Room.fromJson({
-      'id': 'r$number',
-      'number': number,
-      'floor': int.parse(number[0]),
-      'roomType': {'id': 'std', 'name': 'Standard'},
-      'occupancy': occupancy,
-      'cleaning': cleaning,
-      'service': service,
-      'isReady': occupancy == 'VACANT' &&
-          cleaning == 'CLEAN' &&
-          service == 'IN_SERVICE',
-      'version': 1,
-      'updatedAt': '2026-10-13T00:00:00.000Z',
-    });
+import 'support/fakes.dart';
 
 /// 101 đang ở, 102 cần dọn + quá hạn, 103 ngừng phục vụ, 104 và 201 sẵn sàng.
 final _rooms = [
-  _room('101', occupancy: 'OCCUPIED'),
-  _room('102', cleaning: 'DIRTY'),
-  _room('103', service: 'OUT_OF_SERVICE'),
-  _room('104'),
-  _room('201'),
+  fakeRoom('101', occupancy: 'OCCUPIED'),
+  fakeRoom('102', cleaning: 'DIRTY'),
+  fakeRoom('103', service: 'OUT_OF_SERVICE'),
+  fakeRoom('104'),
+  fakeRoom('201'),
 ];
 
 DashboardSummary _summary({int occupied = 1, int serviceable = 3}) =>
@@ -91,8 +55,9 @@ Future<void> _pump(WidgetTester tester, DashboardSummary summary) async {
   addTearDown(tester.view.reset);
   await tester.pumpWidget(ProviderScope(
     overrides: [
-      roomsProvider.overrideWith((ref) => _FakeRooms(_rooms)),
-      dashboardSummaryProvider.overrideWith((ref) => _FakeSummary(summary)),
+      roomsProvider.overrideWith((ref) => FakeRooms(_rooms)),
+      dashboardSummaryProvider
+          .overrideWith((ref) => FakeDashboardSummary(summary)),
     ],
     child: const MaterialApp(home: Scaffold(body: DashboardScreen())),
   ));

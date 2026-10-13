@@ -1,29 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:khachsan_di_dong/core/api/api_client.dart';
 import 'package:khachsan_di_dong/features/ai_summary/providers/ai_summary_provider.dart';
 import 'package:khachsan_di_dong/features/ai_summary/screens/ai_summary_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
 import 'package:khachsan_di_dong/models/ai_summary.dart';
 
-/// Notifier giả: không gọi API, đếm số lần bấm tạo.
-class _FakeAiSummary extends AiSummaryNotifier {
-  _FakeAiSummary(AiSummaryState initial) {
-    state = initial;
-  }
-
-  int generateCalls = 0;
-
-  @override
-  Future<void> load() async {}
-
-  @override
-  Future<ApiException?> generate() async {
-    generateCalls++;
-    return null;
-  }
-}
+import 'support/fakes.dart';
 
 Map<String, dynamic> _summaryJson({
   required String source,
@@ -46,9 +29,9 @@ Map<String, dynamic> _summaryJson({
       'createdAt': '2026-10-13T00:46:00.000Z',
     };
 
-Future<_FakeAiSummary> _pump(WidgetTester tester, AiSummaryState state,
+Future<FakeAiSummary> _pump(WidgetTester tester, AiSummaryState state,
     {bool online = true}) async {
-  final fake = _FakeAiSummary(state);
+  final fake = FakeAiSummary(state);
   await tester.pumpWidget(ProviderScope(
     overrides: [
       aiSummaryProvider.overrideWith((ref) => fake),

@@ -381,7 +381,7 @@ class FilterPill extends StatelessWidget {
   }
 }
 
-/// Nhóm nút chọn một (vd lọc tầng).
+/// Nhóm nút chọn một (vd lọc tầng). Không đủ chỗ (màn hẹp, chữ phóng to) → cuộn ngang thay vì tràn.
 class SegmentedPills<T> extends StatelessWidget {
   final List<(T, String)> options;
   final T value;
@@ -400,41 +400,44 @@ class SegmentedPills<T> extends StatelessWidget {
       decoration: BoxDecoration(
           color: const Color(0xFFECE7DC),
           borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (v, label) in options)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Material(
-                color: v == value ? AppColors.surface : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                elevation: v == value ? 1 : 0,
-                shadowColor: Colors.black26,
-                child: InkWell(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (v, label) in options)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 1),
+                child: Material(
+                  color: v == value ? AppColors.surface : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () => onChanged(v),
-                  child: ConstrainedBox(
-                    constraints:
-                        const BoxConstraints(minWidth: 40, minHeight: 32),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Center(
-                        child: Text(label,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: v == value
-                                  ? AppColors.goldText
-                                  : AppColors.muted,
-                            )),
+                  elevation: v == value ? 1 : 0,
+                  shadowColor: Colors.black26,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => onChanged(v),
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(minWidth: 40, minHeight: 32),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Center(
+                          child: Text(label,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: v == value
+                                    ? AppColors.goldText
+                                    : AppColors.muted,
+                              )),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
