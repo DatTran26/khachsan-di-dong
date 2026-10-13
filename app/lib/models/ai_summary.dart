@@ -19,12 +19,35 @@ extension SummaryPeriodX on SummaryPeriod {
           orElse: () => SummaryPeriod.currentShift);
 }
 
+/// Hạn mức chi phí AI (NFR-ai-ops-summary-003) — chỉ để quản lý biết còn dùng AI được không.
+class AiBudget {
+  final bool aiConfigured;
+  final int budgetVnd;
+  final int spentVnd;
+  final bool exhausted;
+
+  const AiBudget({
+    required this.aiConfigured,
+    required this.budgetVnd,
+    required this.spentVnd,
+    required this.exhausted,
+  });
+
+  factory AiBudget.fromJson(Map<String, dynamic> json) => AiBudget(
+        aiConfigured: json['aiConfigured'] as bool,
+        budgetVnd: (json['budgetVnd'] as num).toInt(),
+        spentVnd: (json['spentVnd'] as num).toInt(),
+        exhausted: json['exhausted'] as bool,
+      );
+}
+
 /// AI: bản AI đã kiểm số liệu · FALLBACK: báo cáo mẫu · EMPTY: kỳ không có hoạt động.
 enum SummarySource { ai, fallback, empty }
 
 /// Việc cần chú ý — dựng theo quy tắc ở server, có phòng/việc để mở dashboard (FR-012).
 class AttentionItem {
-  final String type; // HOUSEKEEPING_OVERDUE | MAINTENANCE_OVERDUE | OUT_OF_SERVICE
+  final String
+      type; // HOUSEKEEPING_OVERDUE | MAINTENANCE_OVERDUE | OUT_OF_SERVICE
   final String roomId;
   final String roomNumber;
   final String? taskId;
@@ -93,9 +116,9 @@ class AiSummary {
         for (final a in (attention['items'] as List?) ?? const [])
           AttentionItem.fromJson(a as Map<String, dynamic>),
       ],
-      createdByName:
-          (json['createdBy'] as Map<String, dynamic>?)?['fullName'] as String? ??
-              '',
+      createdByName: (json['createdBy'] as Map<String, dynamic>?)?['fullName']
+              as String? ??
+          '',
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

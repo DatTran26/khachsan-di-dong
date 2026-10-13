@@ -145,6 +145,41 @@ void main() {
       expect(fake.generateCalls, 0);
     });
 
+    for (final (name, budget, expected) in [
+      (
+        'còn hạn mức',
+        const AiBudget(
+            aiConfigured: true,
+            budgetVnd: 300000,
+            spentVnd: 12000,
+            exhausted: false),
+        'Hạn mức AI: đã dùng 12.000 / 300.000 đ',
+      ),
+      (
+        'hết hạn mức',
+        const AiBudget(
+            aiConfigured: true,
+            budgetVnd: 300000,
+            spentVnd: 299500,
+            exhausted: true),
+        'Đã hết hạn mức AI (299.500 / 300.000 đ)',
+      ),
+      (
+        'chưa cấu hình',
+        const AiBudget(
+            aiConfigured: false,
+            budgetVnd: 300000,
+            spentVnd: 0,
+            exhausted: false),
+        'Chưa cấu hình dịch vụ AI',
+      ),
+    ]) {
+      testWidgets('dòng hạn mức — $name', (tester) async {
+        await _pump(tester, AiSummaryState(budget: budget));
+        expect(find.textContaining(expected), findsOneWidget);
+      });
+    }
+
     testWidgets('mất kết nối → khóa nút tạo', (tester) async {
       await _pump(tester, const AiSummaryState(), online: false);
       expect(

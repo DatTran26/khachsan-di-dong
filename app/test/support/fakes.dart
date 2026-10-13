@@ -41,6 +41,9 @@ class FakeAiSummary extends AiSummaryNotifier {
   Future<void> load() async {}
 
   @override
+  Future<void> loadBudget() async {}
+
+  @override
   Future<ApiException?> generate() async {
     generateCalls++;
     return null;

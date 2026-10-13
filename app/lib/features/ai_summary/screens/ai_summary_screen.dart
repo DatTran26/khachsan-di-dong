@@ -43,7 +43,8 @@ class AiSummaryScreen extends ConsumerWidget {
     } else if (summary == null) {
       body = EmptyState(
         icon: Icons.auto_awesome_outlined,
-        title: 'Chưa có bản tóm tắt nào cho ${state.period.label.toLowerCase()}.',
+        title:
+            'Chưa có bản tóm tắt nào cho ${state.period.label.toLowerCase()}.',
         message: 'Bấm "Tạo tóm tắt" để xem tình hình vận hành của kỳ này.',
       );
     } else {
@@ -61,6 +62,7 @@ class AiSummaryScreen extends ConsumerWidget {
               children: [
                 const MetaText(
                     'Tóm tắt chỉ để tham khảo, dựa trên số liệu tổng hợp — không chứa thông tin khách.'),
+                if (state.budget != null) _BudgetLine(budget: state.budget!),
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 12,
@@ -118,13 +120,43 @@ class AiSummaryScreen extends ConsumerWidget {
   }
 }
 
+/// Một dòng hạn mức AI — hết hạn mức / chưa cấu hình thì tạo vẫn ra báo cáo mẫu (FR-007, FR-009).
+class _BudgetLine extends StatelessWidget {
+  final AiBudget budget;
+  const _BudgetLine({required this.budget});
+
+  @override
+  Widget build(BuildContext context) {
+    final vnd = NumberFormat.decimalPattern('vi');
+    final (text, color) = !budget.aiConfigured
+        ? (
+            'Chưa cấu hình dịch vụ AI — tóm tắt sẽ là báo cáo mẫu từ dữ liệu gốc.',
+            AppColors.muted
+          )
+        : budget.exhausted
+            ? (
+                'Đã hết hạn mức AI (${vnd.format(budget.spentVnd)} / ${vnd.format(budget.budgetVnd)} đ) — tóm tắt sẽ là báo cáo mẫu.',
+                AppColors.danger
+              )
+            : (
+                'Hạn mức AI: đã dùng ${vnd.format(budget.spentVnd)} / ${vnd.format(budget.budgetVnd)} đ',
+                AppColors.muted
+              );
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: MetaText(text, color: color),
+    );
+  }
+}
+
 class _SummaryCard extends StatelessWidget {
   final AiSummary summary;
   const _SummaryCard({required this.summary});
 
   @override
   Widget build(BuildContext context) {
-    final created = DateFormat('HH:mm dd/MM').format(summary.createdAt.toLocal());
+    final created =
+        DateFormat('HH:mm dd/MM').format(summary.createdAt.toLocal());
     final isAi = summary.source == SummarySource.ai;
     return AppCard(
       padding: const EdgeInsets.all(20),

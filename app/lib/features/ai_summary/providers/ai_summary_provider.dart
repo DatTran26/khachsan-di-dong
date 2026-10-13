@@ -8,6 +8,9 @@ class AiSummaryState {
   /// Bản gần nhất của mỗi kỳ (FR-013) — xem lại không gọi AI.
   final Map<SummaryPeriod, AiSummary?> latest;
 
+  /// Hạn mức AI; null khi chưa tải được (không chặn việc tạo — server vẫn tự kiểm).
+  final AiBudget? budget;
+
   /// Thông báo kèm lượt tạo vừa xong (chưa cấu hình / hết hạn mức / AI lỗi / kỳ rỗng).
   final String? notice;
   final bool isLoading;
@@ -17,6 +20,7 @@ class AiSummaryState {
   const AiSummaryState({
     this.period = SummaryPeriod.currentShift,
     this.latest = const {},
+    this.budget,
     this.notice,
     this.isLoading = false,
     this.isGenerating = false,
@@ -28,6 +32,7 @@ class AiSummaryState {
   AiSummaryState copyWith({
     SummaryPeriod? period,
     Map<SummaryPeriod, AiSummary?>? latest,
+    AiBudget? budget,
     String? notice,
     bool clearNotice = false,
     bool? isLoading,
@@ -38,6 +43,7 @@ class AiSummaryState {
       AiSummaryState(
         period: period ?? this.period,
         latest: latest ?? this.latest,
+        budget: budget ?? this.budget,
         notice: clearNotice ? null : (notice ?? this.notice),
         isLoading: isLoading ?? this.isLoading,
         isGenerating: isGenerating ?? this.isGenerating,
@@ -48,6 +54,7 @@ class AiSummaryState {
 class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
   AiSummaryNotifier() : super(const AiSummaryState()) {
     load();
+    loadBudget();
   }
 
   Future<void> load() async {
@@ -68,6 +75,18 @@ class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
     } on ApiException catch (e) {
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  /// Hạn mức tải riêng, lỗi thì bỏ qua — chỉ là dòng thông tin phụ.
+  Future<void> loadBudget() async {
+    try {
+      final res = await apiClient.get('/ai-summaries/budget');
+      if (!mounted) return;
+      state = state.copyWith(
+          budget: AiBudget.fromJson(res['data'] as Map<String, dynamic>));
+    } on ApiException {
+      // Giữ hạn mức cũ (nếu có).
     }
   }
 
@@ -95,6 +114,7 @@ class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
             ? null
             : res['notice'] as String?,
       );
+      loadBudget(); // lượt vừa rồi có thể đã tốn chi phí
       return null;
     } on ApiException catch (e) {
       if (mounted) state = state.copyWith(isGenerating: false);
