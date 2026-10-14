@@ -9,7 +9,9 @@ enum HousekeepingStatus {
   done
 }
 
+/// Nhãn tiếng Việt và mã API của [HousekeepingStatus].
 extension HousekeepingStatusX on HousekeepingStatus {
+  /// Nhãn trên thẻ việc. `assigned` là "Chờ nhận" (đã giao, nhân viên chưa nhận).
   String get label {
     switch (this) {
       case HousekeepingStatus.unassigned:
@@ -25,6 +27,7 @@ extension HousekeepingStatusX on HousekeepingStatus {
     }
   }
 
+  /// Mã gửi/nhận API: `UNASSIGNED`, `ASSIGNED`, `IN_PROGRESS`, `PENDING_CONFIRM`, `DONE`.
   String get value {
     switch (this) {
       case HousekeepingStatus.unassigned:
@@ -40,6 +43,7 @@ extension HousekeepingStatusX on HousekeepingStatus {
     }
   }
 
+  /// Parse mã API. Giá trị lạ thành [HousekeepingStatus.unassigned], không ném.
   static HousekeepingStatus fromString(String v) {
     switch (v) {
       case 'ASSIGNED':
@@ -56,6 +60,7 @@ extension HousekeepingStatusX on HousekeepingStatus {
   }
 }
 
+/// Phòng rút gọn trên việc dọn: id, số, tầng.
 class HousekeepingRoomRef {
   final String id;
   final String number;
@@ -64,6 +69,7 @@ class HousekeepingRoomRef {
   const HousekeepingRoomRef(
       {required this.id, required this.number, required this.floor});
 
+  /// Dựng từ object `room` của DTO việc. Thiếu khóa thì ném khi ép kiểu.
   factory HousekeepingRoomRef.fromJson(Map<String, dynamic> json) =>
       HousekeepingRoomRef(
         id: json['id'] as String,
@@ -72,12 +78,14 @@ class HousekeepingRoomRef {
       );
 }
 
+/// Người được giao: id và họ tên. Null trên việc chưa giao.
 class HousekeepingAssigneeRef {
   final String id;
   final String fullName;
 
   const HousekeepingAssigneeRef({required this.id, required this.fullName});
 
+  /// Dựng từ object `assignee`. Thiếu khóa thì ném khi ép kiểu.
   factory HousekeepingAssigneeRef.fromJson(Map<String, dynamic> json) =>
       HousekeepingAssigneeRef(
         id: json['id'] as String,
@@ -85,6 +93,7 @@ class HousekeepingAssigneeRef {
       );
 }
 
+/// Một việc dọn. [isOverdue] và [version] do server tính/giữ, client không tự suy.
 class HousekeepingTask {
   final String id;
   final HousekeepingRoomRef room;
@@ -116,6 +125,7 @@ class HousekeepingTask {
     required this.version,
   });
 
+  /// Dựng từ DTO `/housekeeping/tasks`. Mốc thời gian null nếu server không gửi.
   factory HousekeepingTask.fromJson(Map<String, dynamic> json) =>
       HousekeepingTask(
         id: json['id'] as String,
@@ -145,6 +155,8 @@ class HousekeepingTask {
         version: json['version'] as int,
       );
 
+  /// Bản sao chỉ đổi [status], [isOverdue], [version]. Trường null giữ giá trị cũ.
+  /// Không đổi phòng, người giao hay ghi chú.
   HousekeepingTask copyWith(
           {HousekeepingStatus? status, bool? isOverdue, int? version}) =>
       HousekeepingTask(
