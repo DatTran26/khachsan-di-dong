@@ -16,23 +16,29 @@ class TaskLinkScope extends ConsumerStatefulWidget {
   const TaskLinkScope(
       {super.key, required this.path, this.taskId, required this.child});
 
+  /// Tạo state áp query việc.
   @override
   ConsumerState<TaskLinkScope> createState() => _TaskLinkScopeState();
 }
 
+/// Ghi id việc vào provider rồi bỏ query khỏi URL.
 class _TaskLinkScopeState extends ConsumerState<TaskLinkScope> {
+  /// Sau frame đầu, áp [TaskLinkScope.taskId] nếu có.
   @override
   void initState() {
     super.initState();
     _apply();
   }
 
+  /// [taskId] đổi thì áp lại. Cùng id không gọi.
   @override
   void didUpdateWidget(TaskLinkScope old) {
     super.didUpdateWidget(old);
     if (widget.taskId != old.taskId) _apply();
   }
 
+  /// Ghi [taskLinkProvider] rồi [GoRouter.go] tới [TaskLinkScope.path] không query.
+  /// Null thì không làm gì. Side effect sau frame.
   void _apply() {
     final taskId = widget.taskId;
     if (taskId == null) return;
@@ -43,6 +49,7 @@ class _TaskLinkScopeState extends ConsumerState<TaskLinkScope> {
     });
   }
 
+  /// Trả [child] nguyên. Không thêm chrome.
   @override
   Widget build(BuildContext context) => widget.child;
 }
