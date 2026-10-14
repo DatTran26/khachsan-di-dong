@@ -14,8 +14,13 @@ import { env } from '../../config/env.js';
 export const SUMMARY_SCHEMA_VERSION = 1;
 
 export const MAX_OUTPUT_TOKENS = 1_000;
-/** Ước lượng token đầu vào tối đa của 1 lượt (prompt + số liệu ~ vài nghìn ký tự) — dùng để chặn trước khi gọi. */
-const MAX_INPUT_TOKENS = 4_000;
+/**
+ * Token đầu vào tối đa của 1 lượt — dùng để chặn ngân sách trước khi gọi. Không phải ước lượng: gói gửi đi bị cắt
+ * cho tới khi `inputTokenBound` ≤ mức này (xem service), nên chi phí thật của 1 lượt luôn ≤ MAX_CALL_COST_VND.
+ */
+export const MAX_INPUT_TOKENS = 4_000;
+/** Phần token khung tin nhắn của API (vai trò, phân cách) — dư cho an toàn. */
+const FRAMING_TOKENS = 100;
 
 export interface AiOutput {
   overview: string;
@@ -68,6 +73,16 @@ const INSTRUCTIONS = [
   'Mục "attention" chỉ nêu các việc trong danh_sach_can_chu_y (giữ đúng số phòng); danh sách rỗng thì trả mảng rỗng.',
   'Không đưa ra quyết định thay quản lý, chỉ mô tả.',
 ].join('\n');
+
+/**
+ * Cận trên số token đầu vào: mỗi token của bộ mã hóa BPE ứng với ít nhất 1 byte UTF-8 → số token ≤ số byte của
+ * hướng dẫn + schema + dữ liệu, cộng phần khung. Tính hơi dư (tiếng Việt có dấu tốn nhiều byte) nhưng không bao giờ thiếu.
+ */
+export function inputTokenBound(payload: unknown) {
+  return (
+    Buffer.byteLength(INSTRUCTIONS) + Buffer.byteLength(JSON.stringify(SCHEMA)) + Buffer.byteLength(JSON.stringify(payload)) + FRAMING_TOKENS
+  );
+}
 
 export const aiClient = {
   async generate(payload: unknown): Promise<{ output: AiOutput; usage: AiUsage }> {

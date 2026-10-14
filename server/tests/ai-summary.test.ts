@@ -15,9 +15,11 @@ import {
   AiServiceError,
   AiTimeoutError,
   MAX_CALL_COST_VND,
+  MAX_INPUT_TOKENS,
   SUMMARY_SCHEMA_VERSION,
   aiClient,
   costOf,
+  inputTokenBound,
   type AiOutput,
 } from '../src/modules/ai-summary/ai-summary.ai.js';
 import { resolvePeriod } from '../src/modules/ai-summary/ai-summary.period.js';
@@ -286,6 +288,35 @@ describe('Báo cáo mẫu khi không dùng được AI (FR-007, FR-009, NFR-004,
       ]),
     );
     await prisma.housekeepingTask.delete({ where: { id: task.id } });
+  });
+
+  it('FR-009 / NFR-003: danh sách cần chú ý quá dài → cắt gói cho vừa trần token (giữ việc quá hạn), lưu đủ danh sách', async () => {
+    const overdueRoom = await prisma.room.create({ data: { number: `AIQ${tag}`, floor: 7, roomTypeId } });
+    const task = await prisma.housekeepingTask.create({
+      data: { roomId: overdueRoom.id, dueAt: new Date(Date.now() - 3_600_000), overdueFlaggedAt: new Date() },
+    });
+    await prisma.room.createMany({
+      data: Array.from({ length: 80 }, (_, i) => ({
+        number: `AIB${tag}${String(i).padStart(2, '0')}`,
+        floor: 7,
+        roomTypeId,
+        service: 'OUT_OF_SERVICE' as const,
+      })),
+    });
+    let sent: (Payload & { so_muc_can_chu_y_khong_liet_ke?: number }) | undefined;
+    vi.spyOn(aiClient, 'generate').mockImplementation(async (payload) => {
+      sent = payload as typeof sent;
+      return { output: goodOutput(payload), usage: USAGE };
+    });
+    const res = await create(manager.auth);
+
+    expect(inputTokenBound(sent)).toBeLessThanOrEqual(MAX_INPUT_TOKENS);
+    expect(sent!.so_muc_can_chu_y_khong_liet_ke).toBeGreaterThan(0);
+    expect(sent!.danh_sach_can_chu_y).toContain(`Việc dọn phòng ${overdueRoom.number} quá hạn`);
+    expect(res.body.data.attention.items.length).toBe(sent!.danh_sach_can_chu_y.length + sent!.so_muc_can_chu_y_khong_liet_ke!);
+
+    await prisma.housekeepingTask.delete({ where: { id: task.id } });
+    await prisma.room.deleteMany({ where: { number: { startsWith: `AIB${tag}` } } });
   });
 });
 

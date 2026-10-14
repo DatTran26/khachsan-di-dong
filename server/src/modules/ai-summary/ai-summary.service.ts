@@ -8,9 +8,11 @@ import {
   AiFormatError,
   AiTimeoutError,
   MAX_CALL_COST_VND,
+  MAX_INPUT_TOKENS,
   SUMMARY_SCHEMA_VERSION,
   aiClient,
   costOf,
+  inputTokenBound,
   type AiOutput,
 } from './ai-summary.ai.js';
 import { ACTIVITY_LABELS, buildPeriodMetrics, type AttentionItem, type PeriodMetrics } from './ai-summary.metrics.js';
@@ -71,6 +73,23 @@ function toAiPayload(range: PeriodRange, metrics: PeriodMetrics, attention: Atte
     ),
     danh_sach_can_chu_y: attention.map((a) => a.text),
   };
+}
+
+type AiPayload = ReturnType<typeof toAiPayload> & { so_muc_can_chu_y_khong_liet_ke?: number };
+
+/**
+ * Cắt danh sách cần chú ý (bỏ từ cuối — phòng ngừng phục vụ trước, việc quá hạn giữ lâu nhất) cho tới khi gói vừa
+ * MAX_INPUT_TOKENS → chi phí thật không vượt mức đã chặn ngân sách (FR-009, NFR-003). Danh sách đầy đủ vẫn lưu
+ * theo quy tắc trong `attention.items`; AI chỉ thấy số mục bị bỏ.
+ */
+function fitPayload(payload: AiPayload): AiPayload {
+  const list = [...payload.danh_sach_can_chu_y];
+  let fitted: AiPayload = payload;
+  while (inputTokenBound(fitted) > MAX_INPUT_TOKENS && list.length > 0) {
+    list.pop();
+    fitted = { ...payload, danh_sach_can_chu_y: list, so_muc_can_chu_y_khong_liet_ke: payload.danh_sach_can_chu_y.length - list.length };
+  }
+  return fitted;
 }
 
 /** Báo cáo mẫu từ dữ liệu gốc (FR-007) — cùng nhóm chỉ số chính, không có lời văn AI. */
@@ -137,6 +156,11 @@ type Outcome = {
 /** Thử bản AI; mọi đường lỗi trả về lý do để dựng báo cáo mẫu. */
 async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
   if (!env.OPENAI_API_KEY) return { calledAi: false, failureReason: 'NOT_CONFIGURED', costVnd: 0 };
+  // Cắt danh sách rồi vẫn quá cỡ (không xảy ra với dạng gói hiện tại) → không gọi, giữ đúng trần chi phí.
+  if (inputTokenBound(payload) > MAX_INPUT_TOKENS) {
+    console.warn('Gói gửi AI vượt giới hạn token đầu vào — dùng báo cáo mẫu');
+    return { calledAi: false, failureReason: 'AI_ERROR', costVnd: 0 };
+  }
   // Chặn TRƯỚC khi gọi theo chi phí tối đa của 1 lượt → không bao giờ vượt ngân sách (FR-009, NFR-003).
   if ((await spentVnd()) + MAX_CALL_COST_VND > env.AI_BUDGET_VND) {
     return { calledAi: false, failureReason: 'QUOTA_EXCEEDED', costVnd: 0 };
@@ -170,7 +194,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
     // phục vụ đang tồn tại) để quản lý không bỏ sót — chốt 10/10/2026.
     outcome = { source: 'EMPTY', overview: MSG.summaryEmpty, highlights: [], notes: [], calledAi: false, failureReason: null, costVnd: 0 };
   } else {
-    const payload = toAiPayload(range, metrics, attention, now);
+    const payload = fitPayload(toAiPayload(range, metrics, attention, now));
     const ai = await tryAi(payload);
     outcome = ai.output
       ? { source: 'AI', overview: ai.output.overview, highlights: ai.output.highlights, notes: ai.output.attention, ...ai }
