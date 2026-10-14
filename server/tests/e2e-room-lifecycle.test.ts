@@ -8,7 +8,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
-import { createUserWithToken } from './helpers.js';
+import { REQUIRED_PHOTO_CATEGORIES, TEST_JPEG, createUserWithToken } from './helpers.js';
 
 const app = createApp();
 const tag = randomUUID().slice(0, 6);
@@ -53,7 +53,11 @@ describe('Vòng đời một phòng', () => {
     expect(mine.body.data.map((t: { id: string }) => t.id)).toContain(task.id);
     task = (await request(app).post(`/api/housekeeping/tasks/${task.id}/accept`).set(staff).send({ version: task.version })).body.data;
     expect((await room()).cleaning).toBe('CLEANING');
-    task = (await request(app).post(`/api/housekeeping/tasks/${task.id}/complete`).set(staff).send({ version: task.version })).body.data;
+    for (const category of REQUIRED_PHOTO_CATEGORIES) {
+      const photo = await request(app).post(`/api/housekeeping/tasks/${task.id}/photos?category=${category}`).set(staff).set('Content-Type', 'image/jpeg').send(TEST_JPEG);
+      expect(photo.status).toBe(201);
+    }
+    task =(await request(app).post(`/api/housekeeping/tasks/${task.id}/complete`).set(staff).send({ version: task.version })).body.data;
     expect((await room()).cleaning).toBe('PENDING_INSPECTION');
 
     // Chưa xác nhận → vẫn chưa nhận khách được (SC-housekeeping-03)

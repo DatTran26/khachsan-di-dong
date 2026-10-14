@@ -1,6 +1,6 @@
 {
   "name": "khachsan-di-dong-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Backend KhachSanDiDong — Express + TypeScript + Prisma + PostgreSQL",
   "type": "module",
@@ -12,6 +12,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
+    "lint": "biome lint --error-on-warnings",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
@@ -19,7 +20,9 @@
     "db:studio": "prisma studio",
     "test": "vitest run",
     "bench:realtime": "tsx scripts/realtime-benchmark.ts",
+    "bench:api": "tsx scripts/api-latency-benchmark.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:peak": "tsx prisma/seed-peak.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -35,6 +38,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.2",

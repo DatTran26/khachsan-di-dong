@@ -6,13 +6,24 @@ type TaskWithRefs = MaintenanceTask & {
   assignee: Pick<User, 'id' | 'fullName'> | null;
 };
 
+/**
+ * Include khi đọc việc sửa ra DTO. Người báo có thêm `role` để UI biết ai đã báo;
+ * người xử lý chỉ id và họ tên.
+ */
 export const maintenanceInclude = {
   room: { select: { id: true, number: true, floor: true } },
   reporter: { select: { id: true, fullName: true, role: true } },
   assignee: { select: { id: true, fullName: true } },
 } as const;
 
-/** Việc bảo trì trả cho client. `isOverdue` = đã bị cờ quá hạn và còn mở. */
+/**
+ * Việc bảo trì trả cho client.
+ *
+ * `isOverdue` đúng khi đã có `overdueFlaggedAt` và status còn `OPEN` hoặc `IN_PROGRESS`.
+ * `DONE` và `CANCELLED` không hiện quá hạn dù cột cờ còn. `dueAt` null khi ngưỡng quá hạn tắt lúc báo.
+ * @param task Bản ghi đã include theo `maintenanceInclude`.
+ * @returns DTO có `version` cho nhận, xong, hủy, chỉ định.
+ */
 export function toMaintenanceTaskDto(task: TaskWithRefs) {
   return {
     id: task.id,

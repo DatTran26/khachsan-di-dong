@@ -152,4 +152,4 @@ links:
 
 ## 14. Open Questions
 
-- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo?
+- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo? → **Chốt 10/10/2026: ngưỡng 4 giờ** từ lúc báo hỏng. Tần suất cảnh báo chưa chốt (hiện cảnh báo 1 lần).

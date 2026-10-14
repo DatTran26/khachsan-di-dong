@@ -4,7 +4,7 @@
 import { createServer, type Server as HttpServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { User } from '@prisma/client';
-import { io as connect, type Socket } from 'socket.io-client';
+import { io as connect } from 'socket.io-client';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';

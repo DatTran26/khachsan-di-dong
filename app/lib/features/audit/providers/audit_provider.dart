@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../models/audit_entry.dart';
 
+/// Bộ lọc `GET /audit-logs`. [actorRole] là mã API (`MANAGER`, `RECEPTIONIST`, `STAFF`, `SYSTEM`) hoặc null.
 class AuditFilter {
   final DateTime? from;
   final DateTime? to;
@@ -10,9 +11,11 @@ class AuditFilter {
 
   const AuditFilter({this.from, this.to, this.roomId, this.actorRole});
 
+  /// Có ít nhất một tiêu chí. Dùng để hiện nút xóa lọc và câu gợi ý danh sách rỗng.
   bool get isActive =>
       from != null || to != null || roomId != null || actorRole != null;
 
+  /// Bản sao. Truyền null cho một trường để xóa tiêu chí đó (sentinel nội bộ).
   AuditFilter copyWith({
     Object? from = _s,
     Object? to = _s,
@@ -26,6 +29,7 @@ class AuditFilter {
         actorRole: actorRole == _s ? this.actorRole : actorRole as String?,
       );
 
+  /// Query string. Thời điểm đưa về UTC ISO. Trường null không có trong map.
   Map<String, dynamic> toQuery() => {
         if (from != null) 'from': from!.toUtc().toIso8601String(),
         if (to != null) 'to': to!.toUtc().toIso8601String(),
@@ -36,6 +40,7 @@ class AuditFilter {
   static const _s = Object();
 }
 
+/// Trang nhật ký hiện có, con trỏ trang sau, cờ tải và thông báo rỗng từ server.
 class AuditState {
   final List<AuditEntry> entries;
   final AuditFilter filter;
@@ -55,6 +60,7 @@ class AuditState {
     this.emptyMessage,
   });
 
+  /// Bản sao. [nextCursor], [error], [emptyMessage] nhận null để xóa (sentinel), khác [entries].
   AuditState copyWith({
     List<AuditEntry>? entries,
     AuditFilter? filter,
@@ -80,22 +86,29 @@ class AuditState {
 
 /// Nhật ký thay đổi — chỉ quản lý (BE kiểm quyền). Phân trang theo con trỏ `nextCursor`.
 class AuditNotifier extends StateNotifier<AuditState> {
+  /// Side effect: gọi [load] khi tạo.
   AuditNotifier() : super(const AuditState()) {
     load();
   }
 
   static const _pageSize = 50;
 
+  /// Ghi [f] rồi [load] từ đầu, bỏ trang đang có.
   Future<void> setFilter(AuditFilter f) async {
     state = state.copyWith(filter: f);
     await load();
   }
 
+  /// Lượt tải mới nhất — đổi lọc liên tiếp thì phản hồi của lượt cũ về sau bị bỏ, không ghi đè kết quả lọc mới.
+  int _loadSeq = 0;
+
   Future<void> load() async {
+    final seq = ++_loadSeq;
     state = state.copyWith(isLoading: true, error: null);
     try {
       final res = await apiClient.get('/audit-logs',
           query: {...state.filter.toQuery(), 'limit': _pageSize});
+      if (seq != _loadSeq) return;
       state = state.copyWith(
         entries: _parse(res),
         nextCursor: res['nextCursor'] as String?,
@@ -103,10 +116,13 @@ class AuditNotifier extends StateNotifier<AuditState> {
         isLoading: false,
       );
     } on ApiException catch (e) {
+      if (seq != _loadSeq) return;
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
+  /// GET trang sau bằng [AuditState.nextCursor]. Không làm gì nếu hết trang hoặc đang tải thêm.
+  /// Nối vào [entries]. Lỗi ghi state, không xóa trang đã có.
   Future<void> loadMore() async {
     final cursor = state.nextCursor;
     if (cursor == null || state.isLoadingMore) return;
@@ -127,6 +143,7 @@ class AuditNotifier extends StateNotifier<AuditState> {
     }
   }
 
+  /// Map `data` thành [AuditEntry]. Thiếu `data` thì danh sách rỗng, không ném.
   List<AuditEntry> _parse(Map<String, dynamic> res) =>
       ((res['data'] as List?) ?? const [])
           .cast<Map<String, dynamic>>()
@@ -134,5 +151,6 @@ class AuditNotifier extends StateNotifier<AuditState> {
           .toList();
 }
 
+/// Nhật ký dùng chung. Một [AuditNotifier]. Chỉ quản lý gọi được API, server trả 403 với vai trò khác.
 final auditProvider =
     StateNotifierProvider<AuditNotifier, AuditState>((ref) => AuditNotifier());

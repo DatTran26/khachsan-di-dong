@@ -15,12 +15,15 @@ class UserFormDialog extends ConsumerStatefulWidget {
 
   const UserFormDialog({super.key, this.user});
 
+  /// `true` khi không truyền [user]. Sửa thì gửi chỉ các trường đổi.
   bool get isCreate => user == null;
 
+  /// Tạo state form.
   @override
   ConsumerState<UserFormDialog> createState() => _UserFormDialogState();
 }
 
+/// Họ tên, SĐT, vai trò, cờ đang gửi và lỗi API hiện trên form.
 class _UserFormDialogState extends ConsumerState<UserFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _fullName;
@@ -29,6 +32,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
   bool _submitting = false;
   String? _error;
 
+  /// Điền từ [UserFormDialog.user] nếu đang sửa. Vai trò mặc định là nhân viên khi tạo.
   @override
   void initState() {
     super.initState();
@@ -37,6 +41,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
     _role = widget.user?.role ?? UserRole.staff;
   }
 
+  /// Giải phóng controller tên và SĐT.
   @override
   void dispose() {
     _fullName.dispose();
@@ -44,6 +49,9 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
     super.dispose();
   }
 
+  /// Tạo: [UsersNotifier.createUser], đóng form, rồi hiện [TempPasswordDialog] nếu có mật khẩu tạm.
+  /// Sửa: [updateUser] chỉ với trường đổi, đóng form và snack.
+  /// [ApiException] giữ dialog và hiện [_error].
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -93,6 +101,8 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
     }
   }
 
+  /// Form trong [GoldDialog]. Lễ tân không thấy vai trò quản lý trong dropdown.
+  /// Nút gửi tắt khi đang submit.
   @override
   Widget build(BuildContext context) {
     final actorRole = ref.watch(authProvider.select((s) => s.user?.role));

@@ -13,7 +13,7 @@ export default async function globalSetup() {
   const prisma = new PrismaClient({ datasourceUrl: url });
   // TRUNCATE không kích hoạt trigger chặn sửa/xóa nhật ký (trigger theo dòng) → dọn được CSDL test.
   await prisma.$executeRawUnsafe(`
-    TRUNCATE audit_log_changes, audit_logs, ai_summaries, ai_quotas, out_of_service_holds,
-             maintenance_tasks, housekeeping_tasks, stays, sessions, rooms, room_types, users CASCADE`);
+    TRUNCATE audit_log_changes, audit_logs, ai_summaries, out_of_service_holds,
+             maintenance_tasks, housekeeping_photos, housekeeping_tasks, stays, sessions, rooms, room_types, users CASCADE`);
   await prisma.$disconnect();
 }

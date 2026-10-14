@@ -4,7 +4,7 @@ import '../../models/user.dart';
 /// Một mục điều hướng. Quyền xem bám đúng phân quyền API phía BE:
 /// - Tổng quan (`/dashboard/summary`), Lưu trú (`/stays`): quản lý + lễ tân.
 /// - Dọn phòng (`/housekeeping/tasks`): quản lý + nhân viên.
-/// - Nhật ký (`/audit-logs`): chỉ quản lý.
+/// - Nhật ký (`/audit-logs`), Tóm tắt AI (`/ai-summaries`): chỉ quản lý.
 /// - Tài khoản (`/users`): quản lý + lễ tân.
 class NavItem {
   final String path;
@@ -31,6 +31,8 @@ const _users = NavItem('/tai-khoan', 'Tài khoản', 'Tài khoản',
     Icons.manage_accounts_outlined, Icons.manage_accounts_rounded);
 const _audit = NavItem('/nhat-ky', 'Nhật ký', 'Nhật ký thay đổi',
     Icons.history_rounded, Icons.history_rounded);
+const _aiSummary = NavItem('/tom-tat', 'Tóm tắt', 'Tóm tắt vận hành',
+    Icons.auto_awesome_outlined, Icons.auto_awesome);
 
 // Nhân viên dùng mobile: nhãn theo công việc của họ.
 const _staffHousekeeping = NavItem('/don-phong', 'Việc dọn', 'Việc dọn của tôi',
@@ -38,11 +40,14 @@ const _staffHousekeeping = NavItem('/don-phong', 'Việc dọn', 'Việc dọn c
 const _staffMaintenance = NavItem('/bao-tri', 'Việc sửa', 'Việc sửa',
     Icons.build_outlined, Icons.build_rounded);
 
+/// Mục menu theo vai trò. [role] null (chưa đăng nhập) trả danh sách rỗng.
+/// Lễ tân không có dọn phòng, nhật ký, tóm tắt AI. Nhân viên không có tổng quan.
 List<NavItem> navItemsFor(UserRole? role) {
   switch (role) {
     case UserRole.manager:
       return const [
         _dashboard,
+        _aiSummary,
         _rooms,
         _stays,
         _housekeeping,
@@ -59,12 +64,16 @@ List<NavItem> navItemsFor(UserRole? role) {
   }
 }
 
+/// Màn đầu sau đăng nhập. Nhân viên vào việc dọn; vai trò khác và null vào dashboard.
 String homeFor(UserRole? role) =>
     role == UserRole.staff ? '/don-phong' : '/dashboard';
 
+/// [path] được mở nếu nó bắt đầu bằng path của một mục trong menu vai trò.
+/// Khớp tiền tố nên `/don-phong?viec=` vẫn hợp lệ với mục `/don-phong`.
 bool canOpen(UserRole? role, String path) =>
     navItemsFor(role).any((n) => path.startsWith(n.path));
 
+/// Tiêu đề thanh trên. Không khớp mục nào thì "Khách Sạn Di Động".
 String titleFor(UserRole? role, String path) {
   for (final n in navItemsFor(role)) {
     if (path.startsWith(n.path)) return n.title;

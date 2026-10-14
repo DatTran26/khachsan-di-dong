@@ -12,9 +12,18 @@ attachRealtime(httpServer);
 const stopOverdueJob = startOverdueJob();
 
 httpServer.listen(env.PORT, () => {
+  // Callback của `listen`: chỉ log khi cổng đã bind. Không kiểm tra CSDL ở đây — `/api/health` làm việc đó.
   console.log(`Backend chạy tại http://localhost:${env.PORT} (REST + Socket.IO)`);
 });
 
+/**
+ * Dừng job quá hạn, đóng Socket.IO, đóng HTTP server, ngắt pool Prisma, rồi thoát 0.
+ *
+ * Gắn vào SIGINT và SIGTERM. `httpServer.close()` không được await hết kết nối
+ * đang xử lý trước khi `$disconnect` — tiến trình thoát ngay sau khi gọi close.
+ * Không bắt lỗi: nếu disconnect ném, process có thể thoát khác 0 do unhandled rejection.
+ * @returns Promise kết thúc bằng `process.exit(0)`.
+ */
 async function shutdown() {
   stopOverdueJob();
   await closeRealtime();

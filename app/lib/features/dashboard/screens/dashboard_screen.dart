@@ -1,53 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../models/housekeeping_task.dart';
-import '../../../models/maintenance_task.dart';
 import '../../../models/room.dart';
-import '../../../models/user.dart';
 import '../../../shared/widgets/room_tile.dart';
 import '../../../shared/widgets/ui.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../housekeeping/providers/housekeeping_provider.dart';
-import '../../maintenance/providers/maintenance_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../rooms/widgets/room_detail_panel.dart';
 import '../providers/dashboard_provider.dart';
 
+/// Nhóm lọc lưới phòng. Thẻ lấp đầy dùng lại [occupied], không có nhóm riêng.
 enum _Group { all, ready, occupied, needsCleaning, outOfService, overdue }
 
 /// Tổng quan (room-dashboard): 6 chỉ số tại thời điểm xem + lưới phòng realtime theo tầng.
 class DashboardScreen extends ConsumerStatefulWidget {
-  const DashboardScreen({super.key});
+  /// Phòng cần mở chi tiết ngay khi vào màn (`/dashboard?phong=<id>`).
+  final String? openRoomId;
 
+  const DashboardScreen({super.key, this.openRoomId});
+
+  /// Tạo state lọc. Dữ liệu phòng và chỉ số do provider tự tải, không gọi API ở đây.
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+/// Lọc tầng/nhóm và vẽ lưới. Mở sheet phòng khi route còn `phong`.
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int? _floor;
   _Group _group = _Group.all;
 
-  /// Phòng có việc quá hạn — chỉ đọc nguồn mà vai trò được phép gọi API.
-  Set<String> _overdueRoomIds(UserRole? role) {
-    final ids = <String>{};
-    if (role == UserRole.manager) {
-      for (final t in ref.watch(housekeepingProvider).tasks) {
-        if (t.isOverdue && t.status != HousekeepingStatus.done) {
-          ids.add(t.room.id);
-        }
-      }
-    }
-    for (final t in ref.watch(maintenanceProvider).tasks) {
-      if (t.isOverdue &&
-          (t.status == MaintenanceStatus.open ||
-              t.status == MaintenanceStatus.inProgress)) {
-        ids.add(t.room.id);
-      }
-    }
-    return ids;
+  /// Sau frame đầu, mở phòng nếu [DashboardScreen.openRoomId] có giá trị.
+  @override
+  void initState() {
+    super.initState();
+    _openRequestedRoom();
   }
 
+  /// [DashboardScreen.openRoomId] đổi thì mở lại sheet. Cùng id không gọi lại.
+  @override
+  void didUpdateWidget(DashboardScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.openRoomId != old.openRoomId) _openRequestedRoom();
+  }
+
+  /// Bỏ `?phong=` khỏi đường dẫn rồi mở chi tiết phòng — lần sau đi tới cùng phòng vẫn mở lại được.
+  void _openRequestedRoom() {
+    final roomId = widget.openRoomId;
+    if (roomId == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.go('/dashboard');
+      showRoomDetailSheet(context, roomId);
+    });
+  }
+
+  /// Phòng có khớp tầng đang chọn và nhóm [_group] không.
+  /// [overdue] là tập id phòng có việc quá hạn từ chỉ số, không tự tính từ phòng.
   bool _matches(Room r, Set<String> overdue) {
     if (_floor != null && r.floor != _floor) return false;
     switch (_group) {
@@ -58,7 +66,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       case _Group.occupied:
         return r.occupancy == OccupancyStatus.occupied;
       case _Group.needsCleaning:
-        return r.cleaning != CleaningStatus.clean;
+        // "Cần dọn" chỉ là trạng thái `cần dọn` — khớp ô chỉ số (room-dashboard PRD đã chốt).
+        return r.cleaning == CleaningStatus.dirty;
       case _Group.outOfService:
         return r.service == ServiceStatus.outOfService;
       case _Group.overdue:
@@ -66,6 +75,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  /// Tải lại danh sách phòng và chỉ số cùng lúc. Dùng cho kéo để làm mới và nút thử lại.
   Future<void> _reload() async {
     await Future.wait([
       ref.read(roomsProvider.notifier).load(),
@@ -73,12 +83,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ]);
   }
 
+  /// Chỉ số, bộ lọc, lưới theo tầng. Danh sách phòng rỗng kèm lỗi thì hiện [ErrorState], không vẽ số 0.
   @override
   Widget build(BuildContext context) {
     final roomsState = ref.watch(roomsProvider);
-    final summary = ref.watch(dashboardSummaryProvider).summary;
-    final role = ref.watch(authProvider.select((s) => s.user?.role));
-    final overdue = _overdueRoomIds(role);
+    final summaryState = ref.watch(dashboardSummaryProvider);
+    final summary = summaryState.summary;
+    // Cờ quá hạn lấy từ API chỉ số → lễ tân cũng thấy việc dọn quá hạn (FR-006).
+    final overdue = summary.overdueRoomIds;
     final rooms = roomsState.sorted;
     final wide = Breakpoints.hasSidebar(context);
     final pad = wide
@@ -104,7 +116,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _Group.occupied:
           rooms.where((r) => r.occupancy == OccupancyStatus.occupied).length,
       _Group.needsCleaning:
-          rooms.where((r) => r.cleaning != CleaningStatus.clean).length,
+          rooms.where((r) => r.cleaning == CleaningStatus.dirty).length,
       _Group.outOfService:
           rooms.where((r) => r.service == ServiceStatus.outOfService).length,
       _Group.overdue: overdue.length,
@@ -115,7 +127,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: ListView(
         padding: pad,
         children: [
-          _StatsGrid(summary: summary),
+          // Chưa tải được chỉ số lần nào → báo lỗi + thử lại, không hiện số 0 như thật (FR-010).
+          if (summaryState.error != null && summary.asOf == null)
+            ErrorState(
+              message: summaryState.error!,
+              onRetry: () =>
+                  ref.read(dashboardSummaryProvider.notifier).load(),
+            )
+          else
+            _StatsGrid(
+              summary: summary,
+              group: _group,
+              // Bấm thẻ chỉ số = lọc lưới theo nhóm đó; bấm lại thẻ đang chọn = bỏ lọc.
+              onSelect: (g) =>
+                  setState(() => _group = _group == g ? _Group.all : g),
+            ),
           const SizedBox(height: 20),
           Wrap(
             spacing: 8,
@@ -201,6 +227,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Nhãn tiếng Việt của nhóm lọc trên pill.
   String _groupLabel(_Group g) => switch (g) {
         _Group.all => 'Tất cả',
         _Group.ready => 'Sẵn sàng',
@@ -211,6 +238,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       };
 }
 
+/// Tiêu đề một tầng: số phòng trên tầng và số phòng sẵn sàng.
 class _FloorHeader extends StatelessWidget {
   final int floor;
   final int total;
@@ -218,6 +246,7 @@ class _FloorHeader extends StatelessWidget {
   const _FloorHeader(
       {required this.floor, required this.total, required this.ready});
 
+  /// Một dòng "Tầng n" và meta đếm. Không tự lọc phòng.
   @override
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -232,36 +261,62 @@ class _FloorHeader extends StatelessWidget {
       );
 }
 
+/// Sáu thẻ chỉ số. Bấm thẻ gọi [onSelect]; bố cục 2, 3 hoặc 6 cột theo bề ngang.
 class _StatsGrid extends StatelessWidget {
   final DashboardSummary summary;
-  const _StatsGrid({required this.summary});
+  final _Group group;
+  final ValueChanged<_Group> onSelect;
+  const _StatsGrid(
+      {required this.summary, required this.group, required this.onSelect});
 
+  /// Dựng [_StatCard] đã gắn nhóm [g] và [onSelect]. [selected] khi [group] trùng [g].
+  _StatCard _card(_Group g,
+          {required String label,
+          required String value,
+          required String sub,
+          required Color color,
+          bool alert = false,
+          bool hero = false}) =>
+      _StatCard(
+        label: label,
+        value: value,
+        sub: sub,
+        color: color,
+        alert: alert,
+        hero: hero,
+        selected: group == g,
+        onTap: () => onSelect(g),
+      );
+
+  /// Xếp thẻ theo bề ngang. Thẻ lấp đầy lọc nhóm đang ở, không có nhóm riêng.
   @override
   Widget build(BuildContext context) {
     final cards = [
-      _StatCard(
+      _card(_Group.occupied,
           label: 'Đang ở',
           value: '${summary.occupied}',
           sub: 'phòng có khách',
           color: AppColors.occupied),
-      _StatCard(
+      _card(_Group.ready,
           label: 'Sẵn sàng',
           value: '${summary.ready}',
           sub: 'nhận khách được ngay',
           color: AppColors.ready),
-      _StatCard(
+      _card(
+        _Group.needsCleaning,
         label: 'Cần dọn',
         value: '${summary.needsCleaning}',
         sub:
             '+${summary.cleaningNow} đang dọn · ${summary.pendingInspection} chờ kiểm tra',
         color: AppColors.dirty,
       ),
-      _StatCard(
+      _card(_Group.outOfService,
           label: 'Ngừng phục vụ',
           value: '${summary.outOfService}',
           sub: 'đang chờ sửa',
           color: AppColors.oos),
-      _StatCard(
+      _card(
+        _Group.overdue,
         label: 'Quá hạn',
         value: '${summary.overdueTotal}',
         sub:
@@ -269,7 +324,9 @@ class _StatsGrid extends StatelessWidget {
         color: AppColors.danger,
         alert: summary.overdueTotal > 0,
       ),
-      _StatCard(
+      // Lấp đầy = phòng đang ở ÷ phòng phục vụ được → lọc các phòng đang ở.
+      _card(
+        _Group.occupied,
         label: 'Lấp đầy',
         value: summary.occupancyRateLabel,
         sub:
@@ -295,6 +352,8 @@ class _StatsGrid extends StatelessWidget {
   }
 }
 
+/// Một thẻ chỉ số bấm được. [hero] là nền tối (lấp đầy). [alert] tô đỏ khi có việc quá hạn.
+/// [selected] vẽ viền đậm. [onTap] do lưới gắn, thẻ không đổi state lọc.
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -302,81 +361,101 @@ class _StatCard extends StatelessWidget {
   final Color color;
   final bool alert;
   final bool hero;
+  final bool selected;
+  final VoidCallback onTap;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.sub,
     required this.color,
+    required this.onTap,
     this.alert = false,
     this.hero = false,
+    this.selected = false,
   });
 
+  /// Vẽ nhãn, số và dòng phụ. Không gọi API.
   @override
   Widget build(BuildContext context) {
     final bg = hero
         ? AppColors.espresso
         : (alert ? const Color(0xFFFFF8F8) : AppColors.surface);
-    final border = hero
-        ? AppColors.espresso
-        : (alert ? const Color(0xFFF2C4C6) : AppColors.border);
+    // Đang lọc theo thẻ này → viền vàng dày, như ô phòng đang chọn.
+    final border = selected
+        ? (hero ? AppColors.goldLight : AppColors.gold)
+        : hero
+            ? AppColors.espresso
+            : (alert ? const Color(0xFFF2C4C6) : AppColors.border);
     final labelColor = hero
         ? AppColors.onDarkMuted
         : (alert ? AppColors.danger : AppColors.muted);
     final valueColor = hero
         ? AppColors.goldLight
         : (alert ? AppColors.danger : AppColors.text);
-    return Container(
-      // Cao đủ cho nhãn + số + 2 dòng mô tả; co giãn theo cỡ chữ hệ thống để không tràn.
-      height: MediaQuery.textScalerOf(context).scale(134),
-      padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-      decoration: BoxDecoration(
+    final radius = BorderRadius.circular(AppTheme.radiusMd);
+    return Semantics(
+      button: true,
+      selected: selected,
+      hint: selected ? 'Bấm để bỏ lọc' : 'Bấm để lọc lưới phòng',
+      child: Material(
         color: bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(3)),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(label,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: border, width: selected ? 2 : 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            // Cao đủ cho nhãn + số + 2 dòng mô tả; co giãn theo cỡ chữ hệ thống để không tràn.
+            height: MediaQuery.textScalerOf(context).scale(134),
+            padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                          color: color, borderRadius: BorderRadius.circular(3)),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(label,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: labelColor,
+                              fontWeight: FontWeight.w500)),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(value,
+                      style: TextStyle(
+                          fontSize: 28,
+                          height: 1.15,
+                          fontWeight: FontWeight.w700,
+                          color: valueColor)),
+                ),
+                const SizedBox(height: 2),
+                Text(sub,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        fontSize: 13,
-                        color: labelColor,
-                        fontWeight: FontWeight.w500)),
-              ),
-            ],
+                        fontSize: 12,
+                        height: 1.3,
+                        color: hero ? AppColors.onDarkMuted : AppColors.muted)),
+              ],
+            ),
           ),
-          const Spacer(),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 28,
-                    height: 1.15,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor)),
-          ),
-          const SizedBox(height: 2),
-          Text(sub,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  fontSize: 12,
-                  height: 1.3,
-                  color: hero ? AppColors.onDarkMuted : AppColors.muted)),
-        ],
+        ),
       ),
     );
   }

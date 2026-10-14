@@ -135,3 +135,5 @@ links:
 - Ca cố định theo giờ địa phương: 06:00–14:00, 14:00–22:00 và 22:00–06:00; quản lý cũng có thể chọn "hôm nay". Hạn mức theo chi phí thực tế, tổng tối đa 300.000 VNĐ trong MVP; lưu bản gần nhất của mỗi kỳ để xem lại mà không gọi AI; timeout 15 giây.
 - Dữ liệu giả lập đủ sự kiện (kịch bản ca đỉnh) để bản tóm tắt có nội dung khi demo.
 - Báo cáo mẫu dùng cùng nhóm chỉ số chính + việc cần chú ý theo quy tắc, không có narrative AI.
+- Chốt 10/10/2026: kỳ "rỗng" (FR-003) = không có thao tác vận hành nào trong kỳ (nhận/trả, dọn, báo hỏng/sửa, ngừng/mở phục vụ, quá hạn). Bản rỗng vẫn kèm danh sách việc cần chú ý theo quy tắc đang tồn tại tại T (việc quá hạn, phòng ngừng phục vụ) để quản lý không bỏ sót; không gọi AI.
+- Chốt 10/10/2026: với mọi kỳ, số phòng theo 3 trục / việc đang mở / việc quá hạn là ảnh chụp tại thời điểm T (khớp dashboard); số thao tác vận hành được đếm trong khung giờ của kỳ (kể cả "ca trước").

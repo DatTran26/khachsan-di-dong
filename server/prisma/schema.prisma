@@ -86,6 +86,16 @@ enum HousekeepingTaskStatus {
   @@map("housekeeping_task_status")
 }
 
+/// Nhóm ảnh nghiệm thu một lần dọn (BR-housekeeping-006). 3 nhóm đầu bắt buộc; cận cảnh khi có bất thường.
+enum HousekeepingPhotoCategory {
+  OVERVIEW // tổng quan phòng
+  BED // khu ngủ / giường
+  BATHROOM // nhà vệ sinh
+  CLOSEUP // cận cảnh bất thường
+
+  @@map("housekeeping_photo_category")
+}
+
 /// Việc bảo trì (maintenance)
 enum MaintenanceTaskStatus {
   OPEN // chờ nhận
@@ -110,21 +120,33 @@ enum AuditEntityType {
   @@map("audit_entity_type")
 }
 
-/// Kỳ tóm tắt AI (ai-ops-summary) — định nghĩa "ca" còn mở (OQ-1)
+/// Kỳ tóm tắt AI (ai-ops-summary). Ca cố định giờ VN: 06–14, 14–22, 22–06 (spec mục 11 Assumptions).
 enum SummaryPeriod {
-  CURRENT_SHIFT // ca hiện tại
-  PREVIOUS_SHIFT // ca trước
-  TODAY // hôm nay
+  CURRENT_SHIFT // ca hiện tại (đầu ca → T)
+  PREVIOUS_SHIFT // ca trước (trọn ca)
+  TODAY // hôm nay (00:00 → T)
 
   @@map("summary_period")
 }
 
-/// Nguồn bản tóm tắt
+/// Loại bản tóm tắt (FR-ai-ops-summary-003/004/007)
 enum SummarySource {
-  AI // do LLM tạo
-  FALLBACK // báo cáo mẫu khi AI lỗi / hết hạn mức
+  AI // do AI tạo, đã qua kiểm tra số liệu
+  FALLBACK // báo cáo mẫu từ dữ liệu gốc (AI lỗi / quá giờ / hết hạn mức / đầu ra sai / chưa cấu hình)
+  EMPTY // kỳ không có hoạt động — không gọi AI
 
   @@map("summary_source")
+}
+
+/// Lý do không dùng được bản AI — đối soát nhật ký với chi phí (NFR-ai-ops-summary-005)
+enum SummaryFailure {
+  NOT_CONFIGURED // chưa có OPENAI_API_KEY
+  QUOTA_EXCEEDED // hết ngân sách
+  TIMEOUT // quá 15 giây
+  AI_ERROR // dịch vụ AI lỗi
+  INVALID_OUTPUT // sai cấu trúc / sai số liệu / bịa sự kiện
+
+  @@map("summary_failure")
 }
 
 // ---------------------------------------------------------------------
@@ -147,14 +169,15 @@ model User {
   updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz
 
   session                 Session?
-  stayCheckIns            Stay[]             @relation("StayCheckedInBy")
-  stayCheckOuts           Stay[]             @relation("StayCheckedOutBy")
-  housekeepingTasks       HousekeepingTask[] @relation("HousekeepingAssignee")
-  housekeepingConfirms    HousekeepingTask[] @relation("HousekeepingConfirmer")
-  maintenanceReports      MaintenanceTask[]  @relation("MaintenanceReporter")
-  maintenanceAssignments  MaintenanceTask[]  @relation("MaintenanceAssignee")
-  outOfServiceHoldsPlaced OutOfServiceHold[] @relation("HoldPlacedBy")
-  outOfServiceHoldsLifted OutOfServiceHold[] @relation("HoldLiftedBy")
+  stayCheckIns            Stay[]              @relation("StayCheckedInBy")
+  stayCheckOuts           Stay[]              @relation("StayCheckedOutBy")
+  housekeepingTasks       HousekeepingTask[]  @relation("HousekeepingAssignee")
+  housekeepingConfirms    HousekeepingTask[]  @relation("HousekeepingConfirmer")
+  housekeepingPhotos      HousekeepingPhoto[] @relation("HousekeepingPhotoUploader")
+  maintenanceReports      MaintenanceTask[]   @relation("MaintenanceReporter")
+  maintenanceAssignments  MaintenanceTask[]   @relation("MaintenanceAssignee")
+  outOfServiceHoldsPlaced OutOfServiceHold[]  @relation("HoldPlacedBy")
+  outOfServiceHoldsLifted OutOfServiceHold[]  @relation("HoldLiftedBy")
   auditLogs               AuditLog[]
   aiSummaries             AiSummary[]
 
@@ -266,16 +289,39 @@ model HousekeepingTask {
   completedAt      DateTime?              @map("completed_at") @db.Timestamptz // nhân viên báo xong
   confirmedAt      DateTime?              @map("confirmed_at") @db.Timestamptz // quản lý xác nhận
   confirmedById    String?                @map("confirmed_by_id") @db.Uuid
+  photoRound       Int                    @default(1) @map("photo_round") // lượt ảnh nghiệm thu hiện tại — tăng mỗi lần quản lý trả lại (ảnh lượt cũ giữ để truy vết)
+  hasIssue         Boolean                @default(false) @map("has_issue") // nhân viên đánh dấu bất thường khi báo xong → bắt buộc ảnh cận cảnh
   version          Int                    @default(1)
 
-  room        Room  @relation(fields: [roomId], references: [id])
-  stay        Stay? @relation(fields: [stayId], references: [id])
-  assignee    User? @relation("HousekeepingAssignee", fields: [assigneeId], references: [id])
-  confirmedBy User? @relation("HousekeepingConfirmer", fields: [confirmedById], references: [id])
+  room        Room                @relation(fields: [roomId], references: [id])
+  stay        Stay?               @relation(fields: [stayId], references: [id])
+  assignee    User?               @relation("HousekeepingAssignee", fields: [assigneeId], references: [id])
+  confirmedBy User?               @relation("HousekeepingConfirmer", fields: [confirmedById], references: [id])
+  photos      HousekeepingPhoto[]
 
   @@index([status, dueAt])
   @@index([assigneeId, status])
   @@map("housekeeping_tasks")
+}
+
+/// Ảnh nghiệm thu thuộc MỘT lần dọn (không phải album của phòng). Tệp nằm trên đĩa (UPLOAD_DIR), CSDL giữ metadata.
+/// Chỉ nhân viên phụ trách + quản lý xem được (NFR-housekeeping-006).
+model HousekeepingPhoto {
+  id           String                    @id @default(uuid()) @db.Uuid
+  taskId       String                    @map("task_id") @db.Uuid
+  round        Int // lượt ảnh của việc (HousekeepingTask.photoRound lúc tải)
+  category     HousekeepingPhotoCategory
+  storageKey   String                    @unique @map("storage_key") // tên tệp trong UPLOAD_DIR
+  mimeType     String                    @map("mime_type") @db.VarChar(20)
+  sizeBytes    Int                       @map("size_bytes")
+  uploadedById String                    @map("uploaded_by_id") @db.Uuid
+  createdAt    DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  task       HousekeepingTask @relation(fields: [taskId], references: [id])
+  uploadedBy User             @relation("HousekeepingPhotoUploader", fields: [uploadedById], references: [id])
+
+  @@index([taskId, round])
+  @@map("housekeeping_photos")
 }
 
 // ---------------------------------------------------------------------
@@ -378,33 +424,32 @@ model AuditLogChange {
 // ---------------------------------------------------------------------
 
 /// Bản tóm tắt vận hành. Số liệu gửi AI lưu dạng JSON (không định danh khách).
-/// Có lưu để xem lại hay không còn mở (OQ-4) — bảng này cho phép cả hai.
+/// Mỗi lượt tạo tóm tắt = 1 dòng (kể cả báo cáo mẫu / kỳ rỗng) → "bản gần nhất mỗi kỳ" + đối soát chi phí.
+/// Hạn mức = AI_BUDGET_VND − SUM(cost_vnd): không cần bảng hạn mức riêng (NFR-ai-ops-summary-003).
 model AiSummary {
-  id          String        @id @default(uuid()) @db.Uuid
-  period      SummaryPeriod
-  dataAsOf    DateTime      @map("data_as_of") @db.Timestamptz // thời điểm dữ liệu T
-  source      SummarySource
-  overview    String // tổng quan
-  highlights  String // nổi bật
-  attention   String // việc cần chú ý
-  metrics     Json // số liệu tổng hợp tại T
-  createdById String        @map("created_by_id") @db.Uuid
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  id            String          @id @default(uuid()) @db.Uuid
+  period        SummaryPeriod
+  periodStart   DateTime        @map("period_start") @db.Timestamptz
+  periodEnd     DateTime        @map("period_end") @db.Timestamptz
+  dataAsOf      DateTime        @map("data_as_of") @db.Timestamptz // thời điểm dữ liệu T
+  source        SummarySource
+  overview      String // tổng quan
+  highlights    Json // string[] — điểm nổi bật
+  attention     Json // việc cần chú ý (theo quy tắc, có liên kết phòng/việc)
+  metrics       Json // số liệu tổng hợp tại T (chỉ đếm/tỷ lệ, không định danh khách)
+  calledAi      Boolean         @default(false) @map("called_ai")
+  failureReason SummaryFailure? @map("failure_reason")
+  costVnd       Int             @default(0) @map("cost_vnd") // chi phí lượt gọi AI (ước tính tối đa nếu không có usage)
+  model         String?         @db.VarChar(60)
+  schemaVersion Int             @default(1) @map("schema_version") // phiên bản dạng dữ liệu gửi AI / đầu ra / metrics / attention
+  createdById   String          @map("created_by_id") @db.Uuid
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz
 
   createdBy User @relation(fields: [createdById], references: [id])
 
+  @@index([period, createdAt])
   @@index([createdAt])
   @@map("ai_summaries")
-}
-
-/// Hạn mức AI theo ngày (hình thức & giá trị còn mở — OQ-2 ai-ops-summary).
-model AiQuota {
-  day     DateTime @id @db.Date // mỗi ngày 1 dòng
-  used    Int      @default(0) // số lần đã gọi
-  limit   Int // số lần tối đa
-  costVnd Int      @default(0) @map("cost_vnd") // chi phí ước tính đã dùng
-
-  @@map("ai_quotas")
 }
 
 // ---------------------------------------------------------------------

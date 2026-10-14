@@ -178,4 +178,4 @@ Chu trình báo hỏng và bảo trì giúp mọi vai trò báo hỏng ngay khi 
 
 ## 10. Open Questions
 
-- [ ] OQ-1: Ngưỡng "quá hạn" cho việc bảo trì (bao nhiêu phút/giờ)? Cảnh báo phát 1 lần hay lặp lại?
+- [ ] OQ-1: Ngưỡng "quá hạn" cho việc bảo trì (bao nhiêu phút/giờ)? Cảnh báo phát 1 lần hay lặp lại? → **Chốt 10/10/2026: ngưỡng 4 giờ** từ lúc báo hỏng. Tần suất cảnh báo chưa chốt (hiện cảnh báo 1 lần).

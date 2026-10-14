@@ -131,4 +131,4 @@ Ref: `[[docs/features/maintenance/maintenance-urd.md]]` mục User Types + Journ
 
 ## 11. Open Questions
 
-- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo (1 lần hay lặp)?
+- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo (1 lần hay lặp)? → **Chốt 10/10/2026: ngưỡng 4 giờ** từ lúc báo hỏng. Tần suất cảnh báo chưa chốt (hiện cảnh báo 1 lần).
