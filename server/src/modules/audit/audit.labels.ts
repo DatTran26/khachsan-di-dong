@@ -70,6 +70,7 @@ const FIELD_LABELS: Record<string, string> = {
   source: 'loại bản',
   calledAi: 'gọi AI',
   failureReason: 'lý do không dùng AI',
+  requestId: 'mã request',
   cancelReason: 'lý do hủy',
   description: 'mô tả',
   overdue: 'quá hạn',

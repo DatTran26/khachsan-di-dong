@@ -1,6 +1,7 @@
 import { SummaryPeriod } from '@prisma/client';
 import { Router } from 'express';
 import { z } from 'zod';
+import { requestIdOf } from '../../middleware/request-id.js';
 import { authOf, requireAuth, requireRole } from '../auth/auth.middleware.js';
 import { budgetStatus, createSummary, latestSummaries } from './ai-summary.service.js';
 
@@ -11,7 +12,7 @@ aiSummaryRouter.use(requireAuth(), requireRole('MANAGER'));
 /** Tạo bản tóm tắt cho kỳ. Luôn trả về một bản (AI / báo cáo mẫu / rỗng) + `notice` khi không dùng được AI. */
 aiSummaryRouter.post('/', async (req, res) => {
   const { period } = z.object({ period: z.nativeEnum(SummaryPeriod) }).parse(req.body);
-  const { summary, notice } = await createSummary(authOf(res).user, period);
+  const { summary, notice } = await createSummary(authOf(res).user, period, new Date(), requestIdOf(res));
   res.status(201).json({ data: summary, notice });
 });
 

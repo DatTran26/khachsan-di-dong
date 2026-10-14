@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { AiSummary, SummaryFailure, SummaryPeriod, SummarySource, User } from '@prisma/client';
 import { env } from '../../config/env.js';
 import { writeAudit } from '../../lib/audit.js';
@@ -153,12 +154,12 @@ type Outcome = {
   costVnd: number;
 };
 
-/** Thử bản AI; mọi đường lỗi trả về lý do để dựng báo cáo mẫu. */
-async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
+/** Thử bản AI; mọi đường lỗi trả về lý do để dựng báo cáo mẫu. Log kèm mã request để lần ra đúng lượt. */
+async function tryAi(payload: unknown, requestId: string): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
   if (!env.OPENAI_API_KEY) return { calledAi: false, failureReason: 'NOT_CONFIGURED', costVnd: 0 };
   // Cắt danh sách rồi vẫn quá cỡ (không xảy ra với dạng gói hiện tại) → không gọi, giữ đúng trần chi phí.
   if (inputTokenBound(payload) > MAX_INPUT_TOKENS) {
-    console.warn('Gói gửi AI vượt giới hạn token đầu vào — dùng báo cáo mẫu');
+    console.warn(`[${requestId}] Gói gửi AI vượt giới hạn token đầu vào — dùng báo cáo mẫu`);
     return { calledAi: false, failureReason: 'AI_ERROR', costVnd: 0 };
   }
   // Chặn TRƯỚC khi gọi theo chi phí tối đa của 1 lượt → không bao giờ vượt ngân sách (FR-009, NFR-003).
@@ -169,12 +170,12 @@ async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overvi
     const { output, usage } = await aiClient.generate(payload);
     const checked = validateAiOutput(output, payload);
     if (!checked.ok) {
-      console.warn('Đầu ra AI không hợp lệ:', checked.reason);
+      console.warn(`[${requestId}] Đầu ra AI không hợp lệ:`, checked.reason);
       return { calledAi: true, failureReason: 'INVALID_OUTPUT', costVnd: costOf(usage) };
     }
     return { calledAi: true, failureReason: null, costVnd: costOf(usage), output: checked.output };
   } catch (error) {
-    console.warn('Gọi AI thất bại:', error instanceof Error ? error.message : error);
+    console.warn(`[${requestId}] Gọi AI thất bại:`, error instanceof Error ? error.message : error);
     // Quá giờ: không biết đã tốn bao nhiêu → tính mức tối đa cho an toàn ngân sách.
     if (error instanceof AiTimeoutError) return { calledAi: true, failureReason: 'TIMEOUT', costVnd: MAX_CALL_COST_VND };
     if (error instanceof AiFormatError) {
@@ -184,7 +185,7 @@ async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overvi
   }
 }
 
-async function generate(actor: User, period: SummaryPeriod, now: Date) {
+async function generate(actor: User, period: SummaryPeriod, now: Date, requestId: string) {
   const range = resolvePeriod(period, now);
   const { metrics, attention, hasActivity } = await buildPeriodMetrics(range);
 
@@ -195,7 +196,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
     outcome = { source: 'EMPTY', overview: MSG.summaryEmpty, highlights: [], notes: [], calledAi: false, failureReason: null, costVnd: 0 };
   } else {
     const payload = fitPayload(toAiPayload(range, metrics, attention, now));
-    const ai = await tryAi(payload);
+    const ai = await tryAi(payload, requestId);
     outcome = ai.output
       ? { source: 'AI', overview: ai.output.overview, highlights: ai.output.highlights, notes: ai.output.attention, ...ai }
       : { source: 'FALLBACK', ...fallbackContent(range, metrics), notes: [], ...ai };
@@ -222,7 +223,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
       },
       include: createdByInclude,
     });
-    // Mọi lượt tạo đều ghi nhật ký: ai, khi nào, kỳ nào, loại kết quả, có gọi AI không (FR-010, NFR-005).
+    // Mọi lượt tạo đều ghi nhật ký: ai, khi nào, kỳ nào, loại kết quả, có gọi AI không, mã request (FR-010, NFR-005).
     await writeAudit(tx, {
       actorId: actor.id,
       actorRole: actor.role,
@@ -234,6 +235,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
         { field: 'source', after: outcome.source },
         { field: 'calledAi', after: String(outcome.calledAi) },
         ...(outcome.failureReason ? [{ field: 'failureReason', after: outcome.failureReason }] : []),
+        { field: 'requestId', after: requestId },
       ],
     });
     return summary;
@@ -243,11 +245,11 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
   return { summary: toSummaryDto(saved), notice };
 }
 
-export async function createSummary(actor: User, period: SummaryPeriod, now: Date = new Date()) {
+export async function createSummary(actor: User, period: SummaryPeriod, now: Date = new Date(), requestId: string = randomUUID()) {
   if (running) throw new AppError(409, 'SUMMARY_IN_PROGRESS', MSG.summaryInProgress);
   running = true;
   try {
-    return await generate(actor, period, now);
+    return await generate(actor, period, now, requestId);
   } finally {
     running = false;
   }

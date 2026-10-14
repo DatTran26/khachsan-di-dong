@@ -161,9 +161,10 @@ describe('Tạo tóm tắt (FR-002…004, FR-006, FR-010)', () => {
     expect(row.costVnd).toBe(costOf(USAGE));
   });
 
-  it('FR-010: mọi lượt tạo đều ghi nhật ký — ai, kỳ, loại kết quả, có gọi AI', async () => {
+  it('FR-010: mọi lượt tạo đều ghi nhật ký — ai, kỳ, loại kết quả, có gọi AI, mã request', async () => {
     vi.spyOn(aiClient, 'generate').mockImplementation(async (payload) => ({ output: goodOutput(payload), usage: USAGE }));
-    const res = await create(manager.auth, 'TODAY');
+    const res = await create({ ...manager.auth, 'X-Request-Id': `req-${tag}-01` }, 'TODAY');
+    expect(res.headers['x-request-id']).toBe(`req-${tag}-01`);
     const log = await prisma.auditLog.findFirstOrThrow({
       where: { entityId: res.body.data.id, action: 'ai_summary.generated' },
       include: { changes: true },
@@ -173,7 +174,20 @@ describe('Tạo tóm tắt (FR-002…004, FR-006, FR-010)', () => {
     expect(log.changes.map((c) => [c.field, c.after])).toEqual([
       ['source', 'AI'],
       ['calledAi', 'true'],
+      ['requestId', `req-${tag}-01`],
     ]);
+  });
+
+  it('WBS 1.4.2.11: không có / mã request không an toàn → máy chủ tự sinh, trả trong header và ghi nhật ký', async () => {
+    vi.spyOn(aiClient, 'generate').mockImplementation(async (payload) => ({ output: goodOutput(payload), usage: USAGE }));
+    const res = await create({ ...manager.auth, 'X-Request-Id': 'bad id <script>' });
+    const id = res.headers['x-request-id'];
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
+    const log = await prisma.auditLog.findFirstOrThrow({
+      where: { entityId: res.body.data.id, action: 'ai_summary.generated' },
+      include: { changes: true },
+    });
+    expect(log.changes).toContainEqual(expect.objectContaining({ field: 'requestId', after: id }));
   });
 
   it('NFR-002 / SC-04: gói gửi AI chỉ có số tổng hợp — không tên khách, không nhật ký thô', async () => {
