@@ -1,4 +1,4 @@
-import type { HousekeepingTask, Room, User } from '@prisma/client';
+import type { HousekeepingTask, HousekeepingTaskStatus, Room, User } from '@prisma/client';
 
 type TaskWithRefs = HousekeepingTask & {
   room: Pick<Room, 'id' | 'number' | 'floor'>;
@@ -10,14 +10,20 @@ export const housekeepingInclude = {
   assignee: { select: { id: true, fullName: true } },
 } as const;
 
-/** Việc dọn trả cho client. `isOverdue` = đã bị cờ quá hạn và chưa hoàn tất (cờ tự gỡ khi hoàn tất — FR-008). */
+/**
+ * Trạng thái còn tính quá hạn: nhân viên chưa báo xong. Chờ xác nhận / hoàn tất thì không — BR-002 chỉ đo tới mốc
+ * nhân viên báo hoàn tất, thời gian chờ quản lý xác nhận không tính. Bị trả lại (về đang làm) thì cờ hiện lại.
+ */
+export const OVERDUE_STATUSES: HousekeepingTaskStatus[] = ['UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS'];
+
+/** Việc dọn trả cho client. `isOverdue` = đã bị cờ quá hạn và nhân viên chưa báo xong (cờ tự gỡ — FR-010, BR-002). */
 export function toHousekeepingTaskDto(task: TaskWithRefs) {
   return {
     id: task.id,
     room: task.room,
     assignee: task.assignee,
     status: task.status,
-    isOverdue: task.overdueFlaggedAt !== null && task.status !== 'DONE',
+    isOverdue: task.overdueFlaggedAt !== null && OVERDUE_STATUSES.includes(task.status),
     dueAt: task.dueAt,
     returnNote: task.returnNote,
     photoRound: task.photoRound, // lượt ảnh nghiệm thu hiện tại (tăng khi bị trả lại)

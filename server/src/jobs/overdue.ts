@@ -2,7 +2,7 @@ import { writeAudit } from '../lib/audit.js';
 import { MSG } from '../lib/messages.js';
 import { withTransaction } from '../lib/transaction.js';
 import { roomLabel } from '../modules/rooms/rooms.service.js';
-import { housekeepingInclude, toHousekeepingTaskDto } from '../modules/housekeeping/housekeeping.dto.js';
+import { OVERDUE_STATUSES, housekeepingInclude, toHousekeepingTaskDto } from '../modules/housekeeping/housekeeping.dto.js';
 import { maintenanceInclude, toMaintenanceTaskDto } from '../modules/maintenance/maintenance.dto.js';
 import { CHANNELS } from '../realtime/events.js';
 import { notification } from '../realtime/notify.js';
@@ -19,7 +19,7 @@ export async function flagOverdueTasks(now: Date = new Date()) {
   return withTransaction(async (tx, enqueue) => {
     const housekeeping = await tx.housekeepingTask.findMany({
       where: {
-        status: { in: ['UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS'] },
+        status: { in: OVERDUE_STATUSES },
         completedAt: null,
         overdueFlaggedAt: null,
         dueAt: { lte: now },
