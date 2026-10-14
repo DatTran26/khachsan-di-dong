@@ -14,6 +14,12 @@ export const OPEN_TASK_STATUSES = ['ASSIGNED', 'IN_PROGRESS', 'PENDING_CONFIRM']
 // Mọi lần chia việc chạy tuần tự → 2 lượt trả phòng cùng lúc không dồn việc cho cùng một người.
 const ASSIGNMENT_LOCK = 724002;
 
+/**
+ * Khóa tư vấn Postgres `724002` đến hết transaction, để hai lần trả phòng
+ * không cùng chọn một nhân viên trước khi đếm việc của nhau cập nhật.
+ * @param tx Transaction sẽ giữ khóa đến commit hoặc rollback.
+ * @returns Promise khi khóa đã lấy. Không trả dữ liệu.
+ */
 export async function serializeAssignment(tx: Prisma.TransactionClient) {
   await tx.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(${ASSIGNMENT_LOCK}::bigint)`;
 }
@@ -22,6 +28,11 @@ export async function serializeAssignment(tx: Prisma.TransactionClient) {
  * Chọn nhân viên buồng phòng–bảo trì đang trực (và đang hoạt động) có ÍT việc đang mở nhất;
  * hòa → người lâu nhất chưa được giao việc (BR-housekeeping-004 / FR-002).
  * Nguồn "đang trực" tạm là cờ `onDuty` do quản lý/lễ tân bật (housekeeping OQ-1 chưa chốt).
+ *
+ * Không ghi dữ liệu. Hòa mọi tiêu chí thì xếp theo `id` để kết quả ổn định.
+ * @param tx Transaction đang giữ khóa chia việc (người gọi phải `serializeAssignment` nếu sắp ghi).
+ * @param excludeUserIds Nhân viên vừa từ chối hoặc không được chọn lại. Mặc định không loại ai.
+ * @returns `{ id, fullName }` hoặc `null` khi không còn ai trực.
  */
 export async function pickAssignee(tx: Prisma.TransactionClient, excludeUserIds: string[] = []) {
   const candidates = await tx.user.findMany({
@@ -54,6 +65,14 @@ export async function pickAssignee(tx: Prisma.TransactionClient, excludeUserIds:
  * Hệ thống tự giao một việc (mới tạo, bị từ chối, hoặc đang chờ giao).
  * Không có ai trực → để "chờ giao" và cảnh báo quản lý (FR-003, E-housekeeping-002).
  * Gọi bên trong transaction đã `serializeAssignment`.
+ *
+ * Có người: status `ASSIGNED`, ghi `assignedAt`, nhật ký hệ thống `housekeeping.task_assigned`,
+ * báo riêng người được giao. Không có người: nếu việc chưa phải `UNASSIGNED` thì chuyển về
+ * chờ giao và xóa assignee; luôn báo quản lý `HOUSEKEEPING_UNASSIGNED`.
+ * UPDATE này làm trigger tăng `version`. Cuối hàm luôn phát `housekeeping:task_updated`.
+ * @param task Việc cần giao. Dùng `roomId`, `status`, `assigneeId` hiện tại.
+ * @param excludeUserIds Truyền người vừa từ chối để không giao lại đúng họ trong lượt này.
+ * @returns DTO việc sau khi giao hoặc sau khi để chờ.
  */
 export async function autoAssign(
   tx: Prisma.TransactionClient,
@@ -101,7 +120,16 @@ export async function autoAssign(
   return dto;
 }
 
-/** Có người vào trực → giao lần lượt các việc "chờ giao" theo thứ tự giờ trả phòng (FR-003). */
+/**
+ * Có người vào trực → giao lần lượt các việc "chờ giao" (FR-003).
+ *
+ * Tự lấy khóa chia việc. Sắp theo `createdAt` tăng dần (gần với thứ tự trả phòng vì việc
+ * được tạo lúc checkout). Hết người trực thì dừng, không gọi `autoAssign` nên không
+ * bắn thêm cảnh báo "chưa có nhân viên" cho từng việc còn lại.
+ * @param tx Transaction của lần bật `onDuty` (hoặc chỗ gọi khác).
+ * @param enqueue Sự kiện giao việc và `task_updated` đi cùng commit đó.
+ * @returns Promise rỗng. Số việc giao được không trả ra.
+ */
 export async function assignPendingTasks(tx: Prisma.TransactionClient, enqueue: Enqueue) {
   await serializeAssignment(tx);
   const pending = await tx.housekeepingTask.findMany({ where: { status: 'UNASSIGNED' }, orderBy: { createdAt: 'asc' } });
