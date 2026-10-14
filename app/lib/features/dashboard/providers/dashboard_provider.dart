@@ -143,8 +143,14 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   /// `false` → vai trò không được xem chỉ số (nhân viên / chưa đăng nhập): không gọi API.
   final bool enabled;
 
-  DashboardSummaryNotifier({this.enabled = true})
-      : super(const DashboardSummaryState()) {
+  /// Gọi `GET /dashboard/summary` — tách ra để test thay bằng bản giả.
+  final Future<Map<String, dynamic>> Function() _fetch;
+
+  DashboardSummaryNotifier({
+    this.enabled = true,
+    Future<Map<String, dynamic>> Function()? fetch,
+  })  : _fetch = fetch ?? (() => apiClient.get('/dashboard/summary')),
+        super(const DashboardSummaryState()) {
     load();
   }
 
@@ -164,16 +170,28 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
     super.dispose();
   }
 
+  /// Lượt tải mới nhất — sự kiện realtime dồn dập thì phản hồi của lượt cũ về sau bị bỏ, không ghi đè số mới.
+  int _loadSeq = 0;
+
   Future<void> load({bool silent = false}) async {
     if (!enabled) return;
+    final seq = ++_loadSeq;
     if (!silent) state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final res = await apiClient.get('/dashboard/summary');
+      final res = await _fetch();
       final summary =
           DashboardSummary.fromJson(res['data'] as Map<String, dynamic>);
+      if (!mounted || seq != _loadSeq) return;
       state = state.copyWith(summary: summary, isLoading: false);
     } on ApiException catch (e) {
+      if (!mounted || seq != _loadSeq) return;
       state = state.copyWith(isLoading: false, error: e.message);
+    } catch (_) {
+      // Dữ liệu trả về sai dạng → không kẹt ở trạng thái đang tải (E-room-dashboard-002).
+      if (!mounted || seq != _loadSeq) return;
+      state = state.copyWith(
+          isLoading: false,
+          error: 'Không tải được dữ liệu dashboard. Thử lại.');
     }
   }
 }
