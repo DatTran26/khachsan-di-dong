@@ -16,13 +16,17 @@ import '../widgets/user_form_dialog.dart';
 class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
 
+  /// Tạo state lọc vai trò. Danh sách do [usersProvider] tự tải.
   @override
   ConsumerState<UsersScreen> createState() => _UsersScreenState();
 }
 
+/// Lọc theo vai trò và mở dialog tạo tài khoản. Bảng trên màn rộng, thẻ trên màn hẹp.
 class _UsersScreenState extends ConsumerState<UsersScreen> {
   UserRole? _roleFilter;
 
+  /// Sắp theo vai trò rồi tên. Nút tạo tắt khi mất mạng.
+  /// Danh sách rỗng kèm lỗi thì [ErrorState].
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(usersProvider);
@@ -47,6 +51,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         final r = a.role.index.compareTo(b.role.index);
         return r != 0 ? r : a.fullName.compareTo(b.fullName);
       });
+    /// Số tài khoản của vai trò [r]. Null là mọi vai trò đang có trong state.
     int count(UserRole? r) => r == null
         ? state.users.length
         : state.users.where((u) => u.role == r).length;
@@ -125,13 +130,16 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
 
 const _flex = [22, 14, 12, 14, 10, 28];
 
+/// Hàng tiêu đề bảng tài khoản trên màn rộng.
 class _HeaderRow extends StatelessWidget {
   const _HeaderRow();
 
+  /// Sáu cột khớp [_flex]. Không có dữ liệu.
   @override
   Widget build(BuildContext context) {
     const s = TextStyle(
         fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    /// Ô tiêu đề cột [i]. [end] true thì căn phải.
     Widget c(int i, String t, {bool end = false}) => Expanded(
         flex: _flex[i],
         child: Align(
@@ -152,12 +160,14 @@ class _HeaderRow extends StatelessWidget {
   }
 }
 
+/// Màu chip trạng thái tài khoản. Hoạt động xanh, chờ kích hoạt vàng, khóa đỏ.
 StatusTone _statusTone(AccountStatus s) => switch (s) {
       AccountStatus.active => StatusTone.ready,
       AccountStatus.pendingActivation => StatusTone.dirty,
       AccountStatus.locked => StatusTone.danger,
     };
 
+/// Một tài khoản: tên, SĐT, vai trò, trạng thái, trực ca và nút sửa/khóa/đặt lại mật khẩu.
 class _UserRow extends ConsumerWidget {
   final AppUser user;
   final AppUser? me;
@@ -170,6 +180,7 @@ class _UserRow extends ConsumerWidget {
       required this.online,
       required this.wide});
 
+  /// Đúng tài khoản đang đăng nhập. Ẩn khóa và đặt lại mật khẩu của chính mình.
   bool get _isSelf => user.id == me?.id;
 
   /// Lễ tân không thao tác trên tài khoản quản lý (BE chặn).
@@ -177,6 +188,8 @@ class _UserRow extends ConsumerWidget {
       me?.role == UserRole.manager ||
       (me?.role == UserRole.receptionist && user.role != UserRole.manager);
 
+  /// Mở [TempPasswordDialog] nếu [data] có `tempPassword`. Không có thì không hiện gì.
+  /// [heading] là câu trước tên, do chỗ gọi chọn.
   Future<void> _showTemp(
       BuildContext context, Map<String, dynamic>? data, String heading) async {
     final pw = data?['tempPassword'] as String?;
@@ -189,6 +202,8 @@ class _UserRow extends ConsumerWidget {
     );
   }
 
+  /// Hỏi rồi [UsersNotifier.lockUser]. Snack khi dialog thành công.
+  /// Lỗi server hiện trong dialog, không nuốt ở đây.
   Future<void> _lock(BuildContext context, WidgetRef ref) => showConfirmDialog(
         context,
         title: 'Khóa tài khoản ${user.fullName}?',
@@ -206,6 +221,8 @@ class _UserRow extends ConsumerWidget {
         },
       );
 
+  /// Hỏi rồi [UsersNotifier.unlockUser]. Thành công thì hiện mật khẩu tạm mới.
+  /// Hủy dialog thì không hiện mật khẩu dù request có thể đã chạy trong onConfirm.
   Future<void> _unlock(BuildContext context, WidgetRef ref) async {
     Map<String, dynamic>? data;
     final ok = await showConfirmDialog(
@@ -223,6 +240,8 @@ class _UserRow extends ConsumerWidget {
     }
   }
 
+  /// Hỏi rồi [UsersNotifier.resetPassword]. Thành công thì hiện mật khẩu tạm.
+  /// Người bị đặt lại bị đăng xuất phía server.
   Future<void> _reset(BuildContext context, WidgetRef ref) async {
     Map<String, dynamic>? data;
     final ok = await showConfirmDialog(
@@ -240,6 +259,8 @@ class _UserRow extends ConsumerWidget {
     }
   }
 
+  /// PATCH trực ca qua [UsersNotifier.updateUser]. [v] true là đang trực.
+  /// [ApiException] (thường xung đột version) qua [handleApiError] và tải lại danh sách.
   Future<void> _toggleDuty(BuildContext context, WidgetRef ref, bool v) async {
     try {
       await ref
@@ -260,6 +281,8 @@ class _UserRow extends ConsumerWidget {
     }
   }
 
+  /// Nút Sửa / Đặt lại / Khóa / Mở khóa. Rỗng nếu [_canManage] false.
+  /// Mọi nút tắt khi [online] false. Không khóa chính mình.
   List<Widget> _actions(BuildContext context, WidgetRef ref) {
     if (!_canManage) return const [];
     final small = OutlinedButton.styleFrom(
@@ -300,6 +323,8 @@ class _UserRow extends ConsumerWidget {
     ];
   }
 
+  /// Hàng bảng hoặc thẻ. Switch trực ca chỉ với nhân viên và chỉ khi được quản lý.
+  /// Không gọi API trong build.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final duty = user.role == UserRole.staff
@@ -333,6 +358,7 @@ class _UserRow extends ConsumerWidget {
     );
 
     if (wide) {
+      /// Ô một cột bảng theo [_flex].
       Widget c(int i, Widget w, {bool end = false}) => Expanded(
           flex: _flex[i],
           child: Align(
