@@ -39,7 +39,11 @@ const NOTICE: Record<SummaryFailure, string> = {
 
 const formatRate = (rate: number | null) => (rate === null ? 'không áp dụng' : `${String(rate).replace('.', ',')}%`);
 
-/** Gói dữ liệu gửi AI — chỉ số đếm/tỷ lệ + số phòng cần chú ý, không định danh khách (NFR-002). */
+/**
+ * Gói dữ liệu gửi AI — chỉ số đếm/tỷ lệ và câu cần chú ý, không định danh khách (NFR-002).
+ * Tỷ lệ null thành chữ "không áp dụng". Nhãn hoạt động lấy từ `ACTIVITY_LABELS`.
+ * @returns Object thuần tiếng Việt khóa, để stringify. Không ghi DB.
+ */
 function toAiPayload(range: PeriodRange, metrics: PeriodMetrics, attention: AttentionItem[], asOf: Date) {
   const { rooms, openTasks } = metrics;
   return {
@@ -73,7 +77,10 @@ function toAiPayload(range: PeriodRange, metrics: PeriodMetrics, attention: Atte
   };
 }
 
-/** Báo cáo mẫu từ dữ liệu gốc (FR-007) — cùng nhóm chỉ số chính, không có lời văn AI. */
+/**
+ * Báo cáo mẫu từ dữ liệu gốc (FR-007). Không gọi mạng.
+ * @returns `overview` một câu và `highlights` chỉ gồm hoạt động có count > 0.
+ */
 function fallbackContent(range: PeriodRange, metrics: PeriodMetrics) {
   const { rooms, openTasks } = metrics;
   const overdue = openTasks.overdueHousekeeping + openTasks.overdueMaintenance;
@@ -94,6 +101,12 @@ const LABEL: Record<SummarySource, string | null> = {
   EMPTY: null,
 };
 
+/**
+ * Bản tóm tắt đã lưu thành DTO cho app.
+ * `highlights` và `metrics` ép kiểu từ JSON Prisma — không validate lại lúc đọc.
+ * `label` null khi source `EMPTY`.
+ * @param s Bản ghi kèm người tạo (id, họ tên).
+ */
 export function toSummaryDto(s: AiSummary & { createdBy: Pick<User, 'id' | 'fullName'> }) {
   return {
     id: s.id,
@@ -119,6 +132,10 @@ export function toSummaryDto(s: AiSummary & { createdBy: Pick<User, 'id' | 'full
 
 const createdByInclude = { createdBy: { select: { id: true, fullName: true } } } as const;
 
+/**
+ * Tổng `costVnd` đã ghi trên mọi bản tóm tắt, kể cả bản fallback đã gọi AI rồi thất bại.
+ * @returns 0 khi chưa có dòng hoặc sum null.
+ */
 async function spentVnd() {
   const { _sum } = await prisma.aiSummary.aggregate({ _sum: { costVnd: true } });
   return _sum.costVnd ?? 0;
@@ -134,7 +151,14 @@ type Outcome = {
   costVnd: number;
 };
 
-/** Thử bản AI; mọi đường lỗi trả về lý do để dựng báo cáo mẫu. */
+/**
+ * Thử bản AI. Mọi đường lỗi trả lý do để dựng báo cáo mẫu, không ném ra ngoài.
+ *
+ * Không có API key → `NOT_CONFIGURED`, chi phí 0, không gọi mạng.
+ * Đã tiêu + chi phí tối đa một lượt vượt ngân sách → `QUOTA_EXCEEDED` trước khi gọi.
+ * Timeout tính `MAX_CALL_COST_VND`. `AiServiceError` (HTTP/mạng) tính chi phí 0 dù provider có thể đã tính cước.
+ * @param payload Gói `toAiPayload`.
+ */
 async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
   if (!env.OPENAI_API_KEY) return { calledAi: false, failureReason: 'NOT_CONFIGURED', costVnd: 0 };
   // Chặn TRƯỚC khi gọi theo chi phí tối đa của 1 lượt → không bao giờ vượt ngân sách (FR-009, NFR-003).
@@ -160,6 +184,11 @@ async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overvi
   }
 }
 
+/**
+ * Dựng và lưu một bản. Kỳ không có hoạt động → `EMPTY`, không gọi AI, vẫn lưu attention theo quy tắc.
+ * Có hoạt động mà AI không dùng được → `FALLBACK`. Ghi nhật ký `ai_summary.generated` trong cùng transaction với insert.
+ * @returns DTO và `notice` (null khi bản AI hợp lệ).
+ */
 async function generate(actor: User, period: SummaryPeriod, now: Date) {
   const range = resolvePeriod(period, now);
   const { metrics, attention, hasActivity } = await buildPeriodMetrics(range);
@@ -219,6 +248,12 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
   return { summary: toSummaryDto(saved), notice };
 }
 
+/**
+ * Tạo một bản tóm tắt. Cờ `running` trong bộ nhớ chặn lượt thứ hai của cùng tiến trình (409).
+ * Không khóa giữa nhiều process. `finally` luôn hạ cờ, kể cả khi `generate` ném.
+ * @param now Mặc định giờ gọi. Test truyền mốc cố định.
+ * @returns Kết quả `generate`.
+ */
 export async function createSummary(actor: User, period: SummaryPeriod, now: Date = new Date()) {
   if (running) throw new AppError(409, 'SUMMARY_IN_PROGRESS', MSG.summaryInProgress);
   running = true;
@@ -229,7 +264,11 @@ export async function createSummary(actor: User, period: SummaryPeriod, now: Dat
   }
 }
 
-/** Bản gần nhất của mỗi kỳ — xem lại không gọi AI (FR-013). Chỉ lấy bản cùng phiên bản dạng dữ liệu hiện tại. */
+/**
+ * Bản gần nhất của mỗi kỳ — không gọi AI (FR-013).
+ * Chỉ bản cùng `SUMMARY_SCHEMA_VERSION`. Kỳ chưa có bản thì giá trị null.
+ * @returns Object khóa `CURRENT_SHIFT`, `PREVIOUS_SHIFT`, `TODAY`.
+ */
 export async function latestSummaries() {
   const periods: SummaryPeriod[] = ['CURRENT_SHIFT', 'PREVIOUS_SHIFT', 'TODAY'];
   const rows = await Promise.all(
@@ -244,7 +283,11 @@ export async function latestSummaries() {
   return Object.fromEntries(periods.map((p, i) => [p, rows[i] ? toSummaryDto(rows[i]) : null]));
 }
 
-/** Tình trạng ngân sách AI cho màn quản lý. */
+/**
+ * Tình trạng ngân sách cho màn quản lý. Không tạo bản mới.
+ * `exhausted` dùng cùng điều kiện chặn trước khi gọi: đã tiêu + chi phí tối đa một lượt > ngân sách.
+ * `aiConfigured` chỉ là boolean — không trả API key.
+ */
 export async function budgetStatus() {
   const spent = await spentVnd();
   return {

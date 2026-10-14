@@ -57,6 +57,15 @@ export interface PeriodMetrics {
   activity: Record<ActivityAction, number>;
 }
 
+/**
+ * Chụp số liệu kỳ tại thời điểm gọi (dashboard + việc mở + phòng ngừng phục vụ + đếm nhật ký trong [start, end]).
+ *
+ * `hasActivity` chỉ nhìn các action trong `ACTIVITY_LABELS`, không tính đăng nhập hay sửa tài khoản.
+ * Attention gồm việc quá hạn rồi tới từng phòng ngừng phục vụ (có thể trùng phòng nếu vừa quá hạn vừa ngừng).
+ * Không gửi tên khách. Không ghi DB.
+ * @param range Kỳ đã chốt. `end` là mốc T.
+ * @returns `metrics`, `attention`, `hasActivity`.
+ */
 export async function buildPeriodMetrics(range: PeriodRange) {
   const [summary, overdue, outOfServiceRooms, housekeepingGroups, maintenanceGroups, activityGroups] = await Promise.all([
     getSummary(),

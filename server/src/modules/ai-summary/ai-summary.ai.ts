@@ -28,9 +28,16 @@ export interface AiUsage {
   outputTokens: number;
 }
 
+/** Hết `AI_TIMEOUT_MS` hoặc AbortError khi gọi OpenAI. Service tính chi phí mức tối đa. */
 export class AiTimeoutError extends Error {}
+
+/** Không kết nối được hoặc HTTP không 2xx. Không kèm usage. Service ghi chi phí 0. */
 export class AiServiceError extends Error {}
-/** AI trả lời nhưng không đúng cấu trúc yêu cầu. */
+
+/**
+ * AI trả body nhưng không đúng cấu trúc hoặc chưa `completed`.
+ * `usage` có thể có nếu response đã kèm token, để tính chi phí thật thay vì mức tối đa.
+ */
 export class AiFormatError extends Error {
   constructor(
     message: string,
@@ -40,7 +47,11 @@ export class AiFormatError extends Error {
   }
 }
 
-/** Chi phí VNĐ (làm tròn lên) theo đơn giá cấu hình. */
+/**
+ * Chi phí VNĐ, làm tròn lên, theo đơn giá cấu hình trên mỗi triệu token.
+ * @param usage Token vào/ra của một lượt. Không âm ở chỗ gọi hiện tại; hàm không tự chặn số âm.
+ * @returns Số nguyên VNĐ. 0 token thì 0.
+ */
 export function costOf(usage: AiUsage) {
   return Math.ceil(
     (usage.inputTokens * env.AI_PRICE_INPUT_VND_PER_1M + usage.outputTokens * env.AI_PRICE_OUTPUT_VND_PER_1M) / 1_000_000,
@@ -70,6 +81,15 @@ const INSTRUCTIONS = [
 ].join('\n');
 
 export const aiClient = {
+  /**
+   * Gọi Responses API một lần. `store: false`. Structured output tên schema có kèm `SUMMARY_SCHEMA_VERSION`.
+   *
+   * Timeout → `AiTimeoutError`. Mạng lỗi hoặc HTTP không ok → `AiServiceError` (không đọc usage).
+   * Body không `completed` hoặc không có output_text → `AiFormatError`, có usage nếu API trả.
+   * JSON parse lỗi → `AiFormatError`. Không kiểm số liệu — đó là `validateAiOutput`.
+   * @param payload Object đã rút gọn, sẽ `JSON.stringify` vào `input`. Không gồm tên khách.
+   * @returns Văn bản đã parse thành object và usage. Chưa trim, chưa đối soát số.
+   */
   async generate(payload: unknown): Promise<{ output: AiOutput; usage: AiUsage }> {
     let response: Response;
     try {
