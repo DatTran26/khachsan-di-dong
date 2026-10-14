@@ -34,4 +34,12 @@ if (!parsed.success) {
   process.exit(1);
 }
 
+/**
+ * Biến môi trường đã parse và có default.
+ *
+ * Import module này chạy `dotenv` rồi `process.exit(1)` nếu `DATABASE_URL` thiếu
+ * hoặc một giá trị không khớp schema — process không lên server với cấu hình sai.
+ * Khóa `OPENAI_API_KEY` chỉ nằm ở object này; không có hàm nào trả nó ra API.
+ * `CORS_ORIGINS` và `MAINTENANCE_DUE_MINUTES` có thể `undefined` (để chỗ gọi áp dụng default riêng).
+ */
 export const env = parsed.data;
