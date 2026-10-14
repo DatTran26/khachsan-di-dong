@@ -23,12 +23,14 @@ class RoomTile extends StatelessWidget {
     this.onTap,
   });
 
+  /// Phòng đang ngừng phục vụ. Quyết định gạch chéo và một dòng trạng thái.
   bool get _oos => room.service == ServiceStatus.outOfService;
 
   /// Chiều cao ô trên lưới, co giãn theo cỡ chữ hệ thống (đầu ô ~31px + 3 dòng trạng thái ~16px + lề).
   static double extent(BuildContext context) =>
       MediaQuery.textScalerOf(context).scale(106);
 
+  /// Ô bấm [onTap]. Tooltip và semantics luôn đủ ba trục, kể cả khi thân ô chỉ một dòng.
   @override
   Widget build(BuildContext context) {
     final tone = room.summaryTone;
@@ -154,6 +156,7 @@ class RoomTile extends StatelessWidget {
 
 /// Gạch chéo 135° phủ toàn ô phòng ngừng phục vụ.
 class _HatchPainter extends CustomPainter {
+  /// Khoảng cách nét 9px. Không đọc theme.
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -170,14 +173,17 @@ class _HatchPainter extends CustomPainter {
     canvas.restore();
   }
 
+  /// Không có tham số, không cần vẽ lại.
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Viền nét đứt bo [radius] cho ô ngừng phục vụ khi không quá hạn và không đang chọn.
 class _DashedBorderPainter extends CustomPainter {
   final double radius;
   _DashedBorderPainter({required this.radius});
 
+  /// Nét 5px, hở 4px, dọc theo bo góc.
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -198,6 +204,7 @@ class _DashedBorderPainter extends CustomPainter {
     }
   }
 
+  /// Vẽ lại khi [radius] đổi.
   @override
   bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
       oldDelegate.radius != radius;

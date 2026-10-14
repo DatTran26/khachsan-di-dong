@@ -22,31 +22,37 @@ const updateSchema = versionBody.extend({
   onDuty: z.boolean().optional(),
 });
 
+/** GET `/` — danh sách mọi tài khoản. Quản lý và lễ tân. */
 usersRouter.get('/', async (_req, res) => {
   res.json({ data: await listUsers() });
 });
 
+/** POST `/` — tạo tài khoản. 201. Response có mật khẩu tạm một lần. */
 usersRouter.post('/', async (req, res) => {
   const result = await createUser(authOf(res).user, createSchema.parse(req.body));
   res.status(201).json({ data: result });
 });
 
+/** PATCH `/:id` — sửa hồ sơ. Body có `version` và các trường tùy chọn. */
 usersRouter.patch('/:id', async (req, res) => {
   const { id } = idParams.parse(req.params);
   const { version, ...patch } = updateSchema.parse(req.body);
   res.json({ data: await updateUser(authOf(res).user, id, version, patch) });
 });
 
+/** POST `/:id/lock` — khóa. Body `{ version }`. */
 usersRouter.post('/:id/lock', async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await lockUser(authOf(res).user, id, versionBody.parse(req.body).version) });
 });
 
+/** POST `/:id/unlock` — mở khóa, response có mật khẩu tạm mới. */
 usersRouter.post('/:id/unlock', async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await unlockUser(authOf(res).user, id, versionBody.parse(req.body).version) });
 });
 
+/** POST `/:id/reset-password` — cấp mật khẩu tạm. Body `{ version }`. */
 usersRouter.post('/:id/reset-password', async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await resetPassword(authOf(res).user, id, versionBody.parse(req.body).version) });

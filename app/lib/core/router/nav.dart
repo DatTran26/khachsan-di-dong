@@ -40,6 +40,8 @@ const _staffHousekeeping = NavItem('/don-phong', 'Việc dọn', 'Việc dọn c
 const _staffMaintenance = NavItem('/bao-tri', 'Việc sửa', 'Việc sửa',
     Icons.build_outlined, Icons.build_rounded);
 
+/// Mục menu theo vai trò. [role] null (chưa đăng nhập) trả danh sách rỗng.
+/// Lễ tân không có dọn phòng, nhật ký, tóm tắt AI. Nhân viên không có tổng quan.
 List<NavItem> navItemsFor(UserRole? role) {
   switch (role) {
     case UserRole.manager:
@@ -62,12 +64,16 @@ List<NavItem> navItemsFor(UserRole? role) {
   }
 }
 
+/// Màn đầu sau đăng nhập. Nhân viên vào việc dọn; vai trò khác và null vào dashboard.
 String homeFor(UserRole? role) =>
     role == UserRole.staff ? '/don-phong' : '/dashboard';
 
+/// [path] được mở nếu nó bắt đầu bằng path của một mục trong menu vai trò.
+/// Khớp tiền tố nên `/don-phong?viec=` vẫn hợp lệ với mục `/don-phong`.
 bool canOpen(UserRole? role, String path) =>
     navItemsFor(role).any((n) => path.startsWith(n.path));
 
+/// Tiêu đề thanh trên. Không khớp mục nào thì "Khách Sạn Di Động".
 String titleFor(UserRole? role, String path) {
   for (final n in navItemsFor(role)) {
     if (path.startsWith(n.path)) return n.title;

@@ -21,6 +21,7 @@ void handleApiError(
   }
 }
 
+/// Tông snack: thành công, thông tin, cảnh báo, lỗi. Lỗi hiện lâu hơn một giây.
 enum SnackTone { success, info, warn, error }
 
 /// Thông báo ngắn ở cuối màn hình — thành công nói cụ thể việc vừa làm ("Đã nhận phòng 105 cho …").

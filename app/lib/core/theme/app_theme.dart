@@ -45,15 +45,19 @@ class AppColors {
   static const Color dotMuted = Color(0xFFBDB5A7);
 }
 
+/// Theme sáng Material 3: Be Vietnam Pro, nút vàng, app bar espresso.
 class AppTheme {
   static const double radiusSm = 8;
   static const double radiusMd = 12;
   static const double radiusLg = 16;
 
+  /// Gắn Be Vietnam Pro lên [base] và tô chữ bằng [AppColors.text].
   static TextTheme _textTheme(TextTheme base) =>
       GoogleFonts.beVietnamProTextTheme(base)
           .apply(bodyColor: AppColors.text, displayColor: AppColors.text);
 
+  /// Theme duy nhất của app. Không có theme tối.
+  /// Side effect: [GoogleFonts] có thể tải font lần đầu (hành vi package), không gọi API nghiệp vụ.
   static ThemeData get light {
     final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
     final scheme = ColorScheme.fromSeed(
@@ -74,6 +78,7 @@ class AppTheme {
     );
     final text = _textTheme(base.textTheme);
 
+    /// Viền ô nhập bo [radiusSm], màu [c], dày [w].
     OutlineInputBorder inputBorder(Color c, [double w = 1]) =>
         OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),

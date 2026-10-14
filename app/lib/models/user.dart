@@ -1,8 +1,12 @@
+/// Vai trò app, khớp enum `Role` của server.
 enum UserRole { manager, receptionist, staff }
 
+/// Trạng thái tài khoản, khớp `AccountStatus` của server.
 enum AccountStatus { pendingActivation, active, locked }
 
+/// Nhãn và mã API của [UserRole].
 extension UserRoleX on UserRole {
+  /// Câu đầy đủ: Quản lý, Lễ tân, hoặc Nhân viên buồng phòng–bảo trì.
   String get label {
     switch (this) {
       case UserRole.manager:
@@ -17,6 +21,7 @@ extension UserRoleX on UserRole {
   /// Nhãn ngắn cho bảng, chip, thanh điều hướng.
   String get shortLabel => this == UserRole.staff ? 'Nhân viên' : label;
 
+  /// Mã gửi/nhận API: `MANAGER`, `RECEPTIONIST`, `STAFF`.
   String get value {
     switch (this) {
       case UserRole.manager:
@@ -28,6 +33,7 @@ extension UserRoleX on UserRole {
     }
   }
 
+  /// Parse mã API. Giá trị lạ thành [UserRole.staff] — không ném.
   static UserRole fromString(String v) {
     switch (v) {
       case 'MANAGER':
@@ -40,7 +46,9 @@ extension UserRoleX on UserRole {
   }
 }
 
+/// Nhãn tiếng Việt và parse mã trạng thái tài khoản.
 extension AccountStatusX on AccountStatus {
+  /// Nhãn trên danh sách tài khoản.
   String get label {
     switch (this) {
       case AccountStatus.pendingActivation:
@@ -52,6 +60,7 @@ extension AccountStatusX on AccountStatus {
     }
   }
 
+  /// Parse mã API. Giá trị lạ thành chờ kích hoạt, không ném.
   static AccountStatus fromString(String v) {
     switch (v) {
       case 'ACTIVE':
@@ -64,6 +73,7 @@ extension AccountStatusX on AccountStatus {
   }
 }
 
+/// Tài khoản nhân viên trên client. Không có hash mật khẩu hay số lần đăng nhập sai.
 class AppUser {
   final String id;
   final String phone;
@@ -87,6 +97,7 @@ class AppUser {
     required this.createdAt,
   });
 
+  /// Dựng từ DTO `/auth/me` hoặc `/users`. Thiếu khóa bắt buộc thì ném khi ép kiểu.
   factory AppUser.fromJson(Map<String, dynamic> json) => AppUser(
         id: json['id'] as String,
         phone: json['phone'] as String,
@@ -99,6 +110,7 @@ class AppUser {
         createdAt: DateTime.parse(json['createdAt'] as String),
       );
 
+  /// Bản sao. Không đổi [id], [phone], [createdAt]. Trường null giữ giá trị cũ.
   AppUser copyWith({
     String? fullName,
     UserRole? role,

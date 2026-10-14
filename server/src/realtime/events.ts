@@ -10,9 +10,25 @@ import type { toRoomDto } from '../modules/rooms/rooms.service.js';
  * - session:<id>: riêng một phiên đăng nhập — để hủy phiên đó ngay (khóa TK, đăng nhập nơi khác...)
  */
 export const CHANNELS = {
+  /** Kênh mọi phiên đã xác thực. Không phải hàm. */
   hotel: 'hotel',
+  /**
+   * Kênh theo vai trò (`role:MANAGER`, …).
+   * @param role Giá trị enum `Role`. Không kiểm tra role có tồn tại.
+   * @returns Tên room Socket.IO.
+   */
   role: (role: string) => `role:${role}`,
+  /**
+   * Kênh một tài khoản.
+   * @param userId UUID người nhận. Không kiểm tra tài khoản còn hoạt động.
+   * @returns Tên room `user:<id>`.
+   */
   user: (userId: string) => `user:${userId}`,
+  /**
+   * Kênh đúng một phiên — dùng để đá thiết bị đó khi phiên bị hủy.
+   * @param sessionId Id dòng `Session`, không phải token.
+   * @returns Tên room `session:<id>`.
+   */
   session: (sessionId: string) => `session:${sessionId}`,
 } as const;
 

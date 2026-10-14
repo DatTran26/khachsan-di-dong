@@ -3,6 +3,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/realtime/socket_service.dart';
 import '../../../models/room.dart';
 
+/// Bộ lọc danh sách phòng trên client. Không gửi lên API.
 class RoomsFilter {
   final int? floor;
   final OccupancyStatus? occupancy;
@@ -20,6 +21,7 @@ class RoomsFilter {
     this.query = '',
   });
 
+  /// Có ít nhất một tiêu chí khác mặc định. Ô tìm chỉ khoảng trắng vẫn tính là đang lọc.
   bool get isActive =>
       floor != null ||
       occupancy != null ||
@@ -28,6 +30,8 @@ class RoomsFilter {
       readyOnly ||
       query.isNotEmpty;
 
+  /// Bản sao. Truyền `null` cho tầng hoặc trục trạng thái để xóa tiêu chí đó
+  /// (dùng sentinel nội bộ, không giữ giá trị cũ khi gọi `copyWith(floor: null)`).
   RoomsFilter copyWith({
     Object? floor = _sentinel,
     Object? occupancy = _sentinel,
@@ -52,6 +56,7 @@ class RoomsFilter {
   static const _sentinel = Object();
 }
 
+/// Danh sách phòng, bộ lọc, cờ tải, lỗi và trạng thái socket.
 class RoomsState {
   final List<Room> rooms;
   final bool isLoading;
@@ -69,6 +74,7 @@ class RoomsState {
     this.lastUpdated,
   });
 
+  /// Phòng khớp [filter], đã sắp bằng [compareRooms]. Không sửa [rooms].
   List<Room> get filtered {
     final q = filter.query.trim();
     final list = rooms.where((r) {
@@ -88,8 +94,11 @@ class RoomsState {
     return list;
   }
 
+  /// Mọi phòng, không lọc, sắp theo tầng rồi số phòng.
   List<Room> get sorted => [...rooms]..sort(compareRooms);
 
+  /// Tầng tăng dần, rồi số phòng nếu cả hai là số, không thì so chuỗi.
+  /// Giá trị âm nếu [a] đứng trước [b].
   static int compareRooms(Room a, Room b) {
     final byFloor = a.floor.compareTo(b.floor);
     if (byFloor != 0) return byFloor;
@@ -98,6 +107,7 @@ class RoomsState {
     return a.number.compareTo(b.number);
   }
 
+  /// Phòng có [id], hoặc null nếu không còn trong danh sách đã tải.
   Room? byId(String id) {
     for (final r in rooms) {
       if (r.id == id) return r;
@@ -105,11 +115,13 @@ class RoomsState {
     return null;
   }
 
+  /// Các tầng đang có phòng, tăng dần, không trùng.
   List<int> get availableFloors {
     final floors = rooms.map((r) => r.floor).toSet().toList()..sort();
     return floors;
   }
 
+  /// Bản sao. [clearError] true thì xóa lỗi dù [error] được truyền.
   RoomsState copyWith({
     List<Room>? rooms,
     bool? isLoading,
@@ -129,12 +141,16 @@ class RoomsState {
       );
 }
 
+/// Danh sách phòng và các lệnh ghi (nhận/trả, phục vụ, danh mục).
+/// Constructor gắn socket rồi gọi [load].
 class RoomsNotifier extends StateNotifier<RoomsState> {
+  /// Side effect: [_setupSocket] và [load] ngay khi tạo.
   RoomsNotifier() : super(const RoomsState()) {
     _setupSocket();
     load();
   }
 
+  /// Gắn callback phòng tạo/sửa/xóa và đổi kết nối. Ghi đè callback toàn cục của [socketService].
   void _setupSocket() {
     socketService.onRoomUpdated = _handleRoomUpdated;
     socketService.onRoomCreated = _handleRoomCreated;
@@ -142,6 +158,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     socketService.onConnectionChanged = _handleConnectionChanged;
   }
 
+  /// Thay phòng trong state nếu payload mới hơn [Room.version]. Bỏ qua id lạ hoặc version cũ.
+  /// Đặt [RoomsState.lastUpdated] để màn khác tải lại.
   void _handleRoomUpdated(Map<String, dynamic> roomJson) {
     final updated = Room.fromJson(roomJson);
     final idx = state.rooms.indexWhere((r) => r.id == updated.id);
@@ -153,6 +171,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
   }
 
+  /// Thêm phòng nếu chưa có cùng id. Cập nhật [RoomsState.lastUpdated].
   void _handleRoomCreated(Map<String, dynamic> roomJson) {
     final room = Room.fromJson(roomJson);
     if (state.rooms.any((r) => r.id == room.id)) return;
@@ -160,16 +179,19 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
         .copyWith(rooms: [...state.rooms, room], lastUpdated: DateTime.now());
   }
 
+  /// Bỏ phòng [roomId] khỏi state. Không gọi API.
   void _handleRoomDeleted(String roomId) {
     final newRooms = state.rooms.where((r) => r.id != roomId).toList();
     state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
   }
 
+  /// Ghi [RoomsState.isConnected]. Khi nối lại thì gọi [load] để kéo bản đầy đủ.
   void _handleConnectionChanged(bool connected) {
     state = state.copyWith(isConnected: connected);
     if (connected) load();
   }
 
+  /// GET `/rooms`. [ApiException] ghi lỗi vào state, không ném tiếp.
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -188,14 +210,18 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     }
   }
 
+  /// Đổi bộ lọc local. Không gọi mạng.
   void setFilter(RoomsFilter filter) {
     state = state.copyWith(filter: filter);
   }
 
+  /// Xóa mọi tiêu chí lọc, kể cả ô tìm.
   void clearFilter() {
     state = state.copyWith(filter: const RoomsFilter());
   }
 
+  /// POST `/rooms/{id}/check-in`. [note] rỗng và [expectedCheckout] null thì không gửi.
+  /// Trả `data` của response. Lỗi API ném [ApiException], không nuốt.
   Future<Map<String, dynamic>> checkIn({
     required String roomId,
     required int version,
@@ -217,6 +243,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
+  /// POST `/rooms/{id}/check-out` với [version] phòng. Trả `data`. Ném [ApiException] khi lỗi.
   Future<Map<String, dynamic>> checkOut({
     required String roomId,
     required int version,
@@ -226,6 +253,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
+  /// POST `/rooms/{id}/out-of-service`. [confirmOccupied] true mới gửi cờ xác nhận phòng đang có khách.
+  /// Không trả body. Ném [ApiException] khi server từ chối.
   Future<void> setOutOfService({
     required String roomId,
     required int version,
@@ -237,12 +266,14 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     await apiClient.post('/rooms/$roomId/out-of-service', body: body);
   }
 
+  /// POST `/rooms/{id}/back-in-service` với [version]. Ném [ApiException] nếu còn việc sửa mở.
   Future<void> backInService(
       {required String roomId, required int version}) async {
     await apiClient
         .post('/rooms/$roomId/back-in-service', body: {'version': version});
   }
 
+  /// POST `/rooms`. Trả `data` phòng vừa tạo. Ném khi trùng số hoặc thiếu quyền.
   Future<Map<String, dynamic>> createRoom({
     required String number,
     required int floor,
@@ -256,6 +287,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
+  /// POST `/rooms/bulk` cho dải số [from]–[to] trên [floor]. Trả `data` (created/skipped do server).
   Future<Map<String, dynamic>> createRoomRange({
     required int floor,
     required int from,
@@ -271,6 +303,8 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
+  /// PATCH `/rooms/{id}`. Chỉ gửi [number], [floor], [roomTypeId] khi khác null, luôn gửi [version].
+  /// Trả `data`. Ném [ApiException] khi xung đột version hoặc trùng số.
   Future<Map<String, dynamic>> updateRoom({
     required String roomId,
     required int version,
@@ -286,12 +320,14 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     return res['data'] as Map<String, dynamic>;
   }
 
+  /// DELETE `/rooms/{id}` kèm [version] trong body. Ném [ApiException] nếu phòng đã có lịch sử.
   Future<void> deleteRoom(
       {required String roomId, required int version}) async {
     await apiClient.delete('/rooms/$roomId', body: {'version': version});
   }
 }
 
+/// Danh sách phòng dùng chung. Một [RoomsNotifier], socket gắn trong constructor.
 final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
   return RoomsNotifier();
 });

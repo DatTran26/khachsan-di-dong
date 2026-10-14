@@ -20,11 +20,13 @@ class AcceptancePhotosScreen extends ConsumerStatefulWidget {
   final String taskId;
   const AcceptancePhotosScreen({super.key, required this.taskId});
 
+  /// Tạo state chọn ảnh và cờ bất thường.
   @override
   ConsumerState<AcceptancePhotosScreen> createState() =>
       _AcceptancePhotosScreenState();
 }
 
+/// Chụp hoặc chọn ảnh, xóa cận cảnh chưa nộp, báo hoàn tất khi đủ ảnh.
 class _AcceptancePhotosScreenState
     extends ConsumerState<AcceptancePhotosScreen> {
   final _picker = ImagePicker();
@@ -57,6 +59,8 @@ class _AcceptancePhotosScreenState
     );
   }
 
+  /// Chọn nguồn, nén tối đa 1920px chất lượng 80, rồi [TaskPhotosNotifier.upload].
+  /// Hủy chọn thì không gọi API. [ApiException] qua [handleApiError].
   Future<void> _addPhoto(PhotoCategory category) async {
     final source = await _askSource();
     if (source == null) return;
@@ -73,6 +77,7 @@ class _AcceptancePhotosScreenState
     }
   }
 
+  /// Hỏi rồi [TaskPhotosNotifier.delete]. Ảnh nhóm bắt buộc không đi qua hàm này.
   Future<void> _deleteCloseup(HousekeepingPhoto photo) async {
     await showConfirmDialog(
       context,
@@ -86,6 +91,8 @@ class _AcceptancePhotosScreenState
     );
   }
 
+  /// [HousekeepingNotifier.complete] với cờ bất thường trên màn.
+  /// Thành công pop và snack. Lỗi thì [handleApiError] và tải lại việc lẫn ảnh.
   Future<void> _submit(HousekeepingTask task) async {
     setState(() => _submitting = true);
     try {
@@ -107,6 +114,8 @@ class _AcceptancePhotosScreenState
     }
   }
 
+  /// Ba ô bắt buộc và mục bất thường. Nút báo xong tắt khi thiếu ảnh, đang tải, mất mạng
+  /// hoặc việc không còn đang dọn.
   @override
   Widget build(BuildContext context) {
     final task = ref.watch(housekeepingProvider.select((s) {
@@ -263,6 +272,7 @@ class _RequiredSlot extends StatelessWidget {
     required this.onPick,
   });
 
+  /// Nút chụp tắt khi [enabled] false hoặc [uploading]. Bấm ảnh mở [showPhotoViewer].
   @override
   Widget build(BuildContext context) {
     final done = photo != null;
@@ -357,6 +367,8 @@ class _IssueSection extends StatelessWidget {
     required this.onDelete,
   });
 
+  /// Switch bất thường và danh sách cận cảnh. Đủ [maxCloseups] thì tắt nút thêm.
+  /// Xóa gọi [onDelete], không tự gọi API.
   @override
   Widget build(BuildContext context) {
     final full = closeups.length >= maxCloseups;

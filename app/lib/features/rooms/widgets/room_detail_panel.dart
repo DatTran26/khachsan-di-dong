@@ -65,6 +65,8 @@ class RoomDetailPanel extends ConsumerWidget {
   const RoomDetailPanel(
       {super.key, required this.roomId, this.onClose, this.scrollController});
 
+  /// Chi tiết phòng [roomId] và nút theo vai trò. Phòng không còn trong state thì empty state.
+  /// Không gọi API trực tiếp — nút ủy quyền cho notifier hoặc dialog.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final room = ref.watch(roomsProvider.select((s) => s.byId(roomId)));
@@ -219,6 +221,8 @@ class RoomDetailPanel extends ConsumerWidget {
     );
   }
 
+  /// Hỏi lý do rồi POST ngừng phục vụ. Phòng đang có khách thì gửi `confirmOccupied`.
+  /// Lý do trống không đóng dialog. [ApiException] qua [handleApiError] và tải lại phòng.
   Future<void> _placeOutOfService(
       BuildContext context, WidgetRef ref, Room room) async {
     final reason = TextEditingController();
@@ -287,6 +291,8 @@ class RoomDetailPanel extends ConsumerWidget {
     }
   }
 
+  /// Hỏi xác nhận rồi [RoomsNotifier.backInService]. Snack khi dialog báo thành công.
+  /// Việc sửa còn mở thì server từ chối; lỗi hiện trong dialog.
   Future<void> _backInService(
       BuildContext context, WidgetRef ref, Room room) async {
     await showConfirmDialog(
@@ -306,6 +312,8 @@ class RoomDetailPanel extends ConsumerWidget {
     );
   }
 
+  /// Hỏi xóa rồi [RoomsNotifier.deleteRoom]. Thành công thì snack và gọi [onClose].
+  /// Phòng đã có lịch sử thì server từ chối trong dialog.
   Future<void> _deleteRoom(
       BuildContext context, WidgetRef ref, Room room) async {
     final ok = await showConfirmDialog(
@@ -326,15 +334,18 @@ class RoomDetailPanel extends ConsumerWidget {
   }
 }
 
+/// Form nhận phòng cho lễ tân khi phòng sẵn sàng. [online] false thì khóa nút gửi.
 class _CheckInForm extends ConsumerStatefulWidget {
   final Room room;
   final bool online;
   const _CheckInForm({required this.room, required this.online});
 
+  /// Tạo state form khách.
   @override
   ConsumerState<_CheckInForm> createState() => _CheckInFormState();
 }
 
+/// Tên khách, số người, ghi chú, giờ trả dự kiến và lỗi nhận phòng.
 class _CheckInFormState extends ConsumerState<_CheckInForm> {
   final _formKey = GlobalKey<FormState>();
   final _guest = TextEditingController();
@@ -344,6 +355,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
   bool _saving = false;
   String? _error;
 
+  /// Giải phóng controller tên, số người, ghi chú.
   @override
   void dispose() {
     _guest.dispose();
@@ -352,6 +364,8 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     super.dispose();
   }
 
+  /// Chọn ngày rồi giờ trả dự kiến. Hủy ngày thì giữ nguyên. Hủy giờ thì lấy 12:00 cùng ngày đã chọn.
+  /// Không gọi API.
   Future<void> _pickExpected() async {
     final now = DateTime.now();
     final date = await showDatePicker(
@@ -374,6 +388,9 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     });
   }
 
+  /// [RoomsNotifier.checkIn] rồi tải lại [staysProvider].
+  /// Xung đột version thì tải lại phòng và hiện câu đã cập nhật. Lỗi khác hiện [e.message].
+  /// Không pop màn — panel vẫn mở trên phòng vừa chuyển sang đang ở.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -411,6 +428,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     }
   }
 
+  /// Form nhận phòng. Nút tắt khi đang lưu hoặc [online] false.
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -513,11 +531,14 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
   }
 }
 
+/// Khối khách đang ở và nút trả phòng. Tên lấy từ [staysProvider], không từ phòng.
 class _CheckOutBlock extends ConsumerWidget {
   final Room room;
   final bool online;
   const _CheckOutBlock({required this.room, required this.online});
 
+  /// Hiện tên khách nếu có lượt mở trùng phòng. Nút gọi [confirmCheckOut].
+  /// Không có lượt thì vẫn hiện "—" và cho trả theo version phòng.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stays = ref.watch(staysProvider).stays;
@@ -589,6 +610,8 @@ class _OverdueSection extends ConsumerWidget {
   final bool isManager;
   const _OverdueSection({required this.roomId, required this.isManager});
 
+  /// Danh việc quá hạn của phòng. Rỗng thì không chiếm chỗ.
+  /// Nút "Mở việc" dọn chỉ với quản lý; việc sửa hiện với cả lễ tân.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasks = ref.watch(dashboardSummaryProvider

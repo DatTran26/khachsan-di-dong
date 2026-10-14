@@ -1,19 +1,23 @@
 /// Kỳ tóm tắt (ai-ops-summary FR-001) — không có kỳ tương lai.
 enum SummaryPeriod { currentShift, previousShift, today }
 
+/// Mã API và nhãn của [SummaryPeriod].
 extension SummaryPeriodX on SummaryPeriod {
+  /// `CURRENT_SHIFT`, `PREVIOUS_SHIFT`, `TODAY`.
   String get value => switch (this) {
         SummaryPeriod.currentShift => 'CURRENT_SHIFT',
         SummaryPeriod.previousShift => 'PREVIOUS_SHIFT',
         SummaryPeriod.today => 'TODAY',
       };
 
+  /// Ca hiện tại, Ca trước, Hôm nay.
   String get label => switch (this) {
         SummaryPeriod.currentShift => 'Ca hiện tại',
         SummaryPeriod.previousShift => 'Ca trước',
         SummaryPeriod.today => 'Hôm nay',
       };
 
+  /// Parse mã API. Chuỗi lạ thành [SummaryPeriod.currentShift], không ném.
   static SummaryPeriod parse(String v) =>
       SummaryPeriod.values.firstWhere((p) => p.value == v,
           orElse: () => SummaryPeriod.currentShift);
@@ -33,6 +37,7 @@ class AiBudget {
     required this.exhausted,
   });
 
+  /// Dựng từ `GET /ai-summaries/budget`. Thiếu số thì ném khi ép `num`.
   factory AiBudget.fromJson(Map<String, dynamic> json) => AiBudget(
         aiConfigured: json['aiConfigured'] as bool,
         budgetVnd: (json['budgetVnd'] as num).toInt(),
@@ -61,6 +66,7 @@ class AttentionItem {
     required this.text,
   });
 
+  /// Dựng một mục trong `attention.items`. [taskId] null với phòng ngừng phục vụ không gắn việc.
   factory AttentionItem.fromJson(Map<String, dynamic> json) => AttentionItem(
         type: json['type'] as String,
         roomId: json['roomId'] as String,
@@ -70,6 +76,7 @@ class AttentionItem {
       );
 }
 
+/// Một bản tóm tắt đã lưu. Không chứa thông tin khách. [label] null khi kỳ rỗng.
 class AiSummary {
   final String id;
   final SummaryPeriod period;
@@ -97,6 +104,8 @@ class AiSummary {
     required this.createdAt,
   });
 
+  /// Dựng từ DTO tóm tắt. `source` lạ thành [SummarySource.empty].
+  /// Thiếu `attention` hoặc `highlights` thì danh sách rỗng. Thiếu tên người tạo thì chuỗi rỗng.
   factory AiSummary.fromJson(Map<String, dynamic> json) {
     final attention = json['attention'] as Map<String, dynamic>? ?? {};
     return AiSummary(

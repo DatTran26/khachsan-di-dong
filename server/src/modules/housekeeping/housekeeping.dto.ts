@@ -5,12 +5,23 @@ type TaskWithRefs = HousekeepingTask & {
   assignee: Pick<User, 'id' | 'fullName'> | null;
 };
 
+/**
+ * `include` Prisma dùng chung khi đọc việc dọn ra DTO.
+ * Phòng chỉ lấy id, số, tầng. Người được giao chỉ id và họ tên — không có SĐT hay hash.
+ */
 export const housekeepingInclude = {
   room: { select: { id: true, number: true, floor: true } },
   assignee: { select: { id: true, fullName: true } },
 } as const;
 
-/** Việc dọn trả cho client. `isOverdue` = đã bị cờ quá hạn và chưa hoàn tất (cờ tự gỡ khi hoàn tất — FR-008). */
+/**
+ * Việc dọn trả cho client.
+ *
+ * `isOverdue` đúng khi đã có `overdueFlaggedAt` và status khác `DONE`. Chuyển `DONE`
+ * không xóa cột cờ; DTO tự coi là không quá hạn (FR-008). `returnNote` của lần trả gần nhất vẫn nằm trong DTO.
+ * @param task Bản ghi đã include phòng và assignee theo `housekeepingInclude`.
+ * @returns DTO có `version` để client gửi lại khi nhận/báo xong/xác nhận.
+ */
 export function toHousekeepingTaskDto(task: TaskWithRefs) {
   return {
     id: task.id,

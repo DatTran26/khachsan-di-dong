@@ -20,6 +20,7 @@ aiSummaryRouter.get('/latest', async (_req, res) => {
   res.json({ data: await latestSummaries() });
 });
 
+/** Hạn mức AI trong tháng (`spentVnd`, `budgetVnd`, `aiConfigured`). Không gọi AI, không ghi nhật ký. */
 aiSummaryRouter.get('/budget', async (_req, res) => {
   res.json({ data: await budgetStatus() });
 });
