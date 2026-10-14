@@ -14,11 +14,14 @@ import '../providers/rooms_provider.dart';
 class RoomTypesScreen extends ConsumerWidget {
   const RoomTypesScreen({super.key});
 
+  /// Danh sách loại, đếm phòng đang gắn mỗi loại từ [roomsProvider].
+  /// Nút thêm tắt khi [isOnlineProvider] false.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(roomTypesProvider);
     final online = ref.watch(isOnlineProvider);
     final rooms = ref.watch(roomsProvider.select((s) => s.rooms));
+    /// Số phòng trong bộ nhớ đang trỏ tới loại [t]. Không gọi API.
     int countOf(RoomType t) => rooms.where((r) => r.roomType.id == t.id).length;
 
     Widget body;
@@ -92,6 +95,8 @@ class RoomTypesScreen extends ConsumerWidget {
     );
   }
 
+  /// Bật lại ngay. Tắt thì hỏi [showConfirmDialog] rồi [RoomTypesNotifier.setActive].
+  /// Snack khi thành công. Lỗi bật lại đi qua [handleApiError]; lỗi tắt do dialog xử lý.
   Future<void> _toggle(
       BuildContext context, WidgetRef ref, RoomType type) async {
     final n = ref.read(roomTypesProvider.notifier);
@@ -137,25 +142,32 @@ Future<void> _showNameDialog(BuildContext context, WidgetRef ref,
           : 'Đã đổi tên loại ${type.name} thành $saved.');
 }
 
+/// Hộp thoại nhập tên. [type] null là thêm, khác null là đổi tên loại đó.
 class _NameDialog extends ConsumerStatefulWidget {
   final RoomType? type;
   const _NameDialog({this.type});
 
+  /// Tạo state ô tên.
   @override
   ConsumerState<_NameDialog> createState() => _NameDialogState();
 }
 
+/// Giữ tên đang gõ, lỗi trùng tên và cờ đang lưu.
 class _NameDialogState extends ConsumerState<_NameDialog> {
   late final _name = TextEditingController(text: widget.type?.name);
   String? _error;
   bool _saving = false;
 
+  /// Giải phóng controller tên.
   @override
   void dispose() {
     _name.dispose();
     super.dispose();
   }
 
+  /// Tên rỗng thì hiện lỗi local, không gọi API. Tên không đổi thì đóng dialog, không lưu.
+  /// Thêm gọi [RoomTypesNotifier.create], sửa gọi [rename]. Thành công pop tên đã lưu.
+  /// [ApiException] (thường trùng tên) hiện dưới ô nhập, không đóng dialog.
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
@@ -189,6 +201,7 @@ class _NameDialogState extends ConsumerState<_NameDialog> {
     }
   }
 
+  /// [GoldDialog] tên loại. Nút Lưu tắt khi mất mạng hoặc đang lưu.
   @override
   Widget build(BuildContext context) {
     final online = ref.watch(isOnlineProvider);
@@ -218,6 +231,7 @@ class _NameDialogState extends ConsumerState<_NameDialog> {
   }
 }
 
+/// Một dòng loại: tên, số phòng, chip đang dùng/đã ngừng, nút Sửa và Tắt/Bật.
 class _TypeRow extends StatelessWidget {
   final RoomType type;
   final int roomCount;
@@ -233,6 +247,7 @@ class _TypeRow extends StatelessWidget {
     required this.onToggle,
   });
 
+  /// Nút tắt khi [online] false. Không tự gọi API — [onRename] và [onToggle] do màn gắn.
   @override
   Widget build(BuildContext context) {
     return Padding(
