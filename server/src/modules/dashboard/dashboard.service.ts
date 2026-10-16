@@ -1,5 +1,6 @@
 import type { CleaningStatus } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { OVERDUE_STATUSES } from '../housekeeping/housekeeping.dto.js';
 
 const roomRef = { select: { id: true, number: true } } as const;
 
@@ -14,7 +15,7 @@ const roomRef = { select: { id: true, number: true } } as const;
 export async function listOverdueTasks() {
   const [housekeeping, maintenance] = await Promise.all([
     prisma.housekeepingTask.findMany({
-      where: { overdueFlaggedAt: { not: null }, status: { not: 'DONE' } },
+      where: { overdueFlaggedAt: { not: null }, status: { in: OVERDUE_STATUSES } },
       select: { id: true, room: roomRef },
       orderBy: { dueAt: 'asc' },
     }),

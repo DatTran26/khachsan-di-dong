@@ -9,7 +9,7 @@ import { CHANNELS, type PendingEvent } from '../../realtime/events.js';
 import { notification } from '../../realtime/notify.js';
 import { applyRoomChange, roomLabel } from '../rooms/rooms.service.js';
 import { autoAssign, serializeAssignment } from './housekeeping.assignment.js';
-import { housekeepingInclude, toHousekeepingTaskDto } from './housekeeping.dto.js';
+import { OVERDUE_STATUSES, housekeepingInclude, toHousekeepingTaskDto } from './housekeeping.dto.js';
 import { REQUIRED_CATEGORIES, countRoundPhotos } from './housekeeping.photos.js';
 
 /**
@@ -125,7 +125,7 @@ export async function listTasks(filter: TaskFilter) {
       status: filter.status,
       assigneeId: filter.assigneeId,
       roomId: filter.roomId,
-      ...(filter.overdue ? { overdueFlaggedAt: { not: null }, status: { not: 'DONE' } } : {}),
+      ...(filter.overdue ? { overdueFlaggedAt: { not: null }, status: { in: OVERDUE_STATUSES } } : {}),
     },
     include: housekeepingInclude,
     orderBy: { createdAt: 'desc' },

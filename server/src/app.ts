@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { corsOptions } from './config/cors.js';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
+import { requestId } from './middleware/request-id.js';
 import { aiSummaryRouter } from './modules/ai-summary/ai-summary.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
@@ -25,6 +26,7 @@ import { usersRouter } from './modules/users/users.routes.js';
  */
 export function createApp() {
   const app = express();
+  app.use(requestId());
   app.use(cors(corsOptions(process.env.CORS_ORIGINS)));
   app.use(express.json());
 
