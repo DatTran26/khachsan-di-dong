@@ -6,6 +6,8 @@ on:
     branches: [main, develop, 'develop-*', 'release/**', 'hotfix/**']
     paths: ['app/**', '.github/workflows/app-ci.yml']
   pull_request:
+    # `edited`: PR xếp chồng được đổi base sang develop khi PR dưới merge xong → kiểm lại.
+    types: [opened, synchronize, reopened, edited]
     branches: [main, develop]
     paths: ['app/**', '.github/workflows/app-ci.yml']
 
@@ -19,6 +21,8 @@ permissions:
 jobs:
   check:
     name: Analyze · Test · Build web
+    # Sửa tiêu đề/mô tả PR không cần chạy lại — chỉ chạy khi `edited` là đổi base.
+    if: github.event.action != 'edited' || github.event.changes.base != null
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
