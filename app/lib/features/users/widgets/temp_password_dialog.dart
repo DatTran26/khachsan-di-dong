@@ -17,6 +17,8 @@ class TempPasswordDialog extends StatelessWidget {
     this.heading = 'Đã tạo tài khoản cho',
   });
 
+  /// Hiện [tempPassword] chọn được và nút sao chép vào clipboard.
+  /// Sao chép chỉ snack local, không gọi API. Đóng dialog không xóa mật khẩu trên server.
   @override
   Widget build(BuildContext context) {
     return GoldDialog(

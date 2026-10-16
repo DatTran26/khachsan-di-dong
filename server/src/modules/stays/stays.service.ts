@@ -17,7 +17,13 @@ import { autoAssign, serializeAssignment } from '../housekeeping/housekeeping.as
 /** Việc dọn quá hạn sau 60 phút kể từ lúc tạo = mốc trả phòng (BR-housekeeping-002). */
 export const HOUSEKEEPING_DUE_MINUTES = 60;
 
-/** Lượt lưu trú trả cho client (lễ tân, quản lý). */
+/**
+ * Lượt lưu trú trả cho client (lễ tân, quản lý).
+ *
+ * Không gồm id người nhận/trả phòng. `room` chỉ có id, số, tầng.
+ * @param stay Bản ghi kèm phòng đã select đủ ba cột trên.
+ * @returns DTO phẳng, có `version` của lượt (không phải version phòng).
+ */
 export function toStayDto(stay: Stay & { room: Pick<Room, 'id' | 'number' | 'floor'> }) {
   return {
     id: stay.id,
@@ -33,7 +39,12 @@ export function toStayDto(stay: Stay & { room: Pick<Room, 'id' | 'number' | 'flo
   };
 }
 
-/** Danh sách phòng đang ở: phòng + khách + mốc nhận (FR-005). */
+/**
+ * Danh sách phòng đang ở: phòng + khách + mốc nhận (FR-005).
+ *
+ * Chỉ `status: OPEN`, sắp `checkedInAt` giảm dần. Không lọc theo người gọi.
+ * @returns Mảng DTO. Rỗng khi không có khách.
+ */
 export async function listOpenStays() {
   const stays = await prisma.stay.findMany({
     where: { status: 'OPEN' },
@@ -43,6 +54,10 @@ export async function listOpenStays() {
   return stays.map(toStayDto);
 }
 
+/**
+ * Thông tin khách khi nhận phòng. `note` và `expectedCheckout` có thể bỏ qua.
+ * Route chịu trách nhiệm validate tên và số khách trước khi gọi `checkIn`.
+ */
 export interface CheckInInput {
   guestName: string;
   guestCount: number;
@@ -53,6 +68,14 @@ export interface CheckInInput {
 /**
  * Nhận phòng (FR-001…003): khóa dòng phòng rồi kiểm LẠI 3 điều kiện trên trạng thái thật lúc ghi —
  * không tin trạng thái client đang hiển thị. Không đạt → chặn kèm lý do theo đúng trục vi phạm.
+ *
+ * Điều kiện: chưa `OCCUPIED`, vệ sinh `CLEAN`, không `OUT_OF_SERVICE`. Partial unique index
+ * còn chặn hai lượt OPEN cùng phòng. Ghi audit `stay.check_in`, tăng version phòng, phát `room:updated`.
+ * @param actor Lễ tân hoặc quản lý. Id ghi vào `checkedInById`. Hàm không tự kiểm vai trò.
+ * @param roomId Phòng khách nhận.
+ * @param version Version phòng client đã đọc.
+ * @param input Tên, số khách, ghi chú, giờ trả dự kiến.
+ * @returns `{ room, stay }` sau commit. Ném `AppError` 409 hoặc `VersionConflictError`.
  */
 export async function checkIn(actor: User, roomId: string, version: number, input: CheckInInput) {
   return withTransaction(async (tx, enqueue) => {
@@ -93,6 +116,13 @@ export async function checkIn(actor: User, roomId: string, version: number, inpu
  * Trả phòng (FR-004): chỉ trên phòng "đang ở" có lượt mở → đóng lượt → lưu trú "trống", vệ sinh LUÔN "cần dọn"
  * (bất kể tình trạng thực tế) → hệ thống tự tạo đúng 1 việc dọn (FR-housekeeping-001). Tất cả một transaction.
  * Phòng đang ngừng phục vụ vẫn trả bình thường và vẫn ngừng phục vụ sau đó.
+ *
+ * Không có lượt OPEN hoặc phòng không `OCCUPIED` → 409 `INVALID_STATE`.
+ * Tạo đúng một việc dọn hạn 60 phút, nhật ký hệ thống, rồi `autoAssign` (khóa chia việc).
+ * @param actor Người trả phòng, ghi `checkedOutById`. Không tự kiểm vai trò.
+ * @param roomId Phòng khách trả.
+ * @param version Version phòng, không phải version của lượt.
+ * @returns Phòng sau ghi, lượt đã đóng, và DTO việc dọn (kể cả khi còn "chờ giao").
  */
 export async function checkOut(actor: User, roomId: string, version: number) {
   return withTransaction(async (tx, enqueue) => {

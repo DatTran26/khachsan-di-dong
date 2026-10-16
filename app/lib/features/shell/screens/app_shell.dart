@@ -24,17 +24,22 @@ class AppShell extends ConsumerStatefulWidget {
 
   const AppShell({super.key, required this.child});
 
+  /// Tạo state khung. [child] là màn con của router.
   @override
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
+/// Thanh bên hoặc thanh dưới theo bề ngang, snack thông báo realtime, badge quá hạn.
 class _AppShellState extends ConsumerState<AppShell> {
+  /// Gắn [socketService.onNotification]. Ghi đè callback thông báo toàn cục.
   @override
   void initState() {
     super.initState();
     socketService.onNotification = _handleNotification;
   }
 
+  /// Hiện snack. Quá hạn hoặc việc dọn bị trả thì cảnh báo, còn lại thông tin.
+  /// Có đích thì thêm nút Xem gọi [GoRouter.go]. Bỏ qua nếu widget đã dispose.
   void _handleNotification(
       String kind, String message, String? taskId, String? roomId) {
     if (!mounted) return;
@@ -68,6 +73,8 @@ class _AppShellState extends ConsumerState<AppShell> {
     return roomId == null ? null : '/dashboard?phong=$roomId';
   }
 
+  /// Khung rộng: sidebar + top bar. Khung hẹp: app bar, drawer nếu hơn 5 mục, không thì bottom nav.
+  /// Mất mạng thì chèn [OfflineBanner]. Không tự đăng xuất.
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
@@ -184,6 +191,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
+/// Thanh bên espresso. [badges] là số việc quá hạn theo path menu.
 class _Sidebar extends StatelessWidget {
   final List<NavItem> items;
   final String location;
@@ -196,6 +204,7 @@ class _Sidebar extends StatelessWidget {
       required this.role,
       required this.badges});
 
+  /// Logo, vai trò và các [_SideNavTile]. Không gọi API.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -254,6 +263,7 @@ class _Sidebar extends StatelessWidget {
   }
 }
 
+/// Một mục menu. [onTap] null thì [GoRouter.go] tới [NavItem.path]. [count] > 0 hiện badge.
 class _SideNavTile extends StatelessWidget {
   final NavItem item;
   final bool active;
@@ -267,6 +277,7 @@ class _SideNavTile extends StatelessWidget {
       required this.count,
       this.onTap});
 
+  /// Hàng cao 44. Mục đang chọn có nền và viền vàng trái.
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.goldLight : AppColors.onDark;
@@ -309,10 +320,12 @@ class _SideNavTile extends StatelessWidget {
   }
 }
 
+/// Chip số việc quá hạn trên menu rộng. Nhãn semantics cho trình đọc màn hình.
 class _CountBadge extends StatelessWidget {
   final int count;
   const _CountBadge(this.count);
 
+  /// Số [count] trên nền đỏ. Không ẩn khi count = 0 — cha chỉ dựng khi count > 0.
   @override
   Widget build(BuildContext context) => Semantics(
         label: '$count việc quá hạn',
@@ -329,11 +342,13 @@ class _CountBadge extends StatelessWidget {
       );
 }
 
+/// Icon bottom nav. [count] > 0 thì bọc [Badge], không thì icon trần.
 class _BadgeIcon extends StatelessWidget {
   final IconData icon;
   final int count;
   const _BadgeIcon({required this.icon, required this.count});
 
+  /// Badge Material mặc định. Không tự điều hướng.
   @override
   Widget build(BuildContext context) => count > 0
       ? Badge(
@@ -344,6 +359,7 @@ class _BadgeIcon extends StatelessWidget {
       : Icon(icon);
 }
 
+/// Thanh tiêu đề màn rộng: tên màn, chấm đồng bộ hoặc "Mất kết nối", menu user.
 class _TopBar extends StatelessWidget {
   final String title;
   final AppUser? user;
@@ -356,6 +372,7 @@ class _TopBar extends StatelessWidget {
       required this.isOnline,
       required this.lastUpdated});
 
+  /// Giờ cập nhật lấy [lastUpdated] local. [isOnline] false thì không hiện chấm xanh.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -398,11 +415,14 @@ class _TopBar extends StatelessWidget {
   }
 }
 
+/// Menu tài khoản: đổi mật khẩu và đăng xuất. [dark] true dùng avatar đơn trên app bar hẹp.
 class _UserMenu extends ConsumerWidget {
   final AppUser? user;
   final bool dark;
   const _UserMenu({required this.user, required this.dark});
 
+  /// `logout` gọi [AuthNotifier.logout] (xóa token, ngắt socket).
+  /// `change-password` chuyển `/doi-mat-khau`. Không gọi API ở đây.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return PopupMenuButton<String>(
@@ -475,6 +495,7 @@ class _UserMenu extends ConsumerWidget {
   }
 }
 
+/// Ngăn kéo khi menu hẹp có hơn 5 mục. Cùng [_SideNavTile], đóng drawer trước khi chuyển trang.
 class _MobileDrawer extends ConsumerWidget {
   final List<NavItem> items;
   final String location;
@@ -487,6 +508,7 @@ class _MobileDrawer extends ConsumerWidget {
       required this.user,
       required this.badges});
 
+  /// Tên user và danh sách mục. [ref] không dùng để gọi API.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(

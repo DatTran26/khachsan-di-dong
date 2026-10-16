@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../models/ai_summary.dart';
 
+/// Kỳ đang xem, bản gần nhất từng kỳ, hạn mức, notice lần tạo và cờ tải.
 class AiSummaryState {
   final SummaryPeriod period;
 
@@ -27,8 +28,10 @@ class AiSummaryState {
     this.error,
   });
 
+  /// Bản của [period], hoặc null nếu kỳ đó chưa có.
   AiSummary? get current => latest[period];
 
+  /// Bản sao. [clearNotice] và [clearError] xóa thông báo dù tham số cùng tên được truyền.
   AiSummaryState copyWith({
     SummaryPeriod? period,
     Map<SummaryPeriod, AiSummary?>? latest,
@@ -51,12 +54,15 @@ class AiSummaryState {
       );
 }
 
+/// Tải bản gần nhất và hạn mức, tạo bản mới. Constructor gọi cả hai lượt tải.
 class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
+  /// Side effect: [load] và [loadBudget].
   AiSummaryNotifier() : super(const AiSummaryState()) {
     load();
     loadBudget();
   }
 
+  /// GET `/ai-summaries/latest`. Không gọi AI. Lỗi ghi state. Bỏ qua nếu đã dispose.
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -90,6 +96,7 @@ class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
     }
   }
 
+  /// Đổi kỳ đang xem và xóa notice lần tạo trước. Không gọi mạng.
   void selectPeriod(SummaryPeriod period) =>
       state = state.copyWith(period: period, clearNotice: true);
 
@@ -123,6 +130,7 @@ class AiSummaryNotifier extends StateNotifier<AiSummaryState> {
   }
 }
 
+/// Tóm tắt AI, auto-dispose khi rời màn. Chỉ quản lý gọi được API.
 final aiSummaryProvider =
     StateNotifierProvider.autoDispose<AiSummaryNotifier, AiSummaryState>(
         (ref) => AiSummaryNotifier());

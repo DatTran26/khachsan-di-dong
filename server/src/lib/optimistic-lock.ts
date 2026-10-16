@@ -23,6 +23,7 @@ type VersionedModels = {
   user: { record: User; data: Prisma.UserUncheckedUpdateManyInput };
 };
 
+/** Tên model Prisma được phép cập nhật kèm kiểm version. */
 export type VersionedModel = keyof VersionedModels;
 
 const LABELS: Record<VersionedModel, string> = {
@@ -43,12 +44,22 @@ interface VersionedDelegate {
 }
 
 /**
- * Cập nhật một bản ghi CHỈ KHI version còn khớp. Gọi bên trong `prisma.$transaction`
- * để lỗi xung đột rollback luôn các thay đổi khác (nhật ký, việc dọn...) của cùng thao tác.
+ * Cập nhật một bản ghi chỉ khi `version` còn khớp. Gọi bên trong transaction
+ * để lỗi xung đột rollback các ghi khác (nhật ký, việc dọn) của cùng thao tác.
  *
- * @returns bản ghi sau khi cập nhật (version mới)
- * @throws NotFoundError nếu không có bản ghi
- * @throws VersionConflictError (409) nếu version đã đổi
+ * `updateMany` với `version: { increment: 1 }` cộng với trigger `bump_version`
+ * (BEFORE UPDATE gán `NEW.version = OLD.version + 1`, bỏ giá trị ứng dụng gửi).
+ * Kết quả thực tế vẫn tăng đúng 1. Khớp 0 dòng: đọc lại bản ghi — không còn thì
+ * `NotFoundError`, còn thì `VersionConflictError` kèm DTO/bản hiện tại.
+ * Hai request cùng version: PostgreSQL khóa dòng, request sau thấy version mới và bị từ chối.
+ * @param db Client transaction (không dùng client gốc nếu còn việc phải cùng commit).
+ * @param model Tên delegate Prisma (`room`, `stay`, `user`, …).
+ * @param id Khóa chính.
+ * @param expectedVersion Version client đã đọc.
+ * @param data Cột được sửa. Không truyền `id` hay `version` — hàm tự tăng version.
+ * @returns Bản ghi sau cập nhật (version mới). Không kèm relation trừ khi model tự có.
+ * @throws NotFoundError nếu không có bản ghi.
+ * @throws VersionConflictError (409) nếu version đã đổi.
  */
 export async function updateWithVersion<M extends VersionedModel>(
   db: Prisma.TransactionClient,

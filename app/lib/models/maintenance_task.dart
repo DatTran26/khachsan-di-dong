@@ -1,6 +1,9 @@
+/// Trạng thái việc sửa, khớp enum server: `OPEN`, `IN_PROGRESS`, `DONE`, `CANCELLED`.
 enum MaintenanceStatus { open, inProgress, done, cancelled }
 
+/// Nhãn tiếng Việt và mã API.
 extension MaintenanceStatusX on MaintenanceStatus {
+  /// Chờ nhận, Đang sửa, Hoàn tất, Đã hủy.
   String get label {
     switch (this) {
       case MaintenanceStatus.open:
@@ -14,6 +17,7 @@ extension MaintenanceStatusX on MaintenanceStatus {
     }
   }
 
+  /// Mã API viết hoa.
   String get value {
     switch (this) {
       case MaintenanceStatus.open:
@@ -27,6 +31,7 @@ extension MaintenanceStatusX on MaintenanceStatus {
     }
   }
 
+  /// Parse mã API. Giá trị lạ thành [MaintenanceStatus.open], không ném.
   static MaintenanceStatus fromString(String v) {
     switch (v) {
       case 'IN_PROGRESS':
@@ -41,6 +46,7 @@ extension MaintenanceStatusX on MaintenanceStatus {
   }
 }
 
+/// Phòng rút gọn trên việc sửa.
 class MaintenanceRoomRef {
   final String id;
   final String number;
@@ -48,6 +54,7 @@ class MaintenanceRoomRef {
 
   const MaintenanceRoomRef({required this.id, required this.number, required this.floor});
 
+  /// Dựng từ object `room`. Thiếu khóa thì ném khi ép kiểu.
   factory MaintenanceRoomRef.fromJson(Map<String, dynamic> json) => MaintenanceRoomRef(
         id: json['id'] as String,
         number: json['number'] as String,
@@ -55,6 +62,7 @@ class MaintenanceRoomRef {
       );
 }
 
+/// Người báo hoặc người được chỉ định. [role] có thể null nếu payload không gửi.
 class MaintenanceUserRef {
   final String id;
   final String fullName;
@@ -62,6 +70,7 @@ class MaintenanceUserRef {
 
   const MaintenanceUserRef({required this.id, required this.fullName, this.role});
 
+  /// Dựng từ `reporter` hoặc `assignee`. [role] null nếu thiếu.
   factory MaintenanceUserRef.fromJson(Map<String, dynamic> json) => MaintenanceUserRef(
         id: json['id'] as String,
         fullName: json['fullName'] as String,
@@ -69,6 +78,7 @@ class MaintenanceUserRef {
       );
 }
 
+/// Một việc sửa. [isOverdue] do server. [dueAt] có thể null.
 class MaintenanceTask {
   final String id;
   final MaintenanceRoomRef room;
@@ -100,6 +110,7 @@ class MaintenanceTask {
     required this.version,
   });
 
+  /// Dựng từ DTO `/maintenance/tasks`. [dueAt] null nếu không có hạn.
   factory MaintenanceTask.fromJson(Map<String, dynamic> json) => MaintenanceTask(
         id: json['id'] as String,
         room: MaintenanceRoomRef.fromJson(json['room'] as Map<String, dynamic>),

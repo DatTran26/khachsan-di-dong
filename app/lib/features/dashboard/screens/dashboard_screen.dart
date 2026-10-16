@@ -9,6 +9,7 @@ import '../../rooms/providers/rooms_provider.dart';
 import '../../rooms/widgets/room_detail_panel.dart';
 import '../providers/dashboard_provider.dart';
 
+/// Nhóm lọc lưới phòng. Thẻ lấp đầy dùng lại [occupied], không có nhóm riêng.
 enum _Group { all, ready, occupied, needsCleaning, outOfService, overdue }
 
 /// Tổng quan (room-dashboard): 6 chỉ số tại thời điểm xem + lưới phòng realtime theo tầng.
@@ -18,20 +19,24 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
   const DashboardScreen({super.key, this.openRoomId});
 
+  /// Tạo state lọc. Dữ liệu phòng và chỉ số do provider tự tải, không gọi API ở đây.
   @override
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+/// Lọc tầng/nhóm và vẽ lưới. Mở sheet phòng khi route còn `phong`.
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int? _floor;
   _Group _group = _Group.all;
 
+  /// Sau frame đầu, mở phòng nếu [DashboardScreen.openRoomId] có giá trị.
   @override
   void initState() {
     super.initState();
     _openRequestedRoom();
   }
 
+  /// [DashboardScreen.openRoomId] đổi thì mở lại sheet. Cùng id không gọi lại.
   @override
   void didUpdateWidget(DashboardScreen old) {
     super.didUpdateWidget(old);
@@ -49,6 +54,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  /// Phòng có khớp tầng đang chọn và nhóm [_group] không.
+  /// [overdue] là tập id phòng có việc quá hạn từ chỉ số, không tự tính từ phòng.
   bool _matches(Room r, Set<String> overdue) {
     if (_floor != null && r.floor != _floor) return false;
     switch (_group) {
@@ -68,6 +75,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  /// Tải lại danh sách phòng và chỉ số cùng lúc. Dùng cho kéo để làm mới và nút thử lại.
   Future<void> _reload() async {
     await Future.wait([
       ref.read(roomsProvider.notifier).load(),
@@ -75,6 +83,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ]);
   }
 
+  /// Chỉ số, bộ lọc, lưới theo tầng. Danh sách phòng rỗng kèm lỗi thì hiện [ErrorState], không vẽ số 0.
   @override
   Widget build(BuildContext context) {
     final roomsState = ref.watch(roomsProvider);
@@ -218,6 +227,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  /// Nhãn tiếng Việt của nhóm lọc trên pill.
   String _groupLabel(_Group g) => switch (g) {
         _Group.all => 'Tất cả',
         _Group.ready => 'Sẵn sàng',
@@ -228,6 +238,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       };
 }
 
+/// Tiêu đề một tầng: số phòng trên tầng và số phòng sẵn sàng.
 class _FloorHeader extends StatelessWidget {
   final int floor;
   final int total;
@@ -235,6 +246,7 @@ class _FloorHeader extends StatelessWidget {
   const _FloorHeader(
       {required this.floor, required this.total, required this.ready});
 
+  /// Một dòng "Tầng n" và meta đếm. Không tự lọc phòng.
   @override
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -249,6 +261,7 @@ class _FloorHeader extends StatelessWidget {
       );
 }
 
+/// Sáu thẻ chỉ số. Bấm thẻ gọi [onSelect]; bố cục 2, 3 hoặc 6 cột theo bề ngang.
 class _StatsGrid extends StatelessWidget {
   final DashboardSummary summary;
   final _Group group;
@@ -256,6 +269,7 @@ class _StatsGrid extends StatelessWidget {
   const _StatsGrid(
       {required this.summary, required this.group, required this.onSelect});
 
+  /// Dựng [_StatCard] đã gắn nhóm [g] và [onSelect]. [selected] khi [group] trùng [g].
   _StatCard _card(_Group g,
           {required String label,
           required String value,
@@ -274,6 +288,7 @@ class _StatsGrid extends StatelessWidget {
         onTap: () => onSelect(g),
       );
 
+  /// Xếp thẻ theo bề ngang. Thẻ lấp đầy lọc nhóm đang ở, không có nhóm riêng.
   @override
   Widget build(BuildContext context) {
     final cards = [
@@ -337,6 +352,8 @@ class _StatsGrid extends StatelessWidget {
   }
 }
 
+/// Một thẻ chỉ số bấm được. [hero] là nền tối (lấp đầy). [alert] tô đỏ khi có việc quá hạn.
+/// [selected] vẽ viền đậm. [onTap] do lưới gắn, thẻ không đổi state lọc.
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -358,6 +375,7 @@ class _StatCard extends StatelessWidget {
     this.selected = false,
   });
 
+  /// Vẽ nhãn, số và dòng phụ. Không gọi API.
   @override
   Widget build(BuildContext context) {
     final bg = hero

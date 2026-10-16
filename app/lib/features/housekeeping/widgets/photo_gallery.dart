@@ -19,6 +19,7 @@ class PhotoThumb extends ConsumerWidget {
       this.height = 72,
       this.onTap});
 
+  /// Ảnh từ [photoBytesProvider]. Lỗi hiện icon vỡ, không ném. [onTap] null thì không phải nút.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bytes = ref.watch(photoBytesProvider(photo.id));
@@ -66,26 +67,31 @@ Future<void> showPhotoViewer(
   );
 }
 
+/// Dialog full màn, [PageView] bắt đầu tại [initialIndex].
 class _PhotoViewer extends StatefulWidget {
   final List<HousekeepingPhoto> photos;
   final int initialIndex;
   const _PhotoViewer({required this.photos, required this.initialIndex});
 
+  /// Tạo state chỉ số trang.
   @override
   State<_PhotoViewer> createState() => _PhotoViewerState();
 }
 
+/// Giữ [PageController] và chỉ số ảnh đang xem.
 class _PhotoViewerState extends State<_PhotoViewer> {
   late final PageController _pages =
       PageController(initialPage: widget.initialIndex);
   late int _index = widget.initialIndex;
 
+  /// Giải phóng [PageController].
   @override
   void dispose() {
     _pages.dispose();
     super.dispose();
   }
 
+  /// Tiêu đề nhóm và vị trí, vuốt đổi ảnh. Không sửa dữ liệu.
   @override
   Widget build(BuildContext context) {
     final photo = widget.photos[_index];
@@ -136,18 +142,22 @@ class _PhotoViewerState extends State<_PhotoViewer> {
   }
 }
 
+/// Một ảnh phóng được trong viewer. Tải byte theo id.
 class _ZoomablePhoto extends ConsumerStatefulWidget {
   final HousekeepingPhoto photo;
   const _ZoomablePhoto({required this.photo});
 
+  /// Tạo state zoom.
   @override
   ConsumerState<_ZoomablePhoto> createState() => _ZoomablePhotoState();
 }
 
+/// [TransformationController] cho chụm và chạm đúp.
 class _ZoomablePhotoState extends ConsumerState<_ZoomablePhoto> {
   final _zoom = TransformationController();
   TapDownDetails? _tap;
 
+  /// Giải phóng controller phóng.
   @override
   void dispose() {
     _zoom.dispose();
@@ -167,6 +177,7 @@ class _ZoomablePhotoState extends ConsumerState<_ZoomablePhoto> {
       ..scaleByDouble(s, s, 1, 1);
   }
 
+  /// Ảnh contain, tối đa phóng 5 lần. Lỗi hiện câu kiểm tra kết nối, không retry tự động.
   @override
   Widget build(BuildContext context) {
     final bytes = ref.watch(photoBytesProvider(widget.photo.id));
@@ -195,6 +206,8 @@ class PhotoReviewSection extends ConsumerWidget {
   final String taskId;
   const PhotoReviewSection({super.key, required this.taskId});
 
+  /// Ảnh vòng hiện tại và nút xem ảnh vòng trước. Thiếu nhóm bắt buộc thì tô đỏ.
+  /// Lỗi tải thì banner thử lại, gọi [TaskPhotosNotifier.load].
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(taskPhotosProvider(taskId));
@@ -275,11 +288,13 @@ class PhotoReviewSection extends ConsumerWidget {
   }
 }
 
+/// Ảnh kèm chú thích một dòng, rộng 120.
 class _Captioned extends StatelessWidget {
   final String caption;
   final Widget child;
   const _Captioned({required this.caption, required this.child});
 
+  /// [child] rồi [caption] cắt một dòng. Không tải ảnh.
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,

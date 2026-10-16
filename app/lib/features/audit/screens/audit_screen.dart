@@ -14,17 +14,21 @@ class AuditScreen extends ConsumerStatefulWidget {
   final String? roomId;
   const AuditScreen({super.key, this.roomId});
 
+  /// Tạo state. Lọc phòng từ query làm trong [initState].
   @override
   ConsumerState<AuditScreen> createState() => _AuditScreenState();
 }
 
+/// Áp `phong` từ route vào bộ lọc rồi bỏ query khỏi URL.
 class _AuditScreenState extends ConsumerState<AuditScreen> {
+  /// Sau frame đầu, lọc theo [AuditScreen.roomId] nếu có.
   @override
   void initState() {
     super.initState();
     _applyRoom();
   }
 
+  /// [AuditScreen.roomId] đổi thì áp lại. Cùng id không gọi.
   @override
   void didUpdateWidget(AuditScreen old) {
     super.didUpdateWidget(old);
@@ -43,13 +47,17 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
     });
   }
 
+  /// Ủy quyền cho [_AuditBody] để body watch provider sau khi lọc đã được xếp post-frame.
   @override
   Widget build(BuildContext context) => const _AuditBody();
 }
 
+/// Danh sách nhật ký nhóm theo ngày và thanh lọc.
 class _AuditBody extends ConsumerWidget {
   const _AuditBody();
 
+  /// Rỗng dùng [AuditState.emptyMessage] nếu server gửi. Lỗi khi đã có dòng thì banner, không thay cả danh sách.
+  /// `nextCursor` còn thì nút xem thêm.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(auditProvider);
@@ -131,6 +139,7 @@ class _AuditBody extends ConsumerWidget {
     );
   }
 
+  /// "Hôm nay", "Hôm qua" hoặc `dd/MM/yyyy` theo lịch local.
   static String _dayLabel(DateTime t) {
     final l = t.toLocal();
     final now = DateTime.now();
@@ -143,10 +152,12 @@ class _AuditBody extends ConsumerWidget {
   }
 }
 
+/// Lọc từ/đến, phòng, vai trò. Đổi lọc gọi [AuditNotifier.setFilter] (tải lại từ đầu).
 class _FilterBar extends ConsumerWidget {
   final AuditFilter filter;
   const _FilterBar({required this.filter});
 
+  /// Chọn một ngày. [endOfDay] true thì 23:59:59, không thì 00:00. Hủy picker trả null.
   Future<DateTime?> _pick(BuildContext context, DateTime? initial,
       {required bool endOfDay}) async {
     final now = DateTime.now();
@@ -162,12 +173,14 @@ class _FilterBar extends ConsumerWidget {
         : DateTime(d.year, d.month, d.day);
   }
 
+  /// Không tự gọi API ngoài [setFilter]. Nút xóa lọc chỉ hiện khi [AuditFilter.isActive].
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final n = ref.read(auditProvider.notifier);
     final rooms = ref.watch(roomsProvider).sorted;
     final fmt = DateFormat('dd/MM/yyyy');
 
+    /// Ô ngày bấm được. Chỉ gọi [onChanged] khi người dùng chọn ngày, không gọi khi hủy.
     Widget dateField(
             String label, DateTime? value, ValueChanged<DateTime?> onChanged,
             {required bool end}) =>
@@ -295,11 +308,13 @@ StatusTone _toneFor(String label) {
   }
 }
 
+/// Một dòng nhật ký: giờ, người, hành động, đối tượng, chip trước/sau.
 class _EntryRow extends StatelessWidget {
   final AuditEntry entry;
   final bool wide;
   const _EntryRow({required this.entry, required this.wide});
 
+  /// Màn rộng một hàng, hẹp xếp cột. Hệ thống không kèm vai trò trong ngoặc.
   @override
   Widget build(BuildContext context) {
     final time = Text(DateFormat('HH:mm').format(entry.occurredAt.toLocal()),

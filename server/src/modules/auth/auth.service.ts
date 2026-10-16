@@ -8,13 +8,31 @@ import { toUserDto } from '../users/users.dto.js';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './credentials.js';
 import { openSession, revokeUserSession, sessionRevokedEvent, type AuthContext } from './sessions.js';
 
-/** Sai MK 5 lần liên tiếp → khóa (BR-auth-roles-004). */
+/**
+ * Ngưỡng khóa tài khoản: 5 lần sai mật khẩu liên tiếp (BR-auth-roles-004).
+ * Đăng nhập đúng hoặc mở khóa / đặt lại MK đưa bộ đếm về 0. Sai MK khi tài khoản
+ * đã `LOCKED` không tăng đếm (tránh phân biệt thêm sau khi đã khóa).
+ */
 export const MAX_FAILED_LOGINS = 5;
 
+/** 401 dùng chung cho SĐT không tồn tại và mật khẩu sai — cùng câu chữ, không lộ tài khoản. */
 const invalidCredentials = () => new UnauthorizedError('INVALID_CREDENTIALS', MSG.invalidCredentials);
+
+/**
+ * 403 khi mật khẩu đúng nhưng tài khoản đã `LOCKED`.
+ * Khác 401: client biết tài khoản tồn tại và đang bị khóa (E-auth-roles-002).
+ */
 const accountLocked = () => new AppError(403, 'ACCOUNT_LOCKED', MSG.accountLocked);
 
-/** Sai MK: +1 đếm sai; đủ 5 → hệ thống khóa TK, hủy phiên, ghi nhật ký (FR-auth-roles-011, E-auth-roles-001). */
+/**
+ * Ghi một lần sai mật khẩu trên tài khoản đang tồn tại và chưa khóa.
+ *
+ * Tăng `failedLoginCount` trong transaction. Khi bộ đếm chạm `MAX_FAILED_LOGINS`:
+ * chuyển `status` sang `LOCKED`, hủy phiên đang mở, ghi nhật ký `auth.auto_locked`
+ * với người thực hiện là hệ thống. Không ghi mật khẩu đã thử.
+ * @param user Bản ghi đọc trước khi tăng đếm. `status` trước khi khóa được đưa vào `changes`.
+ * @returns `COUNTED` nếu chỉ tăng đếm; `LOCKED` nếu lần này vừa khóa tài khoản.
+ */
 async function recordFailedLogin(user: User): Promise<'LOCKED' | 'COUNTED'> {
   return withTransaction(async (tx, enqueue) => {
     const updated = await tx.user.update({
@@ -39,10 +57,19 @@ async function recordFailedLogin(user: User): Promise<'LOCKED' | 'COUNTED'> {
 }
 
 /**
- * Đăng nhập bằng SĐT + MK (FR-auth-roles-001).
- * - Sai SĐT hoặc MK → cùng một câu báo lỗi (không lộ SĐT nào có tài khoản).
- * - TK bị khóa → chỉ báo "bị khóa" khi MK đúng (E-auth-roles-002).
- * - TK "Chờ kích hoạt" (MK tạm) → vẫn vào được nhưng `mustChangePassword` = true (FR-auth-roles-006).
+ * Đăng nhập bằng SĐT + mật khẩu (FR-auth-roles-001).
+ *
+ * - Sai SĐT hoặc sai mật khẩu → cùng một câu lỗi (không lộ SĐT nào có tài khoản).
+ *   SĐT không tồn tại vẫn chạy bcrypt trên hash giả để cân thời gian.
+ * - Tài khoản `LOCKED` chỉ báo "bị khóa" khi mật khẩu đúng (E-auth-roles-002);
+ *   mật khẩu sai thì báo như đăng nhập thường và không tăng đếm.
+ * - "Chờ kích hoạt" (mật khẩu tạm) vẫn vào được, `mustChangePassword` giữ nguyên (FR-auth-roles-006).
+ * - Đúng mật khẩu: xóa đếm sai nếu đang > 0, mở phiên mới (đá phiên thiết bị khác), ghi `auth.login`.
+ * @param phone SĐT đã qua `phoneSchema`.
+ * @param password Mật khẩu thô. Không ghi vào nhật ký.
+ * @param deviceInfo Mô tả thiết bị, có thể bỏ qua. Cắt 200 ký tự khi lưu phiên.
+ * @returns Token gốc (một lần), `expiresAt`, DTO người dùng (đếm sai đã về 0 trên DTO),
+ *   và `message` nhắc đổi mật khẩu tạm khi còn cờ.
  */
 export async function login(phone: string, password: string, deviceInfo?: string) {
   const user = await prisma.user.findUnique({ where: { phone } });
@@ -82,7 +109,15 @@ export async function login(phone: string, password: string, deviceInfo?: string
   };
 }
 
-/** Đăng xuất: hủy phiên hiện tại (FR-auth-roles-002). */
+/**
+ * Đăng xuất: xóa phiên hiện tại và ghi `auth.logout` (FR-auth-roles-002).
+ *
+ * Nếu phiên đã không còn (đếm xóa = 0) thì không ghi nhật ký và không phát sự kiện.
+ * Khi xóa được, enqueue `session:revoked` lý do `LOGGED_OUT` để socket của chính
+ * thiết bị này đóng. Route bọc hàm này và vẫn trả 204 khi không xác thực được.
+ * @param auth Ngữ cảnh đã xác thực. Chỉ hủy đúng `session.id`, không hủy phiên khác.
+ * @returns Promise rỗng sau commit.
+ */
 export async function logout({ user, session }: AuthContext) {
   await withTransaction(async (tx, enqueue) => {
     const { count } = await tx.session.deleteMany({ where: { id: session.id } });
@@ -101,8 +136,16 @@ export async function logout({ user, session }: AuthContext) {
 }
 
 /**
- * Đổi MK: đúng MK hiện tại + MK mới đạt quy tắc (FR-auth-roles-007) → giữ phiên hiện tại.
- * Đang dùng MK tạm → xong thì TK chuyển "Hoạt động" (FR-auth-roles-006).
+ * Đổi mật khẩu khi mật khẩu hiện tại đúng và mật khẩu mới đã qua `newPasswordSchema` (FR-auth-roles-007).
+ *
+ * Giữ nguyên phiên hiện tại — không phát `session:revoked`. Nếu tài khoản đang
+ * `PENDING_ACTIVATION` thì chuyển `ACTIVE` và hạ `mustChangePassword` (FR-auth-roles-006).
+ * Nhật ký `auth.password_changed` chỉ ghi đổi `status`, không ghi giá trị mật khẩu (FR-audit-log-004).
+ * Sai mật khẩu hiện tại → 400 `WRONG_CURRENT_PASSWORD`, không tăng đếm khóa đăng nhập.
+ * @param auth Chỉ dùng `user`. Phiên không bị đụng.
+ * @param currentPassword Mật khẩu đang dùng (với tài khoản vừa được đặt lại, đây là mật khẩu tạm).
+ * @param newPassword Mật khẩu mới chưa băm. Route đã kiểm độ mạnh trước khi gọi.
+ * @returns DTO người dùng sau cập nhật và câu `MSG.passwordChanged`.
  */
 export async function changePassword({ user }: AuthContext, currentPassword: string, newPassword: string) {
   if (!(await verifyPassword(currentPassword, user.passwordHash))) {

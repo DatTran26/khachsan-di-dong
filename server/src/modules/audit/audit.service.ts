@@ -27,10 +27,21 @@ export interface AuditFilter {
 
 type LogWithRefs = AuditLog & { changes: AuditLogChange[]; actor: Pick<User, 'id' | 'fullName'> | null };
 
+/**
+ * Con trỏ trang: `occurredAt` ISO và id, base64url, để sort ổn định khi nhiều dòng cùng thời điểm.
+ * @param log Dòng cuối của trang vừa trả.
+ * @returns Chuỗi không chứa dấu `+` `/` (base64url).
+ */
 function encodeCursor(log: AuditLog) {
   return Buffer.from(`${log.occurredAt.toISOString()}|${log.id}`).toString('base64url');
 }
 
+/**
+ * Giải con trỏ. Chuỗi không có `|`, thời điểm không parse được, hoặc thiếu id → 400 `INVALID_CURSOR`
+ * với câu `MSG.invalidState` (không có câu riêng cho con trỏ hỏng).
+ * @param cursor Giá trị query client gửi lại.
+ * @returns Mốc exclusive cho trang sau (nhỏ hơn mốc này).
+ */
 function decodeCursor(cursor: string) {
   const [time, id] = Buffer.from(cursor, 'base64url').toString().split('|');
   const occurredAt = new Date(time);
@@ -38,7 +49,14 @@ function decodeCursor(cursor: string) {
   return { occurredAt, id };
 }
 
-/** Một dòng nhật ký đủ ai / khi / hành động / trục-trường / trước → sau, kèm câu hiển thị theo mẫu 7.3. */
+/**
+ * Một dòng nhật ký đủ ai, khi, hành động, trường, trước → sau, kèm câu `line` theo mẫu 7.3.
+ *
+ * Người thực hiện SYSTEM thành tên "hệ thống" và `actor: null`. Không có user
+ * (actorId trỏ tài khoản đã mất) thì tên "tài khoản đã xóa". `changes` sắp theo `position`.
+ * @param log Bản ghi kèm `changes` và `actor` (chỉ id, họ tên).
+ * @returns DTO hiển thị. Không có route sửa dòng này.
+ */
 export function toAuditEntryDto(log: LogWithRefs) {
   const isSystem = log.actorRole === 'SYSTEM';
   const actorName = isSystem ? 'hệ thống' : (log.actor?.fullName ?? 'tài khoản đã xóa');
@@ -83,6 +101,15 @@ export function toAuditEntryDto(log: LogWithRefs) {
   };
 }
 
+/**
+ * Đọc nhật ký mới nhất trước, theo con trỏ (NFR-005).
+ *
+ * `from` > `to` → 400 `INVALID_RANGE`. `limit` mặc định 50, trần `MAX_PAGE_SIZE`.
+ * Lấy dư một dòng để biết `nextCursor`. Trang đầu rỗng thì kèm `message` trung tính,
+ * không phải lỗi. Không ghi thêm nhật ký vì đây là thao tác đọc.
+ * @param filter Các trường đều tùy chọn. `actorRole` là chuỗi đã được route giới hạn bốn giá trị.
+ * @returns `{ data, nextCursor, message? }`. `nextCursor` null khi hết.
+ */
 export async function listAuditLogs(filter: AuditFilter) {
   if (filter.from && filter.to && filter.from > filter.to) {
     throw new AppError(400, 'INVALID_RANGE', MSG.auditRangeInvalid);
