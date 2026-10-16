@@ -97,12 +97,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? const EdgeInsets.fromLTRB(32, 24, 32, 32)
         : const EdgeInsets.fromLTRB(16, 16, 16, 24);
 
-    if (roomsState.isLoading && rooms.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (roomsState.error != null && rooms.isEmpty) {
-      return ErrorState(message: roomsState.error!, onRetry: _reload);
-    }
+    final gate = initialLoadGate(
+      loading: roomsState.isLoading,
+      error: roomsState.error,
+      isEmpty: rooms.isEmpty,
+      onRetry: _reload,
+      skeleton: const SkeletonGrid(header: true),
+    );
+    if (gate != null) return gate;
 
     final visible = rooms.where((r) => _matches(r, overdue)).toList();
     final floors = roomsState.availableFloors;
@@ -125,14 +127,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return RefreshIndicator(
       onRefresh: _reload,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: pad,
         children: [
           // Chưa tải được chỉ số lần nào → báo lỗi + thử lại, không hiện số 0 như thật (FR-010).
           if (summaryState.error != null && summary.asOf == null)
             ErrorState(
               message: summaryState.error!,
-              onRetry: () =>
-                  ref.read(dashboardSummaryProvider.notifier).load(),
+              onRetry: () => ref.read(dashboardSummaryProvider.notifier).load(),
             )
           else
             _StatsGrid(
@@ -148,11 +150,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             runSpacing: 10,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              const Text('Tầng',
-                  style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w500)),
+              Text('Tầng',
+                  style: AppText.meta.copyWith(
+                      color: AppColors.muted, fontWeight: FontWeight.w500)),
               SegmentedPills<int?>(
                 options: [(null, 'Tất cả'), for (final f in floors) (f, '$f')],
                 value: _floor,
@@ -253,8 +253,7 @@ class _FloorHeader extends StatelessWidget {
         textBaseline: TextBaseline.alphabetic,
         children: [
           Text('Tầng $floor',
-              style:
-                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              style: AppText.body.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(width: 10),
           MetaText('$total phòng · $ready sẵn sàng'),
         ],
@@ -380,13 +379,13 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = hero
         ? AppColors.espresso
-        : (alert ? const Color(0xFFFFF8F8) : AppColors.surface);
+        : (alert ? AppColors.dangerSurface : AppColors.surface);
     // Đang lọc theo thẻ này → viền vàng dày, như ô phòng đang chọn.
     final border = selected
         ? (hero ? AppColors.goldLight : AppColors.gold)
         : hero
             ? AppColors.espresso
-            : (alert ? const Color(0xFFF2C4C6) : AppColors.border);
+            : (alert ? AppColors.dangerBorder : AppColors.border);
     final labelColor = hero
         ? AppColors.onDarkMuted
         : (alert ? AppColors.danger : AppColors.muted);
@@ -426,10 +425,8 @@ class _StatCard extends StatelessWidget {
                     Flexible(
                       child: Text(label,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: labelColor,
-                              fontWeight: FontWeight.w500)),
+                          style: AppText.meta.copyWith(
+                              color: labelColor, fontWeight: FontWeight.w500)),
                     ),
                   ],
                 ),
@@ -438,8 +435,7 @@ class _StatCard extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(value,
-                      style: TextStyle(
-                          fontSize: 28,
+                      style: AppText.display.copyWith(
                           height: 1.15,
                           fontWeight: FontWeight.w700,
                           color: valueColor)),
@@ -448,8 +444,7 @@ class _StatCard extends StatelessWidget {
                 Text(sub,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 12,
+                    style: AppText.caption.copyWith(
                         height: 1.3,
                         color: hero ? AppColors.onDarkMuted : AppColors.muted)),
               ],
