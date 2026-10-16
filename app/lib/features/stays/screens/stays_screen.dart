@@ -21,7 +21,15 @@ class StaysScreen extends ConsumerStatefulWidget {
 
 /// Ô tìm theo số phòng hoặc tên khách, bảng trên màn rộng và thẻ trên màn hẹp.
 class _StaysScreenState extends ConsumerState<StaysScreen> {
-  String _query = '';
+  final _search = TextEditingController();
+
+  String get _query => _search.text;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   /// Danh sách đang ở. Lễ tân mới thấy nút trả phòng; mất mạng thì nút tắt.
   /// Nghe `roomsProvider.lastUpdated` rồi gọi [StaysNotifier.load] — side effect trong build.
@@ -38,14 +46,15 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
     final wide = Breakpoints.isWide(context);
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
-    if (state.isLoading && state.stays.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.stays.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(staysProvider.notifier).load());
-    }
+    final reload = ref.read(staysProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.stays.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonList(),
+    );
+    if (gate != null) return gate;
 
     final q = _query.trim().toLowerCase();
     final stays = state.stays
@@ -83,6 +92,7 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
           onCheckOut: checkOut);
     } else {
       body = ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
         itemCount: stays.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -112,25 +122,40 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
                 SizedBox(
                   width: 280,
                   child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    decoration: const InputDecoration(
+                    controller: _search,
+                    textInputAction: TextInputAction.search,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
                       hintText: 'Tìm tên khách hoặc số phòng…',
-                      prefixIcon: Icon(Icons.search, size: 20),
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Xóa tìm kiếm',
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () => setState(_search.clear),
+                            ),
                     ),
                   ),
                 ),
                 if (!canCheckOut)
                   const MetaText('Chỉ lễ tân trả phòng tại quầy.'),
+                if (canCheckOut && !online)
+                  const SizedBox(width: 360, child: OfflineActionNote()),
               ],
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: wide
-                ? Padding(
-                    padding: EdgeInsets.fromLTRB(pad, 0, pad, 24), child: body)
-                : body,
+            child: RefreshIndicator(
+              onRefresh: reload,
+              child: wide
+                  ? Padding(
+                      padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
+                      child: body)
+                  : body,
+            ),
           ),
         ],
       ),
@@ -191,6 +216,7 @@ class _StayTable extends StatelessWidget {
           const Divider(height: 1, color: AppColors.border),
           Expanded(
             child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
               itemCount: stays.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (_, i) {
