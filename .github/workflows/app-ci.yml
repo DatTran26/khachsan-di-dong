@@ -1,0 +1,53 @@
+# Kiểm tra app Flutter mỗi lần push / mở PR (tôn chỉ: "GitHub Actions chạy kiểm tra mã, kiểm thử và build").
+name: App CI
+
+on:
+  push:
+    branches: [main, develop, 'develop-*', 'release/**', 'hotfix/**']
+    paths: ['app/**', '.github/workflows/app-ci.yml']
+  pull_request:
+    # `edited`: PR xếp chồng được đổi base sang develop khi PR dưới merge xong → kiểm lại.
+    types: [opened, synchronize, reopened, edited]
+    branches: [main, develop]
+    paths: ['app/**', '.github/workflows/app-ci.yml']
+
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Analyze · Test · Build web
+    # Sửa tiêu đề/mô tả PR không cần chạy lại — chỉ chạy khi `edited` là đổi base.
+    if: github.event.action != 'edited' || github.event.changes.base != null
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cùng bản Flutter với máy nhóm để kết quả analyze/test khớp nhau.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.4
+          cache: true
+
+      - name: Cài thư viện
+        run: flutter pub get
+
+      - name: Phân tích mã (lint + kiểu)
+        run: flutter analyze
+
+      - name: Test (gồm ma trận bố cục 3 bề rộng × chữ 200%)
+        run: flutter test
+
+      # Bản nghiệm thu chạy trên web — bắt lỗi chỉ lộ khi biên dịch dart2js.
+      - name: Build web
+        run: flutter build web
