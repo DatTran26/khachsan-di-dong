@@ -228,58 +228,86 @@ class AppBanner extends StatelessWidget {
     final (Color bg, Color fg, Color border, IconData defIcon) = switch (tone) {
       BannerTone.info => (
           AppColors.goldTint,
-          const Color(0xFF5A420E),
-          const Color(0xFFE8D6A8),
+          AppColors.infoText,
+          AppColors.infoBorder,
           Icons.info_outline
         ),
       BannerTone.warn => (
           AppColors.dirtyBg,
-          const Color(0xFF7A2E10),
-          const Color(0xFFF0C3AE),
+          AppColors.warnText,
+          AppColors.warnBorder,
           Icons.wifi_off_rounded
         ),
       BannerTone.error => (
           AppColors.dangerBg,
-          const Color(0xFF8A1C21),
-          const Color(0xFFF2C4C6),
+          AppColors.dangerText,
+          AppColors.dangerBorder,
           Icons.error_outline
         ),
       BannerTone.success => (
           AppColors.readyBg,
-          const Color(0xFF1F5A22),
-          const Color(0xFFBFDDC1),
+          AppColors.successText,
+          AppColors.successBorder,
           Icons.check_circle_outline
         ),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: radius ?? BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon ?? defIcon, color: fg, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text.rich(
-              TextSpan(children: [
-                if (title != null)
-                  TextSpan(
-                      text: '$title ',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                TextSpan(text: message),
-              ]),
-              style: TextStyle(color: fg, fontSize: 14, height: 1.4),
+    // Lỗi/cảnh báo mới hiện ra được trình đọc màn hình đọc ngay.
+    return Semantics(
+      liveRegion: tone == BannerTone.error || tone == BannerTone.warn,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: radius ?? BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon ?? defIcon, color: fg, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  if (title != null)
+                    TextSpan(
+                        text: '$title ',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  TextSpan(text: message),
+                ]),
+                style: AppText.body.copyWith(color: fg, height: 1.4),
+              ),
             ),
-          ),
-          if (action != null) ...[const SizedBox(width: 8), action!],
-        ],
+            if (action != null) ...[const SizedBox(width: 8), action!],
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Đặt ngay cạnh nhóm nút ghi khi mất kết nối: nói rõ vì sao nút bị khóa thay vì chỉ làm mờ.
+class OfflineActionNote extends StatelessWidget {
+  const OfflineActionNote({super.key});
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        child: Row(
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 16, color: AppColors.dirty),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                'Mất kết nối — tạm khóa thao tác cho tới khi có mạng lại.',
+                style: AppText.meta.copyWith(
+                    color: AppColors.warnText, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Màn trống: nói rõ đây là gì, vì sao trống, bước tiếp theo.
