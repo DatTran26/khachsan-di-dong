@@ -313,8 +313,8 @@ class _TaskDetailSheetState extends ConsumerState<_TaskDetailSheet> {
               children: [
                 Expanded(
                   child: Text('Phòng ${task.room.number}',
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: AppText.headlineLg
+                          .copyWith(fontWeight: FontWeight.w700)),
                 ),
                 StatusChip(_label(task), tone: _tone(task)),
               ],
@@ -456,7 +456,7 @@ class _ManagerBoard extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0ECE3),
+                        color: AppColors.surfaceSunken,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
                       child: Column(
@@ -468,9 +468,8 @@ class _ManagerBoard extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Text(columns[i].$1,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14)),
+                                      style: AppText.body.copyWith(
+                                          fontWeight: FontWeight.w700)),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -479,10 +478,7 @@ class _ManagerBoard extends ConsumerWidget {
                                       color: AppColors.surface,
                                       borderRadius: BorderRadius.circular(10)),
                                   child: Text('${columns[i].$2.length}',
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.muted)),
+                                      style: AppText.tableHead),
                                 ),
                               ],
                             ),
@@ -491,12 +487,17 @@ class _ManagerBoard extends ConsumerWidget {
                             child: columns[i].$2.isEmpty
                                 ? const Center(
                                     child: MetaText('Không có việc.'))
-                                : ListView.separated(
-                                    itemCount: columns[i].$2.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 10),
-                                    itemBuilder: (_, j) =>
-                                        card(columns[i].$2[j]),
+                                : RefreshIndicator(
+                                    onRefresh: reload,
+                                    child: ListView.separated(
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(),
+                                      itemCount: columns[i].$2.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 10),
+                                      itemBuilder: (_, j) =>
+                                          card(columns[i].$2[j]),
+                                    ),
                                   ),
                           ),
                           if (i == columns.length - 1)
@@ -525,7 +526,10 @@ List<Widget> _managerActions(
     BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
     {bool large = false}) {
   final n = ref.read(housekeepingProvider.notifier);
-  final size = large ? const Size.fromHeight(48) : const Size(0, 36);
+  // Bảng web dày đặc giữ nút thấp; điện thoại cần vùng chạm đủ 48.
+  final size = large
+      ? const Size.fromHeight(AppTheme.minTouch)
+      : Size(0, Breakpoints.isWide(context) ? 36 : AppTheme.minTouch);
   switch (task.status) {
     case HousekeepingStatus.unassigned:
       return [
@@ -704,8 +708,8 @@ class _StaffList extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text('Phòng ${t.room.number}',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
+                            style: AppText.body
+                                .copyWith(fontWeight: FontWeight.w600)),
                       ),
                       StatusChip(t.status.label, tone: _tone(t)),
                     ],
@@ -725,7 +729,7 @@ List<Widget> _staffActions(
     BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
     {bool vertical = false}) {
   final n = ref.read(housekeepingProvider.notifier);
-  const size = Size.fromHeight(48);
+  const size = Size.fromHeight(AppTheme.minTouch);
   if (task.status == HousekeepingStatus.assigned) {
     return [
       OutlinedButton(
