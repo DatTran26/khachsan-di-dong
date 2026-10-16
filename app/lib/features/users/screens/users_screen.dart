@@ -35,14 +35,15 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     final wide = Breakpoints.isWide(context);
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
-    if (state.isLoading && state.users.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.users.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(usersProvider.notifier).load());
-    }
+    final reload = ref.read(usersProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.users.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonList(),
+    );
+    if (gate != null) return gate;
 
     final users = state.users
         .where((u) => _roleFilter == null || u.role == _roleFilter)
@@ -51,6 +52,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         final r = a.role.index.compareTo(b.role.index);
         return r != 0 ? r : a.fullName.compareTo(b.fullName);
       });
+
     /// Số tài khoản của vai trò [r]. Null là mọi vai trò đang có trong state.
     int count(UserRole? r) => r == null
         ? state.users.length
@@ -89,6 +91,10 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
               ),
             ],
           ),
+          if (!online) ...[
+            const SizedBox(height: 12),
+            const OfflineActionNote(),
+          ],
           const SizedBox(height: 16),
           Expanded(
             child: users.isEmpty
@@ -106,20 +112,30 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                             const _HeaderRow(),
                             const Divider(height: 1, color: AppColors.border),
                             Expanded(
-                              child: ListView.separated(
-                                itemCount: rows.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (_, i) => rows[i],
+                              child: RefreshIndicator(
+                                onRefresh: reload,
+                                child: ListView.separated(
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  itemCount: rows.length,
+                                  separatorBuilder: (_, __) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (_, i) => rows[i],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       )
-                    : ListView.separated(
-                        itemCount: rows.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (_, i) => rows[i],
+                    : RefreshIndicator(
+                        onRefresh: reload,
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: rows.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (_, i) => rows[i],
+                        ),
                       ),
           ),
         ],
