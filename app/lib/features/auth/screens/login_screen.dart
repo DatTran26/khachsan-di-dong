@@ -185,23 +185,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 border:
                     Border(bottom: BorderSide(color: AppColors.gold, width: 3)),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
-                    BrandMark(size: 40),
-                    SizedBox(width: 12),
-                    Text('Khách Sạn Di Động',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700)),
+                    const BrandMark(size: 40),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text('Khách Sạn Di Động',
+                          style: AppText.titleLg.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700)),
+                    ),
                   ]),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text('Một trạng thái phòng cho cả khách sạn.',
-                      style: TextStyle(
+                      style: AppText.headlineLg.copyWith(
                           color: AppColors.goldLight,
-                          fontSize: 22,
                           fontWeight: FontWeight.w800,
                           height: 1.25)),
                 ],
@@ -233,33 +233,32 @@ class _BrandPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(children: [
-            BrandMark(size: 44),
-            SizedBox(width: 12),
-            Text('Khách Sạn Di Động',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700)),
+          Row(children: [
+            const BrandMark(size: 44),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text('Khách Sạn Di Động',
+                  style: AppText.titleLg.copyWith(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
           ]),
           const Spacer(),
           Container(width: 56, height: 2, color: AppColors.gold),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Một trạng thái phòng\ncho cả khách sạn.',
-            style: TextStyle(
+            style: AppText.hero.copyWith(
                 color: AppColors.goldLight,
-                fontSize: 40,
                 fontWeight: FontWeight.w800,
                 height: 1.2),
           ),
           const SizedBox(height: 20),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
-            child: const Text(
+            child: Text(
               'Lễ tân, buồng phòng và bảo trì cùng cập nhật một nguồn dữ liệu — thay đổi hiện trên mọi thiết bị trong vài giây.',
-              style: TextStyle(
-                  color: Color(0xFFCFC5B3), fontSize: 16, height: 1.6),
+              style: AppText.title
+                  .copyWith(color: AppColors.onDarkSoft, height: 1.6),
             ),
           ),
           const SizedBox(height: 20),
@@ -267,8 +266,8 @@ class _BrandPanel extends StatelessWidget {
               spacing: 10,
               children: [_Pill('Lưu trú'), _Pill('Vệ sinh'), _Pill('Bảo trì')]),
           const Spacer(),
-          const Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
-              style: TextStyle(color: Color(0xFFA89C87), fontSize: 12)),
+          Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
+              style: AppText.caption.copyWith(color: AppColors.onDarkFaint)),
         ],
       ),
     );
@@ -285,12 +284,10 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-            color: const Color(0x1FFFFFFF),
+            color: AppColors.onDarkOverlay,
             borderRadius: BorderRadius.circular(14)),
         child: Text(text,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600)),
+            style: AppText.overline
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
       );
 }
