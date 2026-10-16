@@ -205,9 +205,9 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.espresso,
           disabledBackgroundColor: AppColors.neutralBg,
-          disabledForegroundColor: const Color(0xFF948B7C),
+          disabledForegroundColor: AppColors.iconMuted,
           elevation: 0,
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -219,8 +219,8 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.espresso,
           disabledBackgroundColor: AppColors.neutralBg,
-          disabledForegroundColor: const Color(0xFF948B7C),
-          minimumSize: const Size(0, 44),
+          disabledForegroundColor: AppColors.iconMuted,
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -231,7 +231,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.text,
           side: const BorderSide(color: AppColors.border),
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -241,7 +241,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.goldText,
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radiusSm)),
@@ -300,6 +300,19 @@ class AppTheme {
                   ? AppColors.goldText
                   : AppColors.muted,
             )),
+      ),
+      navigationRailTheme: const NavigationRailThemeData(
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.goldTint,
+        selectedIconTheme: IconThemeData(color: AppColors.goldText),
+        unselectedIconTheme: IconThemeData(color: AppColors.muted),
+        selectedLabelTextStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.goldText),
+        unselectedLabelTextStyle: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+        labelType: NavigationRailLabelType.all,
       ),
       popupMenuTheme: PopupMenuThemeData(
         color: AppColors.surface,
