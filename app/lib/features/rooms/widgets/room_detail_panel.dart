@@ -167,6 +167,11 @@ class RoomDetailPanel extends ConsumerWidget {
             ],
           ),
         ),
+        if (!online)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: OfflineActionNote(),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Wrap(
@@ -364,6 +369,12 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     super.dispose();
   }
 
+  /// Trả phòng lúc 12:00 sau [nights] đêm — chọn nhanh thay cho mở lịch + đồng hồ.
+  DateTime _afterNights(int nights) {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day + nights, 12);
+  }
+
   /// Chọn ngày rồi giờ trả dự kiến. Hủy ngày thì giữ nguyên. Hủy giờ thì lấy 12:00 cùng ngày đã chọn.
   /// Không gọi API.
   Future<void> _pickExpected() async {
@@ -500,6 +511,20 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final n in const [1, 2, 3])
+                FilterPill(
+                  label: '$n đêm',
+                  selected: _expected == _afterNights(n),
+                  onTap: () => setState(() => _expected =
+                      _expected == _afterNights(n) ? null : _afterNights(n)),
+                ),
             ],
           ),
           const SizedBox(height: 12),
