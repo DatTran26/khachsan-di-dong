@@ -591,33 +591,45 @@ class _ManagerTaskCard extends ConsumerWidget {
       borderColor: task.isOverdue
           ? AppColors.danger
           : task.status == HousekeepingStatus.pendingConfirm
-              ? const Color(0xFFE7B7D1)
+              ? AppColors.inspectBorder
               : null,
       onTap: () => _open(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text('Phòng ${task.room.number}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 15)),
-              ),
-              if (task.isOverdue)
-                const OverdueBadge()
-              else
-                StatusChip(_label(task), tone: _tone(task), dense: true),
-            ],
+          // Trình đọc màn hình đọc phần thông tin thành một câu; các nút vẫn tách riêng.
+          MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Cột bảng điều phối hẹp: chip xuống dòng khi chữ to thay vì đè số phòng.
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text('Phòng ${task.room.number}',
+                        style: AppText.bodyLg
+                            .copyWith(fontWeight: FontWeight.w700)),
+                    if (task.isOverdue)
+                      const OverdueBadge()
+                    else
+                      StatusChip(_label(task), tone: _tone(task), dense: true),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                if (task.assignee != null)
+                  MetaText('Phụ trách: ${task.assignee!.fullName}'),
+                if (task.status == HousekeepingStatus.pendingConfirm &&
+                    task.completedAt != null)
+                  MetaText(
+                      'Báo xong lúc ${hm.format(task.completedAt!.toLocal())}')
+                else
+                  dueText(task.dueAt, task.isOverdue),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          if (task.assignee != null)
-            MetaText('Phụ trách: ${task.assignee!.fullName}'),
-          if (task.status == HousekeepingStatus.pendingConfirm &&
-              task.completedAt != null)
-            MetaText('Báo xong lúc ${hm.format(task.completedAt!.toLocal())}')
-          else
-            dueText(task.dueAt, task.isOverdue),
           if (actions.isNotEmpty) ...[
             const SizedBox(height: 10),
             // Cột bảng điều phối hẹp → xếp nút dọc để chữ không bị xuống dòng.
@@ -805,25 +817,33 @@ class _StaffTaskCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text('Phòng ${task.room.number}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
-              ),
-              if (task.isOverdue)
-                const OverdueBadge()
-              else
-                StatusChip(_label(task), tone: _tone(task)),
-            ],
+          // Đọc liền số phòng, trạng thái, tầng và hạn; các nút vẫn tách riêng.
+          MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Phòng ${task.room.number}',
+                          style: AppText.titleLg
+                              .copyWith(fontWeight: FontWeight.w700)),
+                    ),
+                    if (task.isOverdue)
+                      const OverdueBadge()
+                    else
+                      StatusChip(_label(task), tone: _tone(task)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                MetaText('Tầng ${task.room.floor}$started'),
+                if (task.returnNote != null)
+                  MetaText('Quản lý ghi chú: “${task.returnNote}”',
+                      color: AppColors.text),
+                dueText(task.dueAt, task.isOverdue),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          MetaText('Tầng ${task.room.floor}$started'),
-          if (task.returnNote != null)
-            MetaText('Quản lý ghi chú: “${task.returnNote}”',
-                color: AppColors.text),
-          dueText(task.dueAt, task.isOverdue),
           const SizedBox(height: 12),
           Row(
             children: [
