@@ -444,11 +444,12 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Nhận phòng',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('Nhận phòng',
+              style: AppText.title.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
           if (_error != null) ...[
             AppBanner(tone: BannerTone.error, message: _error!),
@@ -458,6 +459,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
             controller: _guest,
             maxLength: 100,
             textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
                 labelText: 'Tên khách *', counterText: ''),
             validator: (v) => (v == null || v.trim().isEmpty)
