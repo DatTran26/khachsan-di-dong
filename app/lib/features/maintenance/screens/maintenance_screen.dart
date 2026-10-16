@@ -52,17 +52,23 @@ class MaintenanceScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          // Wrap: màn hẹp hoặc chữ to thì nút xuống dòng, mô tả không bị ép thành cột hẹp.
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: MetaText(isStaff
-                    ? 'Nhận việc sửa, sửa xong thì báo để phòng mở lại phục vụ.'
-                    : 'Phòng có việc sửa đang mở sẽ ở trạng thái Ngừng phục vụ.'),
-              ),
-              const SizedBox(width: 12),
+              MetaText(isStaff
+                  ? 'Nhận việc sửa, sửa xong thì báo để phòng mở lại phục vụ.'
+                  : 'Phòng có việc sửa đang mở sẽ ở trạng thái Ngừng phục vụ.'),
               reportButton,
             ],
           ),
+          if (!online) ...[
+            const SizedBox(height: 10),
+            const OfflineActionNote(),
+          ],
           const SizedBox(height: 16),
           Expanded(
             child: isStaff
@@ -131,9 +137,8 @@ class _TaskCard extends ConsumerWidget {
             children: [
               Expanded(
                 child: Text('Phòng ${task.room.number}',
-                    style: TextStyle(
-                        fontSize: large ? 18 : 15,
-                        fontWeight: FontWeight.w700)),
+                    style: (large ? AppText.titleLg : AppText.bodyLg)
+                        .copyWith(fontWeight: FontWeight.w700)),
               ),
               if (task.isOverdue && active)
                 const OverdueBadge()
@@ -150,7 +155,7 @@ class _TaskCard extends ConsumerWidget {
               if (task.location?.isNotEmpty == true)
                 TextSpan(text: ' · ${task.location}'),
             ]),
-            style: const TextStyle(fontSize: 14, height: 1.4),
+            style: AppText.body.copyWith(height: 1.4),
           ),
           const SizedBox(height: 4),
           MetaText(
@@ -195,8 +200,8 @@ void _showDetail(
               children: [
                 Expanded(
                   child: Text('Phòng ${task.room.number}',
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: AppText.headlineLg
+                          .copyWith(fontWeight: FontWeight.w700)),
                 ),
                 StatusChip(task.status.label, tone: _tone(task.status)),
               ],
@@ -204,8 +209,7 @@ void _showDetail(
             MetaText('Tầng ${task.room.floor} · việc sửa'),
             const SizedBox(height: 8),
             Text(task.description,
-                style:
-                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                style: AppText.bodyLg.copyWith(fontWeight: FontWeight.w600)),
             if (task.location?.isNotEmpty == true)
               MetaText('Vị trí: ${task.location}'),
             const SizedBox(height: 20),
@@ -360,13 +364,11 @@ class _DeskView extends ConsumerWidget {
     return [
       if (t.status == MaintenanceStatus.open)
         ElevatedButton(
-          style: ElevatedButton.styleFrom(minimumSize: const Size(0, 36)),
           onPressed: online ? () => _assign(context, ref, t) : null,
           child: Text(t.assignee == null ? 'Chỉ định' : 'Đổi người'),
         ),
       if (canCancel)
         OutlinedButton(
-          style: OutlinedButton.styleFrom(minimumSize: const Size(0, 36)),
           onPressed: online ? () => _cancel(context, ref, t) : null,
           child: const Text('Hủy việc'),
         ),
@@ -556,7 +558,7 @@ class _DeskView extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0ECE3),
+                  color: AppColors.surfaceSunken,
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
                 child: Column(
@@ -565,22 +567,26 @@ class _DeskView extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(4, 2, 4, 10),
                       child: Text('${columns[i].$1} · ${columns[i].$2.length}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 14)),
+                          style: AppText.body
+                              .copyWith(fontWeight: FontWeight.w700)),
                     ),
                     Expanded(
                       child: columns[i].$2.isEmpty
                           ? const Center(child: MetaText('Không có việc.'))
-                          : ListView.separated(
-                              itemCount: columns[i].$2.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (_, j) {
-                                final t = columns[i].$2[j];
-                                return _TaskCard(
-                                    task: t,
-                                    actions: _actions(context, ref, t));
-                              },
+                          : RefreshIndicator(
+                              onRefresh: reload,
+                              child: ListView.separated(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: columns[i].$2.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 10),
+                                itemBuilder: (_, j) {
+                                  final t = columns[i].$2[j];
+                                  return _TaskCard(
+                                      task: t,
+                                      actions: _actions(context, ref, t));
+                                },
+                              ),
                             ),
                     ),
                   ],
