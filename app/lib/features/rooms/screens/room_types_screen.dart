@@ -21,12 +21,13 @@ class RoomTypesScreen extends ConsumerWidget {
     final state = ref.watch(roomTypesProvider);
     final online = ref.watch(isOnlineProvider);
     final rooms = ref.watch(roomsProvider.select((s) => s.rooms));
+
     /// Số phòng trong bộ nhớ đang trỏ tới loại [t]. Không gọi API.
     int countOf(RoomType t) => rooms.where((r) => r.roomType.id == t.id).length;
 
     Widget body;
     if (state.isLoading && state.types.isEmpty) {
-      body = const Center(child: CircularProgressIndicator());
+      body = const SkeletonList();
     } else if (state.error != null && state.types.isEmpty) {
       body = ErrorState(
           message: state.error!,
@@ -261,8 +262,7 @@ class _TypeRow extends StatelessWidget {
                 Text(type.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 15,
+                    style: AppText.bodyLg.copyWith(
                         fontWeight: FontWeight.w600,
                         color:
                             type.isActive ? AppColors.text : AppColors.muted)),
