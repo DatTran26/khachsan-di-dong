@@ -24,7 +24,9 @@ enum StatusTone {
   gold
 }
 
+/// Màu chữ, nền và chấm của [StatusTone].
 extension StatusToneX on StatusTone {
+  /// Màu chữ/icon trên chip.
   Color get fg {
     switch (this) {
       case StatusTone.ready:
@@ -48,6 +50,7 @@ extension StatusToneX on StatusTone {
     }
   }
 
+  /// Màu nền nhạt đi với [fg].
   Color get bg {
     switch (this) {
       case StatusTone.ready:
@@ -75,13 +78,17 @@ extension StatusToneX on StatusTone {
   Color get dot => this == StatusTone.neutral ? AppColors.dotMuted : fg;
 }
 
+/// Đang ở thì tông occupied, trống thì trung tính.
 extension OccupancyTone on OccupancyStatus {
+  /// Tông chip lưu trú.
   StatusTone get tone => this == OccupancyStatus.occupied
       ? StatusTone.occupied
       : StatusTone.neutral;
 }
 
+/// Map bốn trạng thái vệ sinh sang [StatusTone].
 extension CleaningTone on CleaningStatus {
+  /// Tông chip vệ sinh. Sạch dùng [StatusTone.ready].
   StatusTone get tone {
     switch (this) {
       case CleaningStatus.dirty:
@@ -96,13 +103,16 @@ extension CleaningTone on CleaningStatus {
   }
 }
 
+/// Ngừng phục vụ thì [StatusTone.oos], đang phục vụ thì trung tính.
 extension ServiceTone on ServiceStatus {
+  /// Tông chip bảo trì.
   StatusTone get tone =>
       this == ServiceStatus.outOfService ? StatusTone.oos : StatusTone.neutral;
 }
 
 /// Trạng thái tổng hợp của phòng — quyết định màu đầu ô phòng.
 extension RoomSummaryTone on Room {
+  /// Ưu tiên: ngừng phục vụ, đang ở, sẵn sàng, còn lại theo vệ sinh.
   StatusTone get summaryTone {
     if (service == ServiceStatus.outOfService) return StatusTone.oos;
     if (occupancy == OccupancyStatus.occupied) return StatusTone.occupied;
@@ -110,6 +120,7 @@ extension RoomSummaryTone on Room {
     return cleaning.tone;
   }
 
+  /// Nhãn một dòng cùng thứ tự ưu tiên với [summaryTone].
   String get summaryLabel {
     if (service == ServiceStatus.outOfService) return 'Ngừng phục vụ';
     if (occupancy == OccupancyStatus.occupied) return 'Đang ở';
@@ -128,6 +139,7 @@ class StatusChip extends StatelessWidget {
   const StatusChip(this.label,
       {super.key, required this.tone, this.dot = true, this.dense = false});
 
+  /// Chip không bấm. [dot] false bỏ chấm. [dense] thu chiều cao.
   @override
   Widget build(BuildContext context) {
     // Cao tối thiểu thay vì cố định: chip giãn theo cỡ chữ hệ thống, chữ dài thì cắt "…".
@@ -168,6 +180,7 @@ class OverdueBadge extends StatelessWidget {
   final bool short;
   const OverdueBadge({super.key, this.short = false});
 
+  /// "QH" khi [short], không thì "Quá hạn". Semantics luôn đọc "Quá hạn".
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -187,8 +200,10 @@ class OverdueBadge extends StatelessWidget {
   }
 }
 
+/// Bốn tông banner: thông tin, cảnh báo, lỗi, thành công.
 enum BannerTone { info, warn, error, success }
 
+/// Dải thông báo có icon, [title] tùy chọn và [action] bên phải. [radius] null thì bo góc thẻ.
 class AppBanner extends StatelessWidget {
   final BannerTone tone;
   final String message;
@@ -207,6 +222,7 @@ class AppBanner extends StatelessWidget {
     this.radius,
   });
 
+  /// Không tự ẩn. [icon] null thì icon mặc định theo [tone].
   @override
   Widget build(BuildContext context) {
     final (Color bg, Color fg, Color border, IconData defIcon) = switch (tone) {
@@ -308,6 +324,7 @@ class EmptyState extends StatelessWidget {
       this.message,
       this.action});
 
+  /// Căn giữa, tối đa 420px. [message] và [action] bỏ qua khi null.
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -345,12 +362,14 @@ class EmptyState extends StatelessWidget {
   }
 }
 
+/// Trạng thái lỗi tải: icon mây, [message], nút thử lại gọi [onRetry].
 class ErrorState extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
   const ErrorState({super.key, required this.message, required this.onRetry});
 
+  /// Bọc [EmptyState]. Không tự retry.
   @override
   Widget build(BuildContext context) {
     return EmptyState(
@@ -371,6 +390,7 @@ class SectionLabel extends StatelessWidget {
   final String text;
   const SectionLabel(this.text, {super.key});
 
+  /// In hoa [text]. Không đổi dữ liệu nguồn.
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
@@ -395,6 +415,7 @@ class FilterPill extends StatelessWidget {
       required this.onTap,
       this.color});
 
+  /// [onTap] do cha gắn. [color] chỉ tô chữ khi chưa chọn.
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -419,7 +440,7 @@ class FilterPill extends StatelessWidget {
   }
 }
 
-/// Nhóm nút chọn một (vd lọc tầng).
+/// Nhóm nút chọn một (vd lọc tầng). Không đủ chỗ (màn hẹp, chữ phóng to) → cuộn ngang thay vì tràn.
 class SegmentedPills<T> extends StatelessWidget {
   final List<(T, String)> options;
   final T value;
@@ -431,46 +452,49 @@ class SegmentedPills<T> extends StatelessWidget {
       required this.value,
       required this.onChanged});
 
+  /// Một lựa chọn. Bấm mục đang chọn vẫn gọi [onChanged]. Cuộn ngang nếu hẹp.
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
           color: AppColors.track, borderRadius: BorderRadius.circular(10)),
-      // Wrap thay vì Row: nhiều tầng hoặc chữ hệ thống to thì xuống dòng, không tràn ngang.
-      child: Wrap(
-        runSpacing: 2,
-        children: [
-          for (final (v, label) in options)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 1),
-              child: Material(
-                color: v == value ? AppColors.surface : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-                elevation: v == value ? 1 : 0,
-                shadowColor: Colors.black26,
-                child: InkWell(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (v, label) in options)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 1),
+                child: Material(
+                  color: v == value ? AppColors.surface : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
-                  onTap: () => onChanged(v),
-                  child: ConstrainedBox(
-                    constraints:
-                        const BoxConstraints(minWidth: 40, minHeight: 32),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Center(
-                        child: Text(label,
-                            style: AppText.meta.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: v == value
-                                    ? AppColors.goldText
-                                    : AppColors.muted)),
+                  elevation: v == value ? 1 : 0,
+                  shadowColor: Colors.black26,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => onChanged(v),
+                    child: ConstrainedBox(
+                      constraints:
+                          const BoxConstraints(minWidth: 40, minHeight: 32),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Center(
+                          child: Text(label,
+                              style: AppText.meta.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: v == value
+                                      ? AppColors.goldText
+                                      : AppColors.muted)),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -482,6 +506,7 @@ class InitialAvatar extends StatelessWidget {
   final double size;
   const InitialAvatar(this.name, {super.key, this.size = 36});
 
+  /// Chữ cái cuối của [name], hoặc "?" nếu tên trống. Không tải ảnh.
   @override
   Widget build(BuildContext context) {
     final initial = name.trim().isEmpty
@@ -510,6 +535,7 @@ class BrandMark extends StatelessWidget {
   final double size;
   const BrandMark({super.key, this.size = 36});
 
+  /// Khối "KS". [size] là cạnh hình vuông.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -550,6 +576,7 @@ class AppCard extends StatelessWidget {
     this.onTap,
   });
 
+  /// [onTap] null vẫn bọc InkWell (không splash khi không có callback). Viền đỏ dày hơn.
   @override
   Widget build(BuildContext context) {
     final shape = RoundedRectangleBorder(
@@ -577,6 +604,7 @@ class MetaText extends StatelessWidget {
   final FontWeight? weight;
   const MetaText(this.text, {super.key, this.color, this.weight});
 
+  /// Một dòng meta 13px. [color] và [weight] null thì màu muted, đậm mặc định.
   @override
   Widget build(BuildContext context) => Text(text,
       style: AppText.meta.copyWith(
@@ -591,7 +619,10 @@ class Breakpoints {
   static const double medium = 600; // tablet: thanh điều hướng dọc
   static const double sidebar = 900; // hiện thanh bên
   static const double wide = 1100; // web: bảng + khung chi tiết
+  /// Từ 1100px: bảng kèm khung chi tiết.
   static bool isWide(BuildContext c) => MediaQuery.sizeOf(c).width >= wide;
+
+  /// Từ 900px: hiện thanh bên của [AppShell].
   static bool hasSidebar(BuildContext c) =>
       MediaQuery.sizeOf(c).width >= sidebar;
 

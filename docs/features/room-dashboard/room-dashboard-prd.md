@@ -58,7 +58,7 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 | CAP-room-dashboard-06 | Phân quyền xem theo vai trò (quản lý + lễ tân), dashboard chỉ đọc | P0 | Kiểm quyền máy chủ theo tôn chỉ | ~2 | BR-room-dashboard-06 → BO-03 |
 | CAP-room-dashboard-07 | Điều hướng từ ô phòng/cảnh báo quá hạn sang màn nghiệp vụ sở hữu | P1 | Rút ngắn đường can thiệp, không bắt buộc để demo MVP | ~2 | UN-002 → BO-02 |
 | CAP-room-dashboard-08 | Chi tiết một phòng (đủ 3 trục + công việc đang mở) | P1 | Phục vụ can thiệp sâu; phụ thuộc OQ-4 | ~3 | UN-001, UN-002 → BO-01 |
-| CAP-room-dashboard-09 | Dashboard trên Android cho quản lý/lễ tân | P2 | Phụ thuộc OQ-3; PRD chỉ cam kết web cho v1 | ~3 | UN-001 → BO-01 |
+| CAP-room-dashboard-09 | Dashboard trên Android cho quản lý/lễ tân | P2 | Hậu MVP; PRD chỉ cam kết web cho v1 | ~3 | UN-001 → BO-01 |
 
 ### Done when (product level)
 
@@ -70,7 +70,7 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 - CAP-06: Chỉ quản lý và lễ tân vào được dashboard; vai trò khác bị từ chối phía máy chủ; không có thao tác ghi nào trên màn hình.
 - CAP-07: Từ cảnh báo quá hạn/ô phòng mở được màn xử lý tương ứng của `housekeeping`/`maintenance`.
 - CAP-08: Chạm ô phòng hiển thị đủ 3 trục + công việc đang mở của phòng đó (chờ OQ-4).
-- CAP-09: Mở được dashboard trong app Android (chờ OQ-3).
+- CAP-09: Mở được dashboard trong app Android sau MVP.
 
 ## 5. Success Metrics
 
@@ -97,8 +97,8 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 - Các feature vận hành sinh và sở hữu trạng thái 3 trục; dashboard chỉ đọc.
 - Cờ "quá hạn" do feature nghiệp vụ sở hữu đánh — dashboard hiển thị và đếm, không tự tính ngưỡng.
 - Mẫu số tỷ lệ lấp đầy = phòng không "ngừng phục vụ" — giả định từ công thức tôn chỉ.
-- Chỉ số "phòng cần dọn" = phòng chưa đạt "sạch" — chờ chốt OQ-2.
-- Dashboard v1 chỉ trên web — chờ chốt OQ-3.
+- Chỉ số "phòng cần dọn" chỉ đếm trục vệ sinh `can_don`; `dang_don` và `cho_kiem_tra` hiển thị riêng trên lưới.
+- Dashboard v1 chỉ trên Web; Android là hậu MVP.
 
 ## 8. Risks (product)
 
@@ -122,7 +122,7 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 
 ### Later (sau MVP)
 
-- CAP-room-dashboard-09 — dashboard trên Android (nếu OQ-3 yêu cầu); lọc chi tiết theo từng trạng thái trục.
+- CAP-room-dashboard-09 — dashboard trên Android; lọc chi tiết theo từng trạng thái trục.
 
 ## 10. Launch Readiness
 
@@ -133,6 +133,4 @@ Ref: `[[docs/features/room-dashboard/room-dashboard-urd.md]]` mục User Types +
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`.
-- [ ] OQ-2: Chỉ số "phòng cần dọn" đếm chỉ phòng ở trạng thái "cần dọn", hay mọi phòng chưa đạt "sạch" (gồm "đang dọn", "chờ kiểm tra")?
-- [ ] OQ-3: Dashboard có cần hiển thị trong app Android cho quản lý/lễ tân không — tiêu chí nghiệm thu tôn chỉ liệt kê "dashboard" trong bộ kịch bản chạy trên cả Flutter Web và Android, trong khi PRD ghi "quản lý mở dashboard trên web"?
 - [ ] OQ-4: Chạm vào một ô phòng có mở màn chi tiết phòng (đủ 3 trục + công việc đang mở + liên kết sang màn xử lý của housekeeping/maintenance) không, hay lưới tổng quan đã đủ cho v1?

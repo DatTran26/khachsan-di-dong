@@ -38,9 +38,9 @@ class AppColors {
   static const Color iconMuted =
       Color(0xFF948B7C); // chỉ dùng cho icon/chữ bị vô hiệu
 
-  // Trạng thái — mọi cặp chữ/nền dưới đây đạt ≥ 4.5:1 (đo 2026-10-17):
-  // ready 4.67 · occupied 5.43 · dirty 4.70 · cleaning 5.72 · inspect 5.90 · oos 6.45 · danger 5.14 · neutral 4.98.
-  static const Color ready = Color(0xFF2D7A31);
+  // Trạng thái
+  static const Color ready =
+      Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
   static const Color readyBg = Color(0xFFE7F3E8);
   static const Color occupied = Color(0xFF1E5FAE);
   static const Color occupiedBg = Color(0xFFE5EEF9);
@@ -113,6 +113,7 @@ class AppText {
       fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
 }
 
+/// Theme sáng Material 3: Be Vietnam Pro, nút vàng, app bar espresso.
 class AppTheme {
   /// Vùng chạm tối thiểu theo hướng dẫn Android.
   static const double minTouch = 48;
@@ -120,10 +121,13 @@ class AppTheme {
   static const double radiusMd = 12;
   static const double radiusLg = 16;
 
+  /// Gắn Be Vietnam Pro lên [base] và tô chữ bằng [AppColors.text].
   static TextTheme _textTheme(TextTheme base) =>
       GoogleFonts.beVietnamProTextTheme(base)
           .apply(bodyColor: AppColors.text, displayColor: AppColors.text);
 
+  /// Theme duy nhất của app. Không có theme tối.
+  /// Side effect: [GoogleFonts] có thể tải font lần đầu (hành vi package), không gọi API nghiệp vụ.
   static ThemeData get light {
     final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
     final scheme = ColorScheme.fromSeed(
@@ -144,6 +148,7 @@ class AppTheme {
     );
     final text = _textTheme(base.textTheme);
 
+    /// Viền ô nhập bo [radiusSm], màu [c], dày [w].
     OutlineInputBorder inputBorder(Color c, [double w = 1]) =>
         OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),
@@ -153,6 +158,8 @@ class AppTheme {
     return base.copyWith(
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.bg,
+      // Ô đang được chọn bằng phím Tab phải nhìn rõ (WCAG 2.4.7) — mặc định Material chỉ phủ mờ 10%.
+      focusColor: AppColors.gold.withValues(alpha: .35),
       textTheme: text,
       primaryTextTheme: text,
       dividerColor: AppColors.divider,

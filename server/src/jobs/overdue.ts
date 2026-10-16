@@ -2,7 +2,7 @@ import { writeAudit } from '../lib/audit.js';
 import { MSG } from '../lib/messages.js';
 import { withTransaction } from '../lib/transaction.js';
 import { roomLabel } from '../modules/rooms/rooms.service.js';
-import { housekeepingInclude, toHousekeepingTaskDto } from '../modules/housekeeping/housekeeping.dto.js';
+import { OVERDUE_STATUSES, housekeepingInclude, toHousekeepingTaskDto } from '../modules/housekeeping/housekeeping.dto.js';
 import { maintenanceInclude, toMaintenanceTaskDto } from '../modules/maintenance/maintenance.dto.js';
 import { CHANNELS } from '../realtime/events.js';
 import { notification } from '../realtime/notify.js';
@@ -11,15 +11,26 @@ import { notification } from '../realtime/notify.js';
  * Đánh cờ "quá hạn" theo QUY TẮC (không phụ thuộc AI — tôn chỉ):
  * - Việc dọn: quá 60 phút từ lúc tạo mà nhân viên chưa báo hoàn tất (BR-housekeeping-002 — thời gian chờ quản lý
  *   xác nhận không tính). Cờ tự gỡ khi việc hoàn tất (FR-008) — DTO tính `isOverdue` theo trạng thái.
- * - Việc sửa: quá `dueAt` (chỉ khi đã cấu hình MAINTENANCE_DUE_MINUTES — maintenance OQ-1).
+ * - Việc sửa: quá `dueAt` = lúc báo + 4 giờ (maintenance OQ-1, đổi bằng MAINTENANCE_DUE_MINUTES; 0 = tắt).
  * Mỗi việc chỉ cảnh báo MỘT lần (housekeeping OQ-2 chưa chốt → chọn cách tối thiểu), cho quản lý + người phụ trách.
  * Hệ thống là người thực hiện trong nhật ký (FR-audit-log-003).
+ */
+/**
+ * Gắn cờ quá hạn cho việc dọn và việc sửa đến hạn mà chưa được gắn.
+ *
+ * Một transaction: với mỗi việc, set `overdueFlaggedAt`, ghi nhật ký hệ thống,
+ * phát `*:task_updated` và notification cho quản lý cùng người được giao (nếu có).
+ * Việc đã có cờ không bị chọn lại. Trigger `bump_version` vẫn tăng `version` của dòng
+ * vì đây là UPDATE — client đang giữ version cũ sẽ bị 409 ở lần ghi kế tiếp và phải tải lại.
+ * Việc dọn `PENDING_CONFIRM` không nằm trong lọc (chờ xác nhận không tính quá hạn).
+ * @param now Mốc so với `dueAt`. Mặc định thời điểm gọi. Test truyền giờ cố định.
+ * @returns Số việc dọn và việc sửa vừa gắn cờ trong lượt này (không phải tổng đang quá hạn).
  */
 export async function flagOverdueTasks(now: Date = new Date()) {
   return withTransaction(async (tx, enqueue) => {
     const housekeeping = await tx.housekeepingTask.findMany({
       where: {
-        status: { in: ['UNASSIGNED', 'ASSIGNED', 'IN_PROGRESS'] },
+        status: { in: OVERDUE_STATUSES },
         completedAt: null,
         overdueFlaggedAt: null,
         dueAt: { lte: now },
@@ -80,7 +91,16 @@ export async function flagOverdueTasks(now: Date = new Date()) {
   });
 }
 
-/** Quét định kỳ. 30 giây/lần → cờ bật ≤1 phút sau khi vượt ngưỡng (SC-housekeeping-04). */
+/**
+ * Quét định kỳ. Mặc định 30 giây/lần nên cờ bật không quá khoảng một phút sau ngưỡng
+ * (SC-housekeeping-04), cộng thêm thời gian một lượt quét.
+ *
+ * Nếu lượt trước chưa xong thì bỏ qua lượt mới (`running`), không xếp hàng.
+ * Lỗi được `console.error`, không làm chết process. Timer không `unref` — giữ process sống
+ * cùng HTTP server cho đến khi `shutdown` gọi hàm trả về.
+ * @param intervalMs Khoảng cách giữa hai lần gọi. Test có thể truyền số nhỏ.
+ * @returns Hàm hủy timer. Gọi một lần khi tắt server.
+ */
 export function startOverdueJob(intervalMs = 30_000) {
   let running = false;
   const timer = setInterval(() => {

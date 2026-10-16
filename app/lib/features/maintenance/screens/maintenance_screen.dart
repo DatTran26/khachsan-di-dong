@@ -8,6 +8,7 @@ import '../../../models/user.dart';
 import '../../../shared/utils/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/widgets/task_link.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../rooms/providers/rooms_provider.dart';
@@ -21,6 +22,8 @@ import '../widgets/report_issue_dialog.dart';
 class MaintenanceScreen extends ConsumerWidget {
   const MaintenanceScreen({super.key});
 
+  /// Nhân viên thấy [_StaffView], quản lý và lễ tân thấy [_DeskView].
+  /// Nút báo hỏng tắt khi mất mạng. Lỗi khi danh sách rỗng thì [ErrorState].
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(maintenanceProvider);
@@ -78,11 +81,13 @@ class MaintenanceScreen extends ConsumerWidget {
   }
 }
 
+/// Cùng ngày lịch local với lúc gọi.
 bool _isToday(DateTime t) {
   final l = t.toLocal(), n = DateTime.now();
   return l.year == n.year && l.month == n.month && l.day == n.day;
 }
 
+/// Chạy [action], snack [success] nếu còn mounted. [ApiException] qua [handleApiError] và tải lại việc sửa.
 Future<void> _run(BuildContext context, WidgetRef ref,
     Future<void> Function() action, String success) async {
   try {
@@ -96,6 +101,7 @@ Future<void> _run(BuildContext context, WidgetRef ref,
   }
 }
 
+/// Màu chip theo trạng thái việc sửa. Hủy là trung tính.
 StatusTone _tone(MaintenanceStatus s) => switch (s) {
       MaintenanceStatus.open => StatusTone.gold,
       MaintenanceStatus.inProgress => StatusTone.cleaning,
@@ -103,7 +109,8 @@ StatusTone _tone(MaintenanceStatus s) => switch (s) {
       MaintenanceStatus.cancelled => StatusTone.neutral,
     };
 
-class _TaskCard extends StatelessWidget {
+/// Thẻ một việc sửa. [actions] do view cha dựng. [large] tăng cỡ chữ phòng.
+class _TaskCard extends ConsumerWidget {
   final MaintenanceTask task;
   final List<Widget> actions;
   final bool large;
@@ -111,11 +118,14 @@ class _TaskCard extends StatelessWidget {
   const _TaskCard(
       {required this.task, required this.actions, this.large = false});
 
+  /// [openIfLinked] mở sheet nếu route có `?viec=` trùng id. Viền đỏ khi quá hạn và việc còn mở.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final fmt = DateFormat('HH:mm dd/MM');
     final active = task.status == MaintenanceStatus.open ||
         task.status == MaintenanceStatus.inProgress;
+    openIfLinked(
+        context, ref, task.id, () => _showDetail(context, task, actions));
     return AppCard(
       padding: EdgeInsets.all(large ? 14 : 12),
       borderColor: task.isOverdue && active ? AppColors.danger : null,
@@ -171,6 +181,7 @@ class _TaskCard extends StatelessWidget {
   }
 }
 
+/// Sheet tiến độ và nút [actions] bản chụp lúc mở. Không tự cập nhật khi socket đổi việc.
 void _showDetail(
     BuildContext context, MaintenanceTask task, List<Widget> actions) {
   showModalBottomSheet<void>(
@@ -226,6 +237,7 @@ void _showDetail(
 // ---------------------------------------------------------------------------
 // Nhân viên
 
+/// Việc mình đang sửa, việc chờ nhận (chưa giao hoặc giao cho mình), và việc mình xong hôm nay.
 class _StaffView extends ConsumerWidget {
   final List<MaintenanceTask> tasks;
   final AppUser me;
@@ -233,6 +245,7 @@ class _StaffView extends ConsumerWidget {
   const _StaffView(
       {required this.tasks, required this.me, required this.online});
 
+  /// Kéo để [MaintenanceNotifier.load]. Nút nhận/báo xong tắt khi [online] false.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final n = ref.read(maintenanceProvider.notifier);
@@ -329,6 +342,7 @@ class _StaffView extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Quản lý, lễ tân
 
+/// Ba cột chờ nhận, đang sửa, đã xử lý (tối đa 20 việc đóng). Quản lý và lễ tân.
 class _DeskView extends ConsumerWidget {
   final List<MaintenanceTask> tasks;
   final AppUser? me;
@@ -336,6 +350,8 @@ class _DeskView extends ConsumerWidget {
   const _DeskView(
       {required this.tasks, required this.me, required this.online});
 
+  /// Chỉ định khi việc còn chờ nhận. Hủy nếu là quản lý, hoặc lễ tân chính là người báo và việc chưa nhận.
+  /// Việc đóng không còn nút. Mất [online] thì tắt nút.
   List<Widget> _actions(
       BuildContext context, WidgetRef ref, MaintenanceTask t) {
     if (t.status != MaintenanceStatus.open &&
@@ -359,6 +375,7 @@ class _DeskView extends ConsumerWidget {
     ];
   }
 
+  /// Chọn nhân viên đang trực rồi [MaintenanceNotifier.assign]. Không ai trực thì snack, không gọi API.
   Future<void> _assign(
       BuildContext context, WidgetRef ref, MaintenanceTask t) async {
     final staff = ref
@@ -421,6 +438,7 @@ class _DeskView extends ConsumerWidget {
         'Đã chỉ định $name sửa phòng ${t.room.number}.');
   }
 
+  /// Hỏi lý do (có thể trống) rồi [MaintenanceNotifier.cancel]. Lý do rỗng không gửi field reason.
   Future<void> _cancel(
       BuildContext context, WidgetRef ref, MaintenanceTask t) async {
     final reason = TextEditingController();
@@ -465,10 +483,12 @@ class _DeskView extends ConsumerWidget {
         'Đã hủy việc sửa phòng ${t.room.number}.');
   }
 
+  /// Side effect: watch [usersProvider] để chỉ định có danh sách. Màn hẹp xếp mục dọc.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(usersProvider); // nạp sẵn danh sách nhân viên để chỉ định
     final wide = Breakpoints.isWide(context);
+    /// Quá hạn trước, rồi việc tạo sớm hơn. Âm nếu [a] đứng trước.
     int byOverdue(MaintenanceTask a, MaintenanceTask b) =>
         a.isOverdue == b.isOverdue
             ? a.createdAt.compareTo(b.createdAt)

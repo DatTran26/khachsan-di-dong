@@ -16,8 +16,9 @@ import { maintenanceInclude, toMaintenanceTaskDto } from './maintenance.dto.js';
  * Trục bảo trì của phòng TỰ TÍNH: "ngừng phục vụ" khi còn ≥1 việc mở HOẶC đang có ngừng phục vụ tay;
  * ngược lại "bình thường" (FR-002/003).
  *
+ * - OQ-1 ngưỡng quá hạn: chốt 10/10/2026 = 4 giờ (mặc định 240 phút). Đổi bằng MAINTENANCE_DUE_MINUTES; 0 = tắt.
+ *
  * Chưa chốt (ghi rõ để nhóm quyết):
- * - OQ-1 ngưỡng quá hạn: đọc MAINTENANCE_DUE_MINUTES trong .env; bỏ trống = không tính quá hạn.
  * - OQ-2 giao việc: nhân viên TỰ NHẬN (giả định trong URD); quản lý/lễ tân chỉ định được (FR-009, P1).
  * - OQ-3 sửa khi phòng có khách: không chặn.
  */
@@ -26,12 +27,29 @@ type Enqueue = (event: PendingEvent) => void;
 const OPEN_STATUSES: MaintenanceTaskStatus[] = ['OPEN', 'IN_PROGRESS'];
 const invalidState = () => new AppError(409, 'INVALID_STATE', MSG.invalidState);
 
+export const DEFAULT_MAINTENANCE_DUE_MINUTES = 240;
+
+/**
+ * Ngưỡng quá hạn việc sửa, tính bằng phút.
+ *
+ * Đọc `process.env.MAINTENANCE_DUE_MINUTES` trực tiếp, không đọc object `env` đã parse.
+ * Không khai báo hoặc chuỗi trắng → 240. Số ≤ 0 hoặc không phải số hữu hạn → `null` (không đặt `dueAt`).
+ * @returns Số phút dương, hoặc `null` khi tắt cờ quá hạn.
+ */
 function dueMinutes(): number | null {
-  const minutes = Number(process.env.MAINTENANCE_DUE_MINUTES);
+  const raw = process.env.MAINTENANCE_DUE_MINUTES;
+  if (raw === undefined || raw.trim() === '') return DEFAULT_MAINTENANCE_DUE_MINUTES;
+  const minutes = Number(raw);
   return Number.isFinite(minutes) && minutes > 0 ? minutes : null;
 }
 
-/** Tính lại trục bảo trì của phòng sau mỗi thay đổi việc sửa / ngừng phục vụ tay. */
+/**
+ * Tính lại trục bảo trì của phòng sau mỗi thay đổi việc sửa hoặc hold tay.
+ *
+ * Còn việc `OPEN`/`IN_PROGRESS` hoặc hold chưa `liftedAt` → `OUT_OF_SERVICE`, ngược lại `IN_SERVICE`.
+ * Nhờ `applyRoomChange`, không đổi thì không tăng version phòng và không phát sự kiện.
+ * @returns Kết quả `applyRoomChange` (phòng trước khi đổi và các trục đã khác).
+ */
 export async function syncServiceAxis(tx: Prisma.TransactionClient, roomId: string, enqueue: Enqueue) {
   const [openTasks, activeHold] = await Promise.all([
     tx.maintenanceTask.count({ where: { roomId, status: { in: OPEN_STATUSES } } }),
@@ -41,6 +59,10 @@ export async function syncServiceAxis(tx: Prisma.TransactionClient, roomId: stri
   return applyRoomChange(tx, roomId, { service }, enqueue);
 }
 
+/**
+ * Khóa dòng việc sửa và đối chiếu version. Lệch → 409 kèm DTO.
+ * @returns Việc include phòng, người báo, người xử lý.
+ */
 async function lockTask(tx: Prisma.TransactionClient, taskId: string, version: number) {
   await tx.$queryRaw`SELECT 1 FROM maintenance_tasks WHERE id = ${taskId}::uuid FOR UPDATE`;
   const task = await tx.maintenanceTask.findUnique({ where: { id: taskId }, include: maintenanceInclude });
@@ -51,7 +73,11 @@ async function lockTask(tx: Prisma.TransactionClient, taskId: string, version: n
 
 type LockedTask = Awaited<ReturnType<typeof lockTask>>;
 
-/** Ghi việc + tính lại trục bảo trì + nhật ký + realtime, một transaction. */
+/**
+ * Ghi việc, tính lại trục bảo trì, nhật ký, rồi phát `maintenance:task_updated`.
+ * Luôn gọi `syncServiceAxis` kể cả khi status mới không đổi (đổi assignee).
+ * @returns DTO trong transaction, trước commit.
+ */
 async function transition(
   tx: Prisma.TransactionClient,
   enqueue: Enqueue,
@@ -90,7 +116,13 @@ export interface MaintenanceFilter {
   assigneeId?: string;
 }
 
-/** Danh sách việc kèm phòng, mô tả, vị trí, trạng thái, người xử lý (FR-004, lọc FR-012). */
+/**
+ * Danh sách việc kèm phòng, mô tả, vị trí, trạng thái, người xử lý (FR-004, lọc FR-012).
+ *
+ * Mọi vai trò đã đăng nhập đều xem được — không lọc theo người gọi. Tối đa 200 dòng mới nhất.
+ * @param filter `status`, `roomId`, `assigneeId` đều tùy chọn. Prisma bỏ trường undefined.
+ * @returns DTO. Không kèm byte ảnh (bảo trì không có ảnh).
+ */
 export async function listTasks(filter: MaintenanceFilter) {
   const tasks = await prisma.maintenanceTask.findMany({
     where: filter,
@@ -106,6 +138,11 @@ export async function listTasks(filter: MaintenanceFilter) {
 /**
  * Báo hỏng — mọi vai trò (FR-001). Phòng lập tức "ngừng phục vụ" → check-in-out chặn nhận khách (FR-002).
  * Phòng đã có việc mở vẫn ghi nhận, kèm cảnh báo nhẹ (FR-008).
+ *
+ * `dueAt` = now + `dueMinutes()`, hoặc null khi ngưỡng tắt. Không khóa version phòng:
+ * `syncServiceAxis` tự đọc version hiện tại. Báo kênh `role:STAFF`.
+ * @param input `description` đã được route giới hạn 500 ký tự.
+ * @returns `{ task, warning }`. `warning` có câu tiếng Việt khi phòng đã có việc mở.
  */
 export async function reportIssue(actor: User, input: { roomId: string; description: string; location?: string }) {
   return withTransaction(async (tx, enqueue) => {
@@ -144,7 +181,13 @@ export async function reportIssue(actor: User, input: { roomId: string; descript
   });
 }
 
-/** Nhân viên nhận việc "chờ nhận" → "đang sửa", gán mình là người xử lý (FR-004). */
+/**
+ * Nhân viên nhận việc "chờ nhận" → "đang sửa", gán mình là người xử lý (FR-004).
+ *
+ * Role khác STAFF → 403 (route cũng đã chặn). Đã giao người khác → 409 `ASSIGNED_TO_OTHER`.
+ * Không đòi `onDuty`. Không đổi status nếu không còn `OPEN`.
+ * @returns DTO `IN_PROGRESS`.
+ */
 export async function claimTask(actor: User, taskId: string, version: number) {
   return withTransaction(async (tx, enqueue) => {
     const task = await lockTask(tx, taskId, version);
@@ -157,7 +200,13 @@ export async function claimTask(actor: User, taskId: string, version: number) {
   });
 }
 
-/** Báo hoàn tất việc do chính mình đang sửa → "hoàn tất"; phòng mở lại nếu hết việc + không ngừng tay (FR-005/003). */
+/**
+ * Báo hoàn tất việc do chính mình đang sửa → `DONE` (FR-005).
+ *
+ * Phòng về "đang phục vụ" chỉ khi hết việc mở và không còn hold tay (`syncServiceAxis`).
+ * Không phải assignee → 403. Không còn `IN_PROGRESS` → 409.
+ * @returns DTO sau commit.
+ */
 export async function completeTask(actor: User, taskId: string, version: number) {
   return withTransaction(async (tx, enqueue) => {
     const task = await lockTask(tx, taskId, version);
@@ -168,7 +217,13 @@ export async function completeTask(actor: User, taskId: string, version: number)
 }
 
 /**
- * Hủy (FR-006): việc "chờ nhận" → người báo hoặc quản lý; việc "đang sửa" → chỉ quản lý. Lý do tùy chọn ≤200.
+ * Hủy việc (FR-006).
+ *
+ * `OPEN`: quản lý, hoặc đúng người đã báo. `IN_PROGRESS`: chỉ quản lý.
+ * Lễ tân không phải người báo bị 403. `DONE`/`CANCELLED` → 409. Lý do tùy chọn, route cắt 200 ký tự.
+ * Hủy xong, `syncServiceAxis` có thể mở lại phòng nếu không còn việc và không còn hold.
+ * @param reason Bỏ qua thì `cancelReason` lưu null và nhật ký không có field đó.
+ * @returns DTO `CANCELLED`.
  */
 export async function cancelTask(actor: User, taskId: string, version: number, reason?: string) {
   return withTransaction(async (tx, enqueue) => {
@@ -182,13 +237,20 @@ export async function cancelTask(actor: User, taskId: string, version: number, r
   });
 }
 
-/** Quản lý / lễ tân chỉ định hoặc đổi người xử lý cho việc đang mở (FR-009, P1). */
+/**
+ * Quản lý hoặc lễ tân chỉ định người xử lý cho việc đang mở (FR-009, P1).
+ *
+ * Không đổi status. Người nhận phải STAFF và ACTIVE. Không kiểm `onDuty` — nhân viên
+ * đang tắt trực vẫn được gán; nếu sai role/trạng thái thì lỗi vẫn mang mã `ASSIGNEE_NOT_ON_DUTY`.
+ * @param assigneeId UUID nhân viên. Không bắt phải khác người đang giữ việc.
+ * @returns DTO cùng status, assignee mới.
+ */
 export async function assignTask(actor: User, taskId: string, version: number, assigneeId: string) {
   return withTransaction(async (tx, enqueue) => {
     const task = await lockTask(tx, taskId, version);
     if (!OPEN_STATUSES.includes(task.status)) throw invalidState();
     const assignee = await tx.user.findUnique({ where: { id: assigneeId } });
-    if (!assignee || assignee.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
+    if (assignee?.role !== 'STAFF' || assignee.status !== 'ACTIVE') {
       throw new AppError(400, 'ASSIGNEE_NOT_ON_DUTY', MSG.assigneeNotOnDuty);
     }
     return transition(tx, enqueue, actor, task, 'maintenance.assigned', { status: task.status, assigneeId }, [

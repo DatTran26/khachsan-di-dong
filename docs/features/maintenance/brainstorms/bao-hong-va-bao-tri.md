@@ -256,8 +256,6 @@ chờ nhận → đang sửa → hoàn tất (đóng)
 ## 11. Open Questions
 
 - [ ] OQ-1: Ngưỡng thời gian tính "quá hạn" cho việc bảo trì (bao nhiêu phút/giờ)? Cảnh báo phát 1 lần hay lặp lại?
-- [ ] OQ-2: Cơ chế giao việc bảo trì — nhân viên tự nhận từ danh sách chung (giả định MVP) hay quản lý/lễ tân chỉ định từ đầu?
-- [ ] OQ-3: Việc bảo trì trên phòng đang có khách ở xử lý thế nào — sửa ngay giữa kỳ lưu trú (cần xin ý kiến khách ngoài app) hay mặc định chờ khách trả?
 
 ## 12. Next Steps
 

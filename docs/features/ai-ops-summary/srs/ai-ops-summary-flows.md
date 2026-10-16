@@ -70,10 +70,10 @@ flowchart TD
     D --> E["Tinh so lieu tong hop"]
     E --> F{"Ky co DL?"}
     F -->|"Khong"| M1["Mau rong E-001"]
-    F -->|"Co"| G{"Con han muc OQ-2?"}
+    F -->|"Co"| G{"Con han muc chi phi?"}
     G -->|"Khong"| M2["Mau E-003"]
-    G -->|"Co"| H["Goi LLM OQ-3"]
-    H --> I{"AI OK trong OQ-5?"}
+    G -->|"Co"| H["Goi OpenAI Responses API"]
+    H --> I{"AI OK trong 15 giay?"}
     I -->|"Khong"| M3["Mau E-002"]
     I -->|"Co"| J{"Dau ra khop?"}
     J -->|"Khong"| M4["Mau E-005"]

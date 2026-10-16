@@ -45,6 +45,7 @@ class GoldDialog extends StatelessWidget {
       required this.actions,
       this.width = 460});
 
+  /// Dialog tối đa [width], viền vàng trên, nút [actions] căn phải và xuống dòng nếu hẹp.
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -78,6 +79,7 @@ class GoldDialog extends StatelessWidget {
   }
 }
 
+/// Hộp xác nhận. [destructive] tô nút xác nhận đỏ. [onConfirm] null thì pop true ngay.
 class _ConfirmDialog extends StatefulWidget {
   final String title;
   final String message;
@@ -95,14 +97,18 @@ class _ConfirmDialog extends StatefulWidget {
     this.onConfirm,
   });
 
+  /// Tạo state đang chạy và lỗi.
   @override
   State<_ConfirmDialog> createState() => _ConfirmDialogState();
 }
 
+/// Giữ cờ đang chờ [onConfirm] và câu lỗi nếu nó ném.
 class _ConfirmDialogState extends State<_ConfirmDialog> {
   bool _loading = false;
   String? _error;
 
+  /// Không có [onConfirm] thì pop true. Có thì chờ; thành công pop true, lỗi giữ dialog và hiện câu.
+  /// [ApiException] dùng [ApiException.message], lỗi khác dùng [Object.toString].
   Future<void> _handleConfirm() async {
     if (widget.onConfirm == null) {
       Navigator.of(context).pop(true);
@@ -125,6 +131,7 @@ class _ConfirmDialogState extends State<_ConfirmDialog> {
     }
   }
 
+  /// Nút hủy pop false. Đang chạy thì tắt cả hai nút.
   @override
   Widget build(BuildContext context) {
     return GoldDialog(

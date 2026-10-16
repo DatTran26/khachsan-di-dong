@@ -15,14 +15,17 @@ Future<void> showReportIssueDialog(BuildContext context, {String? roomId}) {
   );
 }
 
+/// Form báo hỏng. [initialRoomId] chọn sẵn phòng nếu mở từ chi tiết phòng.
 class _ReportIssueDialog extends ConsumerStatefulWidget {
   final String? initialRoomId;
   const _ReportIssueDialog({this.initialRoomId});
 
+  /// Tạo state form.
   @override
   ConsumerState<_ReportIssueDialog> createState() => _ReportIssueDialogState();
 }
 
+/// Phòng, vị trí, mô tả, cờ đang gửi và lỗi API.
 class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
   final _formKey = GlobalKey<FormState>();
   final _location = TextEditingController();
@@ -31,12 +34,14 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
   bool _saving = false;
   String? _error;
 
+  /// Gán phòng ban đầu. Không tải danh sách — [roomsProvider] đã có.
   @override
   void initState() {
     super.initState();
     _roomId = widget.initialRoomId;
   }
 
+  /// Giải phóng controller vị trí và mô tả.
   @override
   void dispose() {
     _location.dispose();
@@ -44,6 +49,8 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
     super.dispose();
   }
 
+  /// [MaintenanceNotifier.report] rồi đóng dialog.
+  /// Có `warning` thì snack cảnh báo, không thì snack thành công. [ApiException] giữ dialog.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -73,6 +80,7 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
     }
   }
 
+  /// Dropdown mọi phòng đã tải. Nút gửi tắt khi đang lưu hoặc mất mạng.
   @override
   Widget build(BuildContext context) {
     final rooms = ref.watch(roomsProvider).sorted;

@@ -27,14 +27,14 @@ erDiagram
         string han_muc_ai_id FK
         string so_lieu_tong_hop_ky_id FK
         boolean da_goi_AI
-        boolean luu_de_xem_lai "phu thuoc OQ-4"
+        boolean luu_de_xem_lai "luon true: giu ban gan nhat moi ky"
     }
 
     HAN_MUC_AI {
         string id PK
         int da_dung
         int con_lai
-        string hinh_thuc "theo OQ-2"
+        string hinh_thuc "chi_phi_thuc_te"
         int ngan_sach_mvp_vnd "300000 ton chi"
     }
 

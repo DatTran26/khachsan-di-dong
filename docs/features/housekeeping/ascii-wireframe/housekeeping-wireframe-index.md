@@ -21,6 +21,7 @@ links:
 | 2 | chi-tiet-viec | draft | [xu-ly-viec](xu-ly-viec.md#screen-chi-tiet-viec--chi-tiết-công-việc) | uc-nhan-tu-choi-viec, uc-bao-hoan-tat, uc-xac-nhan-tra-lai | — | — | — | 2026-09-17 |
 | 3 | hang-cho-xac-nhan | draft | [xac-nhan](xac-nhan.md) | uc-xac-nhan-tra-lai | — | — | — | 2026-09-17 |
 | 4 | danh-sach-cong-viec | draft | [quan-ly-viec](quan-ly-viec.md) | uc-phan-cong-lai-va-loc, uc-canh-bao-qua-han | — | — | — | 2026-09-17 |
+| 5 | anh-nghiem-thu | draft | [ảnh nghiệm thu](anh-nghiem-thu.md) | uc-nop-anh-nghiem-thu, uc-bao-hoan-tat, uc-xac-nhan-tra-lai | — | Flutter demo | — | 2026-09-26 |
 
 ## Descriptions
 
@@ -28,7 +29,10 @@ links:
 Danh sách việc của NV buồng phòng: đã giao / đang làm / chờ xác nhận; nút nhận, từ chối; cờ quá hạn.
 
 ### chi-tiet-viec
-Chi tiết một việc: số phòng, trạng thái, ghi chú trả lại (nếu có), thao tác theo trạng thái.
+Chi tiết một việc: số phòng, trạng thái, ghi chú trả lại (nếu có), bộ ảnh nghiệm thu và thao tác theo trạng thái.
+
+### anh-nghiem-thu
+Bộ ảnh gắn với một lần dọn: nhân viên nộp ảnh theo ba nhóm bắt buộc; quản lý duyệt gallery, phóng to và quyết định xác nhận/trả lại.
 
 ### hang-cho-xac-nhan
 Hàng việc chờ xác nhận của quản lý; xác nhận hoặc trả lại kèm ghi chú bắt buộc.

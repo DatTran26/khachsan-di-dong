@@ -14,10 +14,12 @@ import '../providers/stays_provider.dart';
 class StaysScreen extends ConsumerStatefulWidget {
   const StaysScreen({super.key});
 
+  /// Tạo state tìm kiếm. Danh sách do [staysProvider] tự tải.
   @override
   ConsumerState<StaysScreen> createState() => _StaysScreenState();
 }
 
+/// Ô tìm theo số phòng hoặc tên khách, bảng trên màn rộng và thẻ trên màn hẹp.
 class _StaysScreenState extends ConsumerState<StaysScreen> {
   final _search = TextEditingController();
 
@@ -29,6 +31,8 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
     super.dispose();
   }
 
+  /// Danh sách đang ở. Lễ tân mới thấy nút trả phòng; mất mạng thì nút tắt.
+  /// Nghe `roomsProvider.lastUpdated` rồi gọi [StaysNotifier.load] — side effect trong build.
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(staysProvider);
@@ -61,6 +65,7 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
         .toList()
       ..sort((a, b) => a.room.number.compareTo(b.room.number));
 
+    /// Mở hộp xác nhận trả phòng nếu phòng còn trong [roomsProvider]. Không gọi API trực tiếp.
     void checkOut(Stay s) {
       final room = ref.read(roomsProvider).byId(s.room.id);
       if (room != null) {
@@ -160,9 +165,11 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
 
 final _fmt = DateFormat('dd/MM · HH:mm');
 
+/// Đã quá giờ trả dự kiến. Không có giờ dự kiến thì `false`, không coi là quá hạn.
 bool _isDue(Stay s) =>
     s.expectedCheckout != null && s.expectedCheckout!.isBefore(DateTime.now());
 
+/// Bảng lượt ở trên màn rộng. [onCheckOut] chỉ gắn khi [canCheckOut]; nút tắt nếu [online] false.
 class _StayTable extends StatelessWidget {
   final List<Stay> stays;
   final bool canCheckOut;
@@ -177,8 +184,10 @@ class _StayTable extends StatelessWidget {
 
   static const _flex = [10, 18, 8, 14, 14, 18, 12];
 
+  /// Hàng tiêu đề và từng lượt. Không tự gọi API trả phòng.
   @override
   Widget build(BuildContext context) {
+    /// Ô một cột theo chỉ số flex [_flex]. [end] true thì căn phải.
     Widget cell(int i, Widget child, {bool end = false}) => Expanded(
           flex: _flex[i],
           child: Align(
@@ -269,6 +278,7 @@ class _StayTable extends StatelessWidget {
   }
 }
 
+/// Một lượt ở trên màn hẹp. Nút trả phòng chỉ hiện khi [canCheckOut] và chỉ bấm được khi [online].
 class _StayCard extends StatelessWidget {
   final Stay stay;
   final bool canCheckOut;
@@ -281,6 +291,7 @@ class _StayCard extends StatelessWidget {
       required this.online,
       required this.onCheckOut});
 
+  /// Thẻ phòng, khách, giờ nhận/trả và nút trả phòng. Không gọi API.
   @override
   Widget build(BuildContext context) {
     return AppCard(

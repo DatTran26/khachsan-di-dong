@@ -8,12 +8,15 @@ import '../../../models/user.dart';
 import '../../../shared/utils/error_handler.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import '../../../shared/widgets/task_status_timeline.dart';
+import '../../../shared/widgets/task_link.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../maintenance/widgets/report_issue_dialog.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../users/providers/users_provider.dart';
 import '../providers/housekeeping_provider.dart';
+import '../widgets/photo_gallery.dart';
+import 'acceptance_photos_screen.dart';
 
 /// Dọn phòng.
 /// - Quản lý: bảng điều phối 4 cột (Chờ giao · Đã giao · Đang dọn · Chờ xác nhận).
@@ -21,6 +24,8 @@ import '../providers/housekeeping_provider.dart';
 class HousekeepingScreen extends ConsumerWidget {
   const HousekeepingScreen({super.key});
 
+  /// Quản lý thấy bảng 4 cột, vai trò khác thấy danh sách việc của mình.
+  /// Lỗi khi chưa có việc thì [ErrorState].
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(housekeepingProvider);
@@ -43,6 +48,7 @@ class HousekeepingScreen extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Dùng chung
 
+/// Cùng ngày lịch local với lúc gọi. [t] null thì false.
 bool _isToday(DateTime? t) {
   if (t == null) return false;
   final l = t.toLocal(), n = DateTime.now();
@@ -61,6 +67,7 @@ Widget dueText(DateTime due, bool overdue) {
   );
 }
 
+/// Màu chip. Đang dọn mà có ghi chú trả lại thì đỏ, không theo màu đang dọn.
 StatusTone _tone(HousekeepingTask t) {
   if (t.returnNote != null && t.status == HousekeepingStatus.inProgress) {
     return StatusTone.danger;
@@ -79,11 +86,13 @@ StatusTone _tone(HousekeepingTask t) {
   }
 }
 
+/// "Bị trả lại" khi đang dọn và có [HousekeepingTask.returnNote], không thì nhãn trạng thái.
 String _label(HousekeepingTask t) =>
     t.returnNote != null && t.status == HousekeepingStatus.inProgress
         ? 'Bị trả lại'
         : t.status.label;
 
+/// Chạy [action], snack [success] nếu còn mounted. [ApiException] qua [handleApiError] và tải lại việc.
 Future<void> _run(BuildContext context, WidgetRef ref,
     Future<void> Function() action, String success) async {
   try {
@@ -97,6 +106,7 @@ Future<void> _run(BuildContext context, WidgetRef ref,
   }
 }
 
+/// Hỏi ghi chú rồi [HousekeepingNotifier.returnTask]. Ghi chú trống không đóng dialog.
 Future<void> _returnTask(
     BuildContext context, WidgetRef ref, HousekeepingTask task) async {
   final note = TextEditingController();
@@ -157,6 +167,8 @@ Future<void> _returnTask(
       'Đã trả lại việc dọn phòng ${task.room.number}.');
 }
 
+/// Chọn nhân viên đang trực, active, rồi [HousekeepingNotifier.reassign].
+/// Không có ai trực thì snack cảnh báo, không gọi API. Không giao lại đúng người đang giữ việc.
 Future<void> _assign(
     BuildContext context, WidgetRef ref, HousekeepingTask task) async {
   final users = ref.read(usersProvider).users;
@@ -222,15 +234,76 @@ Future<void> _assign(
       'Đã giao việc dọn phòng ${task.room.number} cho $name.');
 }
 
+/// Dựng nút thao tác cho [task] theo trạng thái hiện tại (thẻ và sheet chi tiết dùng chung).
+typedef _TaskActions = List<Widget> Function(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online);
+
+/// Sheet chi tiết luôn đọc việc mới nhất theo `task.id` từ [housekeepingProvider] — thao tác trong sheet
+/// hoặc realtime đổi trạng thái thì nội dung và nút tự cập nhật theo.
 void _showDetail(
-    BuildContext context, HousekeepingTask task, List<Widget> actions) {
+    BuildContext context, HousekeepingTask task, _TaskActions actionsFor) {
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     constraints: const BoxConstraints(maxWidth: 520),
-    builder: (ctx) => SafeArea(
-      child: Padding(
+    builder: (_) => _TaskDetailSheet(initial: task, actionsFor: actionsFor),
+  );
+}
+
+/// Sheet chi tiết một việc. [initial] là bản lúc mở; nội dung theo bản mới trong provider.
+class _TaskDetailSheet extends ConsumerStatefulWidget {
+  final HousekeepingTask initial;
+  final _TaskActions actionsFor;
+  const _TaskDetailSheet({required this.initial, required this.actionsFor});
+
+  /// Tạo state sheet.
+  @override
+  ConsumerState<_TaskDetailSheet> createState() => _TaskDetailSheetState();
+}
+
+/// Theo dõi việc còn nút thao tác không để tự đóng khi xong.
+class _TaskDetailSheetState extends ConsumerState<_TaskDetailSheet> {
+  /// Lúc mở có nút thao tác không — để biết khi nào việc "hết việc cần làm" thì tự đóng.
+  /// (Sheet mở từ mục "Xong hôm nay" vốn không có nút → không tự đóng.)
+  late final bool _hadActions = widget
+      .actionsFor(context, ref, widget.initial, ref.read(isOnlineProvider))
+      .isNotEmpty;
+  bool _closing = false;
+
+  /// Đóng đúng sheet này kể cả khi đang có hộp thoại khác đè lên.
+  void _close() {
+    if (_closing) return;
+    _closing = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final route = ModalRoute.of(context);
+      if (route == null) return;
+      if (route.isCurrent) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).removeRoute(route);
+      }
+    });
+  }
+
+  /// Tiến độ, ảnh nếu chờ xác nhận hoặc xong, và nút từ [actionsFor].
+  /// Việc biến mất hoặc hết nút (nếu lúc mở có nút) thì [_close].
+  @override
+  Widget build(BuildContext context) {
+    final online = ref.watch(isOnlineProvider);
+    final id = widget.initial.id;
+    final latest = ref.watch(housekeepingProvider
+        .select((s) => s.tasks.where((t) => t.id == id).firstOrNull));
+    final task = latest ?? widget.initial;
+    final actions = latest == null
+        ? const <Widget>[]
+        : widget.actionsFor(context, ref, task, online);
+    // Việc không còn trong danh sách, hoặc đã hết nút cần làm (vd đã xác nhận sạch) → đóng sheet.
+    if (latest == null || (_hadActions && actions.isEmpty)) _close();
+
+    return SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -260,6 +333,12 @@ void _showDetail(
             const SectionLabel('Tiến độ'),
             const SizedBox(height: 12),
             TaskStatusTimeline.housekeeping(task),
+            // Đã báo xong → quản lý đối chiếu ảnh trước khi xác nhận / trả lại (FR-housekeeping-007).
+            if (task.status == HousekeepingStatus.pendingConfirm ||
+                task.status == HousekeepingStatus.done) ...[
+              const SizedBox(height: 20),
+              PhotoReviewSection(taskId: task.id),
+            ],
             if (actions.isNotEmpty) ...[
               const SizedBox(height: 20),
               for (final a in actions)
@@ -268,17 +347,20 @@ void _showDetail(
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Quản lý
 
+/// Bảng quản lý: chờ giao, đã giao, đang dọn, chờ xác nhận. Cột hẹp xếp dọc.
 class _ManagerBoard extends ConsumerWidget {
   final List<HousekeepingTask> tasks;
   const _ManagerBoard({required this.tasks});
 
+  /// Side effect: watch [usersProvider] để danh sách nhân viên sẵn khi giao việc.
+  /// Màn rộng là 4 cột, hẹp là danh sách theo mục.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(usersProvider); // nạp sẵn danh sách nhân viên để giao việc
@@ -286,6 +368,7 @@ class _ManagerBoard extends ConsumerWidget {
     final wide = Breakpoints.isWide(context);
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
+    /// Việc trạng thái [s], hạn sớm trước.
     List<HousekeepingTask> by(HousekeepingStatus s) =>
         tasks.where((t) => t.status == s).toList()
           ..sort((a, b) => a.dueAt.compareTo(b.dueAt));
@@ -301,6 +384,7 @@ class _ManagerBoard extends ConsumerWidget {
         .length;
     final waiting = columns[3].$2.length;
 
+    /// Thẻ quản lý đã gắn [online].
     Widget card(HousekeepingTask t) =>
         _ManagerTaskCard(task: t, online: online);
 
@@ -436,64 +520,72 @@ class _ManagerBoard extends ConsumerWidget {
   }
 }
 
+/// Nút quản lý theo trạng thái. [large] true thì nút cao 48 (trong sheet).
+/// Mất [online] thì tắt nút ghi. Việc xong không còn nút.
+List<Widget> _managerActions(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
+    {bool large = false}) {
+  final n = ref.read(housekeepingProvider.notifier);
+  // Bảng web dày đặc giữ nút thấp; điện thoại cần vùng chạm đủ 48.
+  final size = large
+      ? const Size.fromHeight(AppTheme.minTouch)
+      : Size(0, Breakpoints.isWide(context) ? 36 : AppTheme.minTouch);
+  switch (task.status) {
+    case HousekeepingStatus.unassigned:
+      return [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _assign(context, ref, task) : null,
+          child: const Text('Giao cho…'),
+        ),
+      ];
+    case HousekeepingStatus.assigned:
+    case HousekeepingStatus.inProgress:
+      return [
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _assign(context, ref, task) : null,
+          child: const Text('Phân công lại'),
+        ),
+      ];
+    case HousekeepingStatus.pendingConfirm:
+      return [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: size),
+          onPressed: online
+              ? () => _run(context, ref, () => n.confirm(task.id, task.version),
+                  'Đã xác nhận phòng ${task.room.number} sạch. Phòng về Sẵn sàng.')
+              : null,
+          child: const Text('Xác nhận sạch'),
+        ),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(minimumSize: size),
+          onPressed: online ? () => _returnTask(context, ref, task) : null,
+          child: const Text('Trả lại'),
+        ),
+      ];
+    case HousekeepingStatus.done:
+      return const [];
+  }
+}
+
+/// Thẻ một việc trên bảng quản lý. Bấm mở sheet. Viền đỏ nếu quá hạn.
 class _ManagerTaskCard extends ConsumerWidget {
   final HousekeepingTask task;
   final bool online;
   const _ManagerTaskCard({required this.task, required this.online});
 
-  List<Widget> _actions(BuildContext context, WidgetRef ref,
-      {bool large = false}) {
-    final n = ref.read(housekeepingProvider.notifier);
-    // Bảng web dày đặc giữ nút thấp; điện thoại cần vùng chạm đủ 48.
-    final size = large
-        ? const Size.fromHeight(AppTheme.minTouch)
-        : Size(0, Breakpoints.isWide(context) ? 36 : AppTheme.minTouch);
-    switch (task.status) {
-      case HousekeepingStatus.unassigned:
-        return [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _assign(context, ref, task) : null,
-            child: const Text('Giao cho…'),
-          ),
-        ];
-      case HousekeepingStatus.assigned:
-      case HousekeepingStatus.inProgress:
-        return [
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _assign(context, ref, task) : null,
-            child: const Text('Phân công lại'),
-          ),
-        ];
-      case HousekeepingStatus.pendingConfirm:
-        return [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(minimumSize: size),
-            onPressed: online
-                ? () => _run(
-                    context,
-                    ref,
-                    () => n.confirm(task.id, task.version),
-                    'Đã xác nhận phòng ${task.room.number} sạch. Phòng về Sẵn sàng.')
-                : null,
-            child: const Text('Xác nhận sạch'),
-          ),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(minimumSize: size),
-            onPressed: online ? () => _returnTask(context, ref, task) : null,
-            child: const Text('Trả lại'),
-          ),
-        ];
-      case HousekeepingStatus.done:
-        return const [];
-    }
-  }
+  /// Mở sheet với nút quản lý cỡ lớn.
+  void _open(BuildContext context) => _showDetail(
+      context, task, (c, r, t, o) => _managerActions(c, r, t, o, large: true));
 
+  /// Gọi [openIfLinked] để deep link `?viec=` mở đúng sheet một lần.
+  /// Không gọi API trong build.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hm = DateFormat('HH:mm');
-    final actions = _actions(context, ref);
+    final actions = _managerActions(context, ref, task, online);
+    openIfLinked(context, ref, task.id, () => _open(context));
     return AppCard(
       padding: const EdgeInsets.all(12),
       borderColor: task.isOverdue
@@ -501,8 +593,7 @@ class _ManagerTaskCard extends ConsumerWidget {
           : task.status == HousekeepingStatus.pendingConfirm
               ? AppColors.inspectBorder
               : null,
-      onTap: () =>
-          _showDetail(context, task, _actions(context, ref, large: true)),
+      onTap: () => _open(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -556,10 +647,12 @@ class _ManagerTaskCard extends ConsumerWidget {
 // ---------------------------------------------------------------------------
 // Nhân viên
 
+/// Việc đang giao hoặc đang dọn của nhân viên, quá hạn lên trước. Kéo để tải lại.
 class _StaffList extends ConsumerWidget {
   final List<HousekeepingTask> tasks;
   const _StaffList({required this.tasks});
 
+  /// Mục xong hôm nay mở sheet không nút. Việc chờ xác nhận hoặc đã xác nhận trong ngày thì vào mục đó.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
@@ -621,7 +714,8 @@ class _StaffList extends ConsumerWidget {
                 child: AppCard(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  onTap: () => _showDetail(context, t, const []),
+                  onTap: () =>
+                      _showDetail(context, t, (_, __, ___, ____) => const []),
                   child: Row(
                     children: [
                       Expanded(
@@ -641,72 +735,85 @@ class _StaffList extends ConsumerWidget {
   }
 }
 
+/// Nút nhân viên. Đã giao: từ chối hoặc nhận. Đang dọn: ảnh và báo xong.
+/// [vertical] true thêm nút báo hỏng (trong sheet). Mất mạng tắt nút ghi, vẫn mở được màn ảnh.
+List<Widget> _staffActions(
+    BuildContext context, WidgetRef ref, HousekeepingTask task, bool online,
+    {bool vertical = false}) {
+  final n = ref.read(housekeepingProvider.notifier);
+  const size = Size.fromHeight(AppTheme.minTouch);
+  if (task.status == HousekeepingStatus.assigned) {
+    return [
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => showConfirmDialog(
+                  context,
+                  title: 'Từ chối việc dọn phòng ${task.room.number}?',
+                  message:
+                      'Việc sẽ quay về Chờ giao để quản lý giao cho người khác.',
+                  confirmLabel: 'Từ chối',
+                  onConfirm: () => n.reject(task.id, task.version),
+                )
+            : null,
+        child: const Text('Từ chối'),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => _run(context, ref, () => n.accept(task.id, task.version),
+                'Đã nhận việc phòng ${task.room.number}. Phòng chuyển sang Đang dọn.')
+            : null,
+        child: const Text('Nhận việc'),
+      ),
+    ];
+  }
+  // Đã báo xong / đã xác nhận / chưa giao → nhân viên không còn gì để làm.
+  if (task.status != HousekeepingStatus.inProgress) return const [];
+  return [
+    // Báo xong cần đủ ảnh nghiệm thu → nộp ảnh và báo ở màn riêng (FR-housekeeping-005).
+    ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(minimumSize: size),
+      // Màn riêng toàn màn hình (navigator gốc) — không lồng trong khung app.
+      onPressed: () => Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+              builder: (_) => AcceptancePhotosScreen(taskId: task.id))),
+      icon: const Icon(Icons.photo_camera_outlined, size: 18),
+      label: const Text('Ảnh & báo xong'),
+    ),
+    if (vertical)
+      OutlinedButton(
+        style: OutlinedButton.styleFrom(minimumSize: size),
+        onPressed: online
+            ? () => showReportIssueDialog(context, roomId: task.room.id)
+            : null,
+        child: const Text('Báo hỏng phòng này'),
+      ),
+  ];
+}
+
+/// Thẻ việc của nhân viên. Bấm mở sheet. Nút xếp ngang.
 class _StaffTaskCard extends ConsumerWidget {
   final HousekeepingTask task;
   final bool online;
   const _StaffTaskCard({required this.task, required this.online});
 
-  List<Widget> _actions(BuildContext context, WidgetRef ref,
-      {bool vertical = false}) {
-    final n = ref.read(housekeepingProvider.notifier);
-    const size = Size.fromHeight(AppTheme.minTouch);
-    if (task.status == HousekeepingStatus.assigned) {
-      return [
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => showConfirmDialog(
-                    context,
-                    title: 'Từ chối việc dọn phòng ${task.room.number}?',
-                    message:
-                        'Việc sẽ quay về Chờ giao để quản lý giao cho người khác.',
-                    confirmLabel: 'Từ chối',
-                    onConfirm: () => n.reject(task.id, task.version),
-                  )
-              : null,
-          child: const Text('Từ chối'),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => _run(context, ref, () => n.accept(task.id, task.version),
-                  'Đã nhận việc phòng ${task.room.number}. Phòng chuyển sang Đang dọn.')
-              : null,
-          child: const Text('Nhận việc'),
-        ),
-      ];
-    }
-    return [
-      ElevatedButton(
-        style: ElevatedButton.styleFrom(minimumSize: size),
-        onPressed: online
-            ? () => _run(context, ref, () => n.complete(task.id, task.version),
-                'Đã báo xong phòng ${task.room.number} — chờ quản lý xác nhận.')
-            : null,
-        child: const Text('Báo đã dọn xong'),
-      ),
-      if (vertical)
-        OutlinedButton(
-          style: OutlinedButton.styleFrom(minimumSize: size),
-          onPressed: online
-              ? () => showReportIssueDialog(context, roomId: task.room.id)
-              : null,
-          child: const Text('Báo hỏng phòng này'),
-        ),
-    ];
-  }
+  /// Mở sheet với nút nhân viên xếp dọc, kể cả báo hỏng.
+  void _open(BuildContext context) => _showDetail(
+      context, task, (c, r, t, o) => _staffActions(c, r, t, o, vertical: true));
 
+  /// [openIfLinked] mở sheet nếu route trỏ đúng [HousekeepingTask.id].
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final actions = _actions(context, ref);
+    final actions = _staffActions(context, ref, task, online);
     final started = task.startedAt != null
         ? ' · bắt đầu ${DateFormat('HH:mm').format(task.startedAt!.toLocal())}'
         : '';
+    openIfLinked(context, ref, task.id, () => _open(context));
     return AppCard(
       padding: const EdgeInsets.all(14),
       borderColor: task.isOverdue ? AppColors.danger : null,
-      onTap: () =>
-          _showDetail(context, task, _actions(context, ref, vertical: true)),
+      onTap: () => _open(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

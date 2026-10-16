@@ -20,7 +20,7 @@ Phần mềm theo dõi trạng thái phòng khách sạn theo thời gian thực
 | Nhóm user | Gọi là gì trong doc | Ghi chú | Ngày |
 |---|---|---|---|
 | Quản lý khách sạn | quản lý | Toàn quyền trừ nhận/trả phòng; xem dashboard, nhật ký, AI; quản lý tài khoản/gán vai trò | 2026-09-15 |
-| Lễ tân | lễ tân | Nhận/trả phòng tại quầy (web); quản lý tài khoản/gán vai trò cho nhân viên thường (không thao tác trên TK quản lý); quản lý danh mục phòng, đặt/gỡ ngừng phục vụ, xác nhận phòng sạch | 2026-09-15 |
+| Lễ tân | lễ tân | Nhận/trả phòng tại quầy (web); tra cứu danh mục phòng; đặt/gỡ ngừng phục vụ | 2026-09-23 |
 | Nhân viên buồng phòng–bảo trì | nv buồng phòng–bảo trì | MỘT vai trò gộp trong MVP (đã chốt 2026-09-15): xem việc được giao, báo hỏng, đánh dấu đã dọn/đã sửa xong trên mobile Android | 2026-09-15 |
 | Khách thuê phòng | khách | KHÔNG dùng hệ thống — chỉ là đối tượng dữ liệu (tên khách khi nhận phòng) | 2026-09-15 |
 | Hệ thống / Người vận hành | hệ thống / người vận hành | Hệ thống tự khóa TK, hết phiên, ghi nhật ký (actor SYSTEM); Người vận hành (WPCTeam) phục hồi quản trị ngoài app | 2026-09-15 |

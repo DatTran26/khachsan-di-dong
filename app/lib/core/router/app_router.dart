@@ -11,9 +11,16 @@ import '../../features/stays/screens/stays_screen.dart';
 import '../../features/housekeeping/screens/housekeeping_screen.dart';
 import '../../features/maintenance/screens/maintenance_screen.dart';
 import '../../features/audit/screens/audit_screen.dart';
+import '../../features/ai_summary/screens/ai_summary_screen.dart';
 import '../../features/shell/screens/app_shell.dart';
+import '../../shared/widgets/task_link.dart';
 import 'nav.dart';
 
+/// Router gốc. Nghe [authProvider] qua [ValueNotifier] để redirect.
+///
+/// Chưa [initialized] thì không redirect. Chưa đăng nhập thì về `/dang-nhap`.
+/// Còn mật khẩu tạm thì chỉ ở `/doi-mat-khau`. Đường ngoài quyền vai trò
+/// bị đưa về màn home của vai trò đó. Notifier sống cùng provider, không dispose.
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier<AuthState>(ref.read(authProvider));
   ref.listen(authProvider, (_, next) => notifier.value = next);
@@ -63,7 +70,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (_, __) => const DashboardScreen(),
+            // `?phong=<id>`: mở sẵn chi tiết phòng (đi từ việc cần chú ý / cảnh báo quá hạn).
+            builder: (_, state) =>
+                DashboardScreen(openRoomId: state.uri.queryParameters['phong']),
+          ),
+          GoRoute(
+            path: '/tom-tat',
+            builder: (_, __) => const AiSummaryScreen(),
           ),
           GoRoute(
             path: '/phong',
@@ -75,11 +88,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/don-phong',
-            builder: (_, __) => const HousekeepingScreen(),
+            // `?viec=<id>`: mở sẵn chi tiết việc (đi từ cảnh báo quá hạn / chi tiết phòng).
+            builder: (_, state) => TaskLinkScope(
+              path: '/don-phong',
+              taskId: state.uri.queryParameters['viec'],
+              child: const HousekeepingScreen(),
+            ),
           ),
           GoRoute(
             path: '/bao-tri',
-            builder: (_, __) => const MaintenanceScreen(),
+            builder: (_, state) => TaskLinkScope(
+              path: '/bao-tri',
+              taskId: state.uri.queryParameters['viec'],
+              child: const MaintenanceScreen(),
+            ),
           ),
           GoRoute(
             path: '/tai-khoan',
@@ -87,7 +109,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/nhat-ky',
-            builder: (_, __) => const AuditScreen(),
+            builder: (_, state) =>
+                AuditScreen(roomId: state.uri.queryParameters['phong']),
           ),
         ],
       ),
@@ -96,6 +119,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         redirect: (_, __) => '/dashboard',
       ),
     ],
+    /// Trang không khớp route. Nút về `/` để redirect theo vai trò.
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(

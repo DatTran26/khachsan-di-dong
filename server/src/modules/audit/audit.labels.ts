@@ -50,6 +50,7 @@ export const ACTION_LABELS: Record<string, string> = {
   'maintenance.cancelled': 'Hủy việc sửa',
   'maintenance.assigned': 'Chỉ định người sửa',
   'maintenance.task_overdue': 'Việc sửa quá hạn',
+  'ai_summary.generated': 'Tạo tóm tắt vận hành',
 };
 
 /** Nhãn trục / trường. Trường `status` đặt theo loại đối tượng (vd "việc dọn", "lượt lưu trú"). */
@@ -63,6 +64,13 @@ const FIELD_LABELS: Record<string, string> = {
   reason: 'lý do ngừng phục vụ',
   assignee: 'người phụ trách',
   returnNote: 'ghi chú trả lại',
+  photos: 'ảnh nghiệm thu',
+  hasIssue: 'bất thường',
+  photoRound: 'lượt ảnh',
+  source: 'loại bản',
+  calledAi: 'gọi AI',
+  failureReason: 'lý do không dùng AI',
+  requestId: 'mã request',
   cancelReason: 'lý do hủy',
   description: 'mô tả',
   overdue: 'quá hạn',
@@ -103,6 +111,15 @@ const VALUE_LABELS: Record<string, string> = {
   STAFF: 'nv buồng phòng–bảo trì',
   true: 'có',
   false: 'không',
+  // ai-ops-summary
+  AI: 'tóm tắt AI',
+  FALLBACK: 'báo cáo mẫu',
+  EMPTY: 'kỳ rỗng',
+  NOT_CONFIGURED: 'chưa cấu hình AI',
+  QUOTA_EXCEEDED: 'hết hạn mức',
+  TIMEOUT: 'quá thời gian chờ',
+  AI_ERROR: 'dịch vụ AI lỗi',
+  INVALID_OUTPUT: 'đầu ra AI không hợp lệ',
 };
 
 const STATUS_BY_ENTITY: Partial<Record<AuditEntityType, Record<string, string>>> = {
@@ -117,11 +134,29 @@ const STATUS_BY_ENTITY: Partial<Record<AuditEntityType, Record<string, string>>>
   MAINTENANCE_TASK: { OPEN: 'chờ nhận', IN_PROGRESS: 'đang sửa', DONE: 'hoàn tất', CANCELLED: 'đã hủy' },
 };
 
+/**
+ * Nhãn tiếng Việt của một trường nhật ký.
+ *
+ * `status` đổi theo loại đối tượng (việc dọn, lượt lưu trú, …). Trường khác tra `FIELD_LABELS`.
+ * Không có trong bảng thì trả nguyên mã kỹ thuật để không nuốt dữ liệu.
+ * @param entityType Loại đối tượng của dòng change (đã fallback về dòng chính ở DTO).
+ * @param field Mã trường lưu trong CSDL (`occupancy`, `phone`, …).
+ * @returns Cụm chữ cho cột nhãn, không kèm giá trị.
+ */
 export function fieldLabel(entityType: AuditEntityType, field: string): string {
   if (field === 'status') return STATUS_FIELD_BY_ENTITY[entityType];
   return FIELD_LABELS[field] ?? field;
 }
 
+/**
+ * Nhãn tiếng Việt của một giá trị trước/sau.
+ *
+ * `null` hoặc chuỗi rỗng thành "—". `status` ưu tiên bảng theo loại đối tượng
+ * rồi mới tới `VALUE_LABELS`, vì `IN_PROGRESS` nghĩa khác nhau giữa dọn và sửa.
+ * Giá trị không nằm trong bảng (SĐT, họ tên, ghi chú) được trả nguyên văn.
+ * @param value Chuỗi đã lưu trong `audit_log_changes`, hoặc null.
+ * @returns Cụm hiển thị. Không định dạng lại số điện thoại.
+ */
 export function valueLabel(entityType: AuditEntityType, field: string, value: string | null): string {
   if (value === null || value === '') return '—';
   if (field === 'status') return STATUS_BY_ENTITY[entityType]?.[value] ?? VALUE_LABELS[value] ?? value;
@@ -137,7 +172,11 @@ const TIME_FORMAT = new Intl.DateTimeFormat('vi-VN', {
   hour12: false,
 });
 
-/** "14:32 05/10" theo giờ Việt Nam. */
+/**
+ * "14:32 05/10" theo giờ Việt Nam (`Asia/Ho_Chi_Minh`), 24 giờ, không kèm năm.
+ * @param date Mốc `occurredAt`. Không đổi timezone của process — formatter tự chuyển.
+ * @returns Chuỗi đã ghép giờ, phút, ngày, tháng. Không có giây.
+ */
 export function formatTime(date: Date): string {
   const parts = Object.fromEntries(TIME_FORMAT.formatToParts(date).map((p) => [p.type, p.value]));
   return `${parts.hour}:${parts.minute} ${parts.day}/${parts.month}`;

@@ -13,11 +13,13 @@ class ChangePasswordScreen extends ConsumerStatefulWidget {
   final bool forced;
   const ChangePasswordScreen({super.key, this.forced = false});
 
+  /// Tạo state form đổi mật khẩu.
   @override
   ConsumerState<ChangePasswordScreen> createState() =>
       _ChangePasswordScreenState();
 }
 
+/// Mật khẩu hiện tại, mật khẩu mới, nhập lại, cờ ẩn và lỗi API.
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _currentCtrl = TextEditingController();
@@ -26,6 +28,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _obscure = true;
   String? _error;
 
+  /// Nghe hai ô mới để checklist cập nhật theo từng ký tự. Không gọi API.
   @override
   void initState() {
     super.initState();
@@ -33,6 +36,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     _confirmCtrl.addListener(() => setState(() {}));
   }
 
+  /// Giải phóng ba controller.
   @override
   void dispose() {
     _currentCtrl.dispose();
@@ -41,13 +45,18 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     super.dispose();
   }
 
+  /// Ít nhất 8 ký tự. Checklist và validator dùng chung.
   bool get _longEnough => _newCtrl.text.length >= 8;
+  /// Có ít nhất một chữ và một chữ số.
   bool get _letterAndNumber =>
       RegExp(r'[a-zA-Z]').hasMatch(_newCtrl.text) &&
       RegExp(r'\d').hasMatch(_newCtrl.text);
+  /// Hai ô mới trùng và không rỗng.
   bool get _matches =>
       _newCtrl.text.isNotEmpty && _newCtrl.text == _confirmCtrl.text;
 
+  /// [AuthNotifier.changePassword] rồi snack và [homeFor]. [ApiException] hiện trên form.
+  /// Không tự logout.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _error = null);
@@ -63,11 +72,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     }
   }
 
+  /// [forced] true thì nút phụ là đăng xuất, không thì quay lại màn chủ. Nút lưu tắt khi đang gửi.
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
     final forced = widget.forced;
 
+    /// Một dòng checklist. [ok] true thì icon và chữ xanh.
     Widget rule(bool ok, String text) => Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: Row(children: [
@@ -80,6 +91,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           ]),
         );
 
+    /// Trang trí ô mật khẩu với [label]. Không gắn validator.
     InputDecoration pw(String label) => InputDecoration(
           labelText: label,
           prefixIcon: const Icon(Icons.lock_outline),

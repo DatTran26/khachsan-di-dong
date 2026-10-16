@@ -16,10 +16,12 @@ class RoomFormScreen extends ConsumerStatefulWidget {
 
   const RoomFormScreen({super.key, this.room});
 
+  /// Tạo state form. [RoomFormScreen.room] null là thêm mới, khác null là sửa.
   @override
   ConsumerState<RoomFormScreen> createState() => _RoomFormScreenState();
 }
 
+/// Form một phòng hoặc dải số. Giữ controller và cờ đang lưu.
 class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _numberCtrl;
@@ -30,8 +32,10 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
   final _fromCtrl = TextEditingController();
   final _toCtrl = TextEditingController();
 
+  /// `true` khi mở từ một phòng có sẵn. Ẩn chế độ tạo dải.
   bool get isEdit => widget.room != null;
 
+  /// Điền số phòng, tầng và loại từ [RoomFormScreen.room] nếu đang sửa.
   @override
   void initState() {
     super.initState();
@@ -42,6 +46,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
         widget.room?.roomType.id; // initial; updated via onChanged
   }
 
+  /// Giải phóng bốn controller. Không gọi API.
   @override
   void dispose() {
     _numberCtrl.dispose();
@@ -51,6 +56,9 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
     super.dispose();
   }
 
+  /// Validate rồi gọi tạo một phòng, tạo dải, hoặc cập nhật.
+  /// Thành công: snack và `Navigator.pop(true)`. [ApiException] đưa vào [handleApiError].
+  /// Luôn tắt [_saving] nếu widget còn mounted.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save(); // populate _selectedRoomTypeId via onSaved
@@ -105,6 +113,8 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
     }
   }
 
+  /// Form giữa màn. Đang tải hoặc lỗi loại phòng thì không hiện ô nhập.
+  /// Dropdown chỉ [RoomTypesState.activeTypes].
   @override
   Widget build(BuildContext context) {
     final typesState = ref.watch(roomTypesProvider);

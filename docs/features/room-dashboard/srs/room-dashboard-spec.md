@@ -31,7 +31,7 @@ links:
 |----|-------------|--------------|----------|
 | FR-room-dashboard-001 | Khi người dùng đủ quyền mở dashboard, hệ thống phải hiển thị lưới toàn bộ phòng trong danh mục (50 phòng), mỗi phòng hiển thị riêng 3 trục trạng thái — lưu trú, vệ sinh, bảo trì — tại thời điểm xem; không gộp 3 trục thành 1 trạng thái. | Demo/test: đối chiếu ô phòng với trạng thái nguồn từng trục | Must |
 | FR-room-dashboard-002 | Hệ thống phải hiển thị chỉ số tổng hợp tại thời điểm xem: số phòng đang ở; số phòng sẵn sàng; số phòng cần dọn; số phòng ngừng phục vụ; số công việc quá hạn; tỷ lệ lấp đầy. | Test: đối soát từng chỉ số với dữ liệu nguồn | Must |
-| FR-room-dashboard-003 | Phòng chỉ được tính và hiển thị "sẵn sàng" khi trục lưu trú = trống + trục vệ sinh = sạch + trục bảo trì = đang phục vụ (bình thường). | Test: phòng thiếu 1 điều kiện không được vào nhóm "sẵn sàng" | Must |
+| FR-room-dashboard-003 | Phòng chỉ được tính và hiển thị "sẵn sàng" khi trục lưu trú = trống + trục vệ sinh = sạch + trục bảo trì = bình thường. | Test: phòng thiếu 1 điều kiện không được vào nhóm "sẵn sàng" | Must |
 | FR-room-dashboard-004 | Tỷ lệ lấp đầy = số phòng đang ở ÷ số phòng có thể phục vụ × 100%; khi mẫu số = 0 (mọi phòng ngừng phục vụ), hệ thống hiển thị "không áp dụng" thay vì con số. | Test: dàn trạng thái để mẫu = 0 | Must |
 | FR-room-dashboard-005 | Mọi thay đổi trạng thái do các feature nghiệp vụ ghi thành công phải phản ánh lên dashboard đang mở trong ≤3 giây kể từ lúc máy chủ lưu (qua `realtime-sync`). | Đo 100 lượt theo tiêu chí nghiệm thu | Must |
 | FR-room-dashboard-006 | Công việc đang mở có cờ "quá hạn" (do feature nghiệp vụ đánh theo quy tắc) phải được tô cờ trên ô phòng liên quan và đếm vào chỉ số "việc quá hạn"; cờ tự mất trên dashboard khi việc hoàn tất. Cơ chế hiển thị bằng quy tắc, không dùng AI. | Test: việc quá hạn xuất hiện/biến mất đúng lúc | Must |
@@ -58,7 +58,7 @@ links:
 |----|------|--------|----------|
 | BR-room-dashboard-001 | Ba trục lưu trú / vệ sinh / bảo trì luôn hiển thị riêng, không gộp thành 1 trạng thái. | Tôn chỉ / BRD BR-room-dashboard-01 | FR-001 |
 | BR-room-dashboard-002 | Tỷ lệ lấp đầy = phòng đang ở ÷ phòng có thể phục vụ × 100%; mẫu số = 0 → "không áp dụng". | Tôn chỉ / BRD BR-room-dashboard-02 | FR-004 |
-| BR-room-dashboard-003 | "Sẵn sàng" = trống + sạch + đang phục vụ — composite suy ra, không phải trạng thái lưu của trục nào. | Tôn chỉ / `housekeeping` BR-housekeeping-003 | FR-003 |
+| BR-room-dashboard-003 | "Sẵn sàng" = trống + sạch + bảo trì bình thường — composite suy ra, không phải trạng thái lưu của trục nào. | Tôn chỉ / `housekeeping` BR-housekeeping-003 | FR-003 |
 | BR-room-dashboard-004 | Cờ "quá hạn" do feature nghiệp vụ sở hữu đánh theo quy tắc (việc dọn 60 phút theo `housekeeping`; việc sửa chờ OQ-1 ở `maintenance`); dashboard chỉ hiển thị và đếm — không dùng AI. | Tôn chỉ / BRD BR-room-dashboard-04 | FR-006 |
 | BR-room-dashboard-005 | Dashboard chỉ đọc: mọi thay đổi trạng thái/công việc thực hiện ở feature nghiệp vụ sở hữu. | BRD BR-room-dashboard-05 | FR-008 |
 | BR-room-dashboard-006 | Chỉ vai trò quản lý và lễ tân được xem dashboard. | PRD 7.7 / BRD BR-room-dashboard-06 | FR-008, NFR-004 |
@@ -80,7 +80,7 @@ links:
 | SC-room-dashboard-01 | 100% chỉ số dashboard khớp dữ liệu đối soát | Đối soát trong nghiệm thu (tôn chỉ/PRD đo thành công) |
 | SC-room-dashboard-02 | ≥95% trong 100 lượt cập nhật trạng thái hiển thị trên dashboard ≤3 giây (50 phòng, 30 phiên đồng thời) | Đo theo tiêu chí nghiệm thu tôn chỉ |
 | SC-room-dashboard-03 | 100% công việc có cờ quá hạn (do feature nguồn đánh) được tô cờ và đếm trên dashboard | Kịch bản nghiệm thu "dashboard + cảnh báo quá hạn" |
-| SC-room-dashboard-04 | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + đang phục vụ; 0 màn hình trộn 3 trục thành 1 trạng thái | Đối chiếu trạng thái nguồn trong test |
+| SC-room-dashboard-04 | 0 phòng hiển thị "sẵn sàng" khi chưa đủ trống + sạch + bảo trì bình thường; 0 màn hình trộn 3 trục thành 1 trạng thái | Đối chiếu trạng thái nguồn trong test |
 
 ## 8. Entity Summary
 
@@ -127,13 +127,11 @@ links:
 ### Assumptions
 
 - Mẫu số tỷ lệ lấp đầy = phòng không "ngừng phục vụ" (giả định từ công thức tôn chỉ).
-- Chỉ số "phòng cần dọn" = phòng chưa đạt "sạch" (chờ OQ-2).
+- Chỉ số "phòng cần dọn" chỉ đếm phòng có trục vệ sinh = `can_don`; `dang_don` và `cho_kiem_tra` vẫn hiển thị riêng trên lưới.
 - Cờ quá hạn do feature nguồn đánh — dashboard chỉ hiển thị/đếm (nhất quán phạm vi giám sát).
-- Dashboard v1 chỉ web (chờ OQ-3).
+- Dashboard v1 chỉ Web; Android là hậu MVP.
 
 ## 12. Open Questions
 
-- [ ] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`.
-- [ ] OQ-2: Chỉ số "phòng cần dọn" đếm chỉ phòng ở trạng thái "cần dọn", hay mọi phòng chưa đạt "sạch" (gồm "đang dọn", "chờ kiểm tra")?
-- [ ] OQ-3: Dashboard có cần hiển thị trong app Android cho quản lý/lễ tân không — tiêu chí nghiệm thu tôn chỉ liệt kê "dashboard" trong bộ kịch bản chạy trên cả Flutter Web và Android, trong khi PRD ghi "quản lý mở dashboard trên web"?
+- [x] OQ-1: Ngưỡng "quá hạn" cho công việc bảo trì là bao nhiêu (việc dọn đã chốt 60 phút ở `housekeeping`)? Chỉ số "việc quá hạn" của dashboard chỉ đầy đủ khi ngưỡng này được chốt — quyết cùng feature `maintenance`. → **Chốt 10/10/2026: 4 giờ.**
 - [ ] OQ-4: Chạm vào một ô phòng có mở màn chi tiết phòng (đủ 3 trục + công việc đang mở + liên kết sang màn xử lý của housekeeping/maintenance) không, hay lưới tổng quan đã đủ cho v1?

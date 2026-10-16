@@ -66,8 +66,7 @@ void main() {
     testWidgets('lần tải đầu hiện khung xương thay vòng xoay', (tester) async {
       setScreen(tester, const Size(400, 900));
       await pumpScreen(tester, const DashboardScreen(),
-          overrides:
-              fakeOverrides(rooms: const RoomsState(isLoading: true)));
+          overrides: fakeOverrides(rooms: const RoomsState(isLoading: true)));
       expect(find.byType(SkeletonGrid), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
@@ -79,7 +78,8 @@ void main() {
           overrides: fakeOverrides(rooms: _rooms));
       expect(find.byType(RoomTile), findsNWidgets(4));
 
-      final card = find.bySemanticsLabel(RegExp(r'^Cần dọn:'));
+      // Thẻ số liệu đứng đầu cây; ô phòng cũng có chữ "Cần dọn".
+      final card = find.text('Cần dọn').first;
       await tester.tap(card);
       await tester.pump();
       expect(find.byType(RoomTile), findsNWidgets(2));

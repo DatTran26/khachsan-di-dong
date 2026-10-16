@@ -1,0 +1,134 @@
+/// Kỳ tóm tắt (ai-ops-summary FR-001) — không có kỳ tương lai.
+enum SummaryPeriod { currentShift, previousShift, today }
+
+/// Mã API và nhãn của [SummaryPeriod].
+extension SummaryPeriodX on SummaryPeriod {
+  /// `CURRENT_SHIFT`, `PREVIOUS_SHIFT`, `TODAY`.
+  String get value => switch (this) {
+        SummaryPeriod.currentShift => 'CURRENT_SHIFT',
+        SummaryPeriod.previousShift => 'PREVIOUS_SHIFT',
+        SummaryPeriod.today => 'TODAY',
+      };
+
+  /// Ca hiện tại, Ca trước, Hôm nay.
+  String get label => switch (this) {
+        SummaryPeriod.currentShift => 'Ca hiện tại',
+        SummaryPeriod.previousShift => 'Ca trước',
+        SummaryPeriod.today => 'Hôm nay',
+      };
+
+  /// Parse mã API. Chuỗi lạ thành [SummaryPeriod.currentShift], không ném.
+  static SummaryPeriod parse(String v) =>
+      SummaryPeriod.values.firstWhere((p) => p.value == v,
+          orElse: () => SummaryPeriod.currentShift);
+}
+
+/// Hạn mức chi phí AI (NFR-ai-ops-summary-003) — chỉ để quản lý biết còn dùng AI được không.
+class AiBudget {
+  final bool aiConfigured;
+  final int budgetVnd;
+  final int spentVnd;
+  final bool exhausted;
+
+  const AiBudget({
+    required this.aiConfigured,
+    required this.budgetVnd,
+    required this.spentVnd,
+    required this.exhausted,
+  });
+
+  /// Dựng từ `GET /ai-summaries/budget`. Thiếu số thì ném khi ép `num`.
+  factory AiBudget.fromJson(Map<String, dynamic> json) => AiBudget(
+        aiConfigured: json['aiConfigured'] as bool,
+        budgetVnd: (json['budgetVnd'] as num).toInt(),
+        spentVnd: (json['spentVnd'] as num).toInt(),
+        exhausted: json['exhausted'] as bool,
+      );
+}
+
+/// AI: bản AI đã kiểm số liệu · FALLBACK: báo cáo mẫu · EMPTY: kỳ không có hoạt động.
+enum SummarySource { ai, fallback, empty }
+
+/// Việc cần chú ý — dựng theo quy tắc ở server, có phòng/việc để mở dashboard (FR-012).
+class AttentionItem {
+  final String
+      type; // HOUSEKEEPING_OVERDUE | MAINTENANCE_OVERDUE | OUT_OF_SERVICE
+  final String roomId;
+  final String roomNumber;
+  final String? taskId;
+  final String text;
+
+  const AttentionItem({
+    required this.type,
+    required this.roomId,
+    required this.roomNumber,
+    this.taskId,
+    required this.text,
+  });
+
+  /// Dựng một mục trong `attention.items`. [taskId] null với phòng ngừng phục vụ không gắn việc.
+  factory AttentionItem.fromJson(Map<String, dynamic> json) => AttentionItem(
+        type: json['type'] as String,
+        roomId: json['roomId'] as String,
+        roomNumber: json['roomNumber'] as String,
+        taskId: json['taskId'] as String?,
+        text: json['text'] as String,
+      );
+}
+
+/// Một bản tóm tắt đã lưu. Không chứa thông tin khách. [label] null khi kỳ rỗng.
+class AiSummary {
+  final String id;
+  final SummaryPeriod period;
+  final String periodLabel;
+  final String dataAsOfText; // "Dữ liệu tính đến …" (FR-006)
+  final SummarySource source;
+  final String? label; // nhãn "tham khảo" / "báo cáo mẫu"; kỳ rỗng → null
+  final String overview;
+  final List<String> highlights;
+  final List<AttentionItem> attention;
+  final String createdByName;
+  final DateTime createdAt;
+
+  const AiSummary({
+    required this.id,
+    required this.period,
+    required this.periodLabel,
+    required this.dataAsOfText,
+    required this.source,
+    this.label,
+    required this.overview,
+    this.highlights = const [],
+    this.attention = const [],
+    required this.createdByName,
+    required this.createdAt,
+  });
+
+  /// Dựng từ DTO tóm tắt. `source` lạ thành [SummarySource.empty].
+  /// Thiếu `attention` hoặc `highlights` thì danh sách rỗng. Thiếu tên người tạo thì chuỗi rỗng.
+  factory AiSummary.fromJson(Map<String, dynamic> json) {
+    final attention = json['attention'] as Map<String, dynamic>? ?? {};
+    return AiSummary(
+      id: json['id'] as String,
+      period: SummaryPeriodX.parse(json['period'] as String),
+      periodLabel: json['periodLabel'] as String,
+      dataAsOfText: json['dataAsOfText'] as String,
+      source: switch (json['source'] as String) {
+        'AI' => SummarySource.ai,
+        'FALLBACK' => SummarySource.fallback,
+        _ => SummarySource.empty,
+      },
+      label: json['label'] as String?,
+      overview: json['overview'] as String,
+      highlights: List<String>.from(json['highlights'] as List? ?? const []),
+      attention: [
+        for (final a in (attention['items'] as List?) ?? const [])
+          AttentionItem.fromJson(a as Map<String, dynamic>),
+      ],
+      createdByName: (json['createdBy'] as Map<String, dynamic>?)?['fullName']
+              as String? ??
+          '',
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}

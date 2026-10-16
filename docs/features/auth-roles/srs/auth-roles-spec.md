@@ -45,6 +45,7 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 | FR-auth-roles-016 | Hệ thống từ chối khóa hoặc đổi vai trò khi tài khoản đích là tài khoản quản lý cuối cùng còn hoạt động | P0 | CAP-auth-roles-04, BR-auth-roles-006 |
 | FR-auth-roles-017 | Tài khoản không bao giờ bị xóa khỏi hệ thống — thao tác xóa không tồn tại; mọi "thu hồi" quyền thực hiện qua khóa | P0 | BR-auth-roles-005 |
 | FR-auth-roles-018 | Mọi thông báo lỗi/thành công/thông tin hiển thị tiếng Việt theo wording đã chốt trong brainstorm mục 7.2 | P0 | — |
+| FR-auth-roles-019 | Quản lý bật hoặc tắt cờ “đang trực” cho tài khoản buồng phòng–bảo trì hoạt động; cờ này là đầu vào tự giao việc dọn, không phải quản lý ca/chấm công. | P0 | `housekeeping` FR-002/003 |
 
 ### Trạng thái tài khoản (tham chiếu FR-auth-roles-005..011)
 
@@ -77,6 +78,7 @@ links: ["docs/features/auth-roles/auth-roles-prd.md"]
 | BR-auth-roles-005 | Tài khoản không xóa cứng — chỉ khóa/mở | FR-auth-roles-017 |
 | BR-auth-roles-006 | Không khóa/đổi vai trò QL cuối cùng | FR-auth-roles-016 |
 | BR-auth-roles-007 | 1 TK 1 phiên thiết bị; phiên ≤12 giờ | FR-auth-roles-003/012 |
+| BR-auth-roles-008 | Chỉ quản lý thay đổi cờ “đang trực”; chỉ tài khoản buồng phòng–bảo trì đang hoạt động và đang trực được hệ thống chọn để tự giao việc dọn. | FR-auth-roles-019 |
 
 Ma trận vai trò × hành động đầy đủ: xem brainstorm mục 6.2 (bảng kịch bản).
 
@@ -108,14 +110,14 @@ Ma trận vai trò × hành động đầy đủ: xem brainstorm mục 6.2 (bả
 
 ## 7. Entities (tóm tắt)
 
-- **Tài khoản nhân viên**: SĐT (định danh, duy nhất), họ tên, vai trò, trạng thái (Chờ kích hoạt/Hoạt động/Bị khóa), MK đã băm, cờ MK tạm, đếm sai MK.
+- **Tài khoản nhân viên**: SĐT (định danh, duy nhất), họ tên, vai trò, trạng thái (Chờ kích hoạt/Hoạt động/Bị khóa), MK đã băm, cờ MK tạm, đếm sai MK và cờ đang trực (chỉ buồng phòng–bảo trì).
 - **Phiên đăng nhập**: thuộc TK, thiết bị, thời điểm tạo, hết hạn (12h). Tối đa 1 phiên/TK.
 - **Nhật ký hoạt động**: người thực hiện, vai trò, hành động, đối tượng, thời điểm, giá trị trước/sau (khi phù hợp). Không ghi giá trị MK.
 
 ## 8. Constraints & Assumptions
 
 - Constraints: HTTPS + băm MK + phân quyền server-side + nhật ký máy chủ (ràng buộc tôn chỉ); Flutter web + Android; 30 phiên đồng thời; tiếng Việt; 1 khách sạn ~50 phòng.
-- Assumptions: SĐT không OTP; MK tạm không hết hạn, dùng 1 lần; đổi MK giữ phiên; MK tạm truyền tay ngoài app.
+- Assumptions: SĐT không OTP; MK tạm không hết hạn, dùng 1 lần; đổi MK giữ phiên; MK tạm truyền tay ngoài app. Cờ đang trực là thao tác quản lý tối giản, không bao gồm lịch ca hay chấm công.
 - Dependencies (business): danh sách vai trò/quyền đã chốt trong brainstorm; hạ tầng VPS/DB sẵn đầu Sprint 1 (team WPCTeam).
 
 ## 9. Open Questions

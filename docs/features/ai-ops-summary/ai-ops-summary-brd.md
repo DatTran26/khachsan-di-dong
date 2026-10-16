@@ -90,7 +90,7 @@ Quản lý chọn kỳ và bấm một nút: hệ thống chốt thời điểm 
 ### 6.3 Assumptions
 
 - Khung giờ "ca" được định nghĩa sẵn trong hệ thống (OQ-1); nếu không, quản lý chọn khoảng tùy ý.
-- Dịch vụ LLM bên ngoài có đầu ra có cấu trúc; provider cụ thể chưa chốt (OQ-3) — tôn chỉ nêu ví dụ OpenAI/Google AI.
+- Dùng OpenAI Responses API với Structured Outputs.
 - Bản tóm tắt có lưu để xem lại hay không chưa chốt (OQ-4); MVP tối thiểu hiển thị tức thời.
 - Số liệu tổng hợp lấy từ dashboard và nhật ký đã đủ tin cậy (hai feature nguồn chạy trước/cùng sprint 3).
 
@@ -108,7 +108,7 @@ Quản lý chọn kỳ và bấm một nút: hệ thống chốt thời điểm 
 - `room-dashboard` cung cấp nhóm chỉ số tổng hợp của kỳ (sprint 3, cùng theme Giám sát & truy vết).
 - `audit-log` cung cấp sự kiện nổi bật trong kỳ (sprint 2–3).
 - `auth-roles` cung cấp vai trò quản lý và kiểm quyền (sprint 1).
-- Dịch vụ LLM bên ngoài (vendor — chọn ở OQ-3) cung cấp đầu ra có cấu trúc.
+- OpenAI Responses API cung cấp đầu ra có cấu trúc.
 
 ## 7. High-level Business Requirements
 
@@ -161,9 +161,3 @@ Quản lý chọn kỳ và bấm một nút: hệ thống chốt thời điểm 
 | RISK-ai-ops-summary-05 | Dữ liệu giả lập ít sự kiện → tóm tắt nghèo nàn | Thỉnh thoảng | Demo kém ấn tượng | Kịch bản giả lập có ca đỉnh nhiều sự kiện; ghi rõ giới hạn xác thực thực tế | Trưởng nhóm |
 
 ## 11. Open Questions
-
-- [ ] OQ-1: Khung giờ "ca" để tóm tắt định nghĩa thế nào — ca cố định theo giờ (vd sáng/chiều/tối) hay quản lý chọn khoảng thời gian tùy ý?
-- [ ] OQ-2: Hạn mức AI cụ thể là gì — số lần tạo tối đa/ngày, ngưỡng chi phí cắt, hay cả hai? Giá trị bao nhiêu?
-- [ ] OQ-3: Chọn dịch vụ LLM nào cho demo (OpenAI, Google AI, hay provider khác có đầu ra có cấu trúc)?
-- [ ] OQ-4: Bản tóm tắt đã tạo có được lưu để xem lại trong ngày, hay chỉ hiển thị tức thời?
-- [ ] OQ-5: Thời gian chờ tối đa khi gọi dịch vụ AI trước khi rơi về báo cáo mẫu là bao nhiêu giây?

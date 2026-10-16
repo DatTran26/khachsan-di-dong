@@ -93,7 +93,7 @@ erDiagram
 | maintenance: VIEC_BAO_TRI, NGUNG_PHUC_VU_TAY | `MaintenanceTask`, `OutOfServiceHold` | |
 | audit-log: BAN_GHI_NHAT_KY, CHI_TIET_THAY_DOI | `AuditLog`, `AuditLogChange` | Dùng chung cho mọi feature |
 | NHAT_KY_HOAT_DONG, NHAT_KY_DANH_MUC, NHAT_KY_LUU_TRU, NHAT_KY | gộp vào `AuditLog` | |
-| ai-ops-summary: BAN_TOM_TAT_KY, HAN_MUC_AI, SO_LIEU_TONG_HOP_KY | `AiSummary`, `AiQuota`; số liệu → cột `metrics` (JSON) | |
+| ai-ops-summary: BAN_TOM_TAT_KY, HAN_MUC_AI, SO_LIEU_TONG_HOP_KY | `AiSummary` (mỗi lượt tạo 1 dòng, có `cost_vnd`); số liệu → cột `metrics` (JSON). Hạn mức = ngân sách − tổng `cost_vnd` | 07/10: bỏ `ai_quotas` |
 | room-dashboard: PHONG_VIEW, CHI_SO_TONG_HOP, CO_QUA_HAN_VIEW | không tạo bảng | Tính bằng query khi xem |
 | realtime-sync: KET_NOI_THIET_BI, SU_KIEN_CAP_NHAT, PHIEN_BAN_DOI_TUONG, TRANG_THAI_DOI_TUONG | không tạo bảng | Xem mục 3 |
 
@@ -137,7 +137,7 @@ erDiagram
 | maintenance OQ-2 — tự nhận hay chỉ định | `MaintenanceTask.assigneeId` | Null đến khi có người nhận |
 | check-in-out OQ-1 — thông tin khách tối thiểu | `Stay.guestName`, `guestCount` | Tên + số người |
 | room-catalog OQ-3 — quy ước số phòng | `Room.number` là chuỗi duy nhất | Chuỗi tự do |
-| ai-ops-summary OQ-2, OQ-4 — hạn mức, có lưu bản tóm tắt | `AiQuota`, `AiSummary` | Hạn mức theo lượt/ngày; có lưu |
+| ai-ops-summary OQ-2, OQ-4 — hạn mức, có lưu bản tóm tắt | `AiSummary` | Hạn mức theo chi phí thực tế, tổng 300.000 VNĐ (spec mục 11); lưu mọi lượt, xem lại bản gần nhất mỗi kỳ |
 
 ## 5. Trạng thái
 

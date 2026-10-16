@@ -12,6 +12,7 @@ class AuditChange {
     required this.afterLabel,
   });
 
+  /// Dựng một thay đổi. Thiếu nhãn thì chuỗi rỗng, thiếu trước/sau thì "—". Không ném.
   factory AuditChange.fromJson(Map<String, dynamic> json) => AuditChange(
         field: json['field'] as String? ?? '',
         fieldLabel: json['fieldLabel'] as String? ?? '',
@@ -44,8 +45,11 @@ class AuditEntry {
     required this.changes,
   });
 
+  /// Đúng khi người thao tác là hệ thống, không phải user.
   bool get isSystem => actorRole == 'SYSTEM';
 
+  /// Dựng từ một dòng `GET /audit-logs`. Thiếu actor thì tên "Hệ thống".
+  /// Thiếu `changes` thì danh sách rỗng. [roomId] và [entityLabel] có thể null.
   factory AuditEntry.fromJson(Map<String, dynamic> json) {
     final actor = json['actor'] as Map<String, dynamic>?;
     final entity = json['entity'] as Map<String, dynamic>?;

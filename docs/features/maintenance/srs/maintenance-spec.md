@@ -14,7 +14,7 @@ links:
 
 ### In Scope
 
-- Báo hỏng kèm phòng + mô tả (bắt buộc) + vị trí/hạng mục (tùy chọn) từ mọi vai trò đã đăng nhập.
+- Báo hỏng kèm phòng + mô tả (bắt buộc) + vị trí/hạng mục (tùy chọn) từ mọi vai trò đã đăng nhập. Với phòng đang ở, báo hỏng vẫn chặn nhận khách mới; quản lý điều phối việc vào phòng với khách ngoài phạm vi app.
 - Tự động chuyển phòng sang "ngừng phục vụ" trên trục bảo trì khi có việc mở; tự mở lại khi hết việc mở.
 - Danh sách việc bảo trì; nhân viên bảo trì tự nhận, báo xong; người báo/quản lý hủy việc "chờ nhận".
 - Đặt/gỡ "ngừng phục vụ" thủ công (lễ tân/quản lý); cảnh báo quá hạn bằng quy tắc (ngưỡng OQ-1).
@@ -146,12 +146,10 @@ links:
 
 ## 13. Assumptions
 
-- Việc bảo trì vào danh sách chung, nhân viên tự nhận (MVP) — chỉ định tay ở P1 (OQ-2).
-- Báo xong → phòng mở lại ngay, không bước xác nhận (PRD).
+- Việc bảo trì vào danh sách chung, nhân viên tự nhận (MVP) — chỉ định tay ở P1.
+- Báo xong → phòng mở lại ngay, không bước xác nhận (PRD). Với phòng đang ở, ứng dụng không xử lý chuyển phòng hay xin ý kiến khách; quản lý chịu trách nhiệm điều phối thực tế trước khi nhân viên thao tác.
 - Thông báo realtime trong app; không SMS/push.
 
 ## 14. Open Questions
 
-- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo?
-- [ ] OQ-2: Cơ chế giao việc — tự nhận hay chỉ định từ đầu?
-- [ ] OQ-3: Việc trên phòng đang có khách — sửa giữa kỳ lưu trú hay chờ trả?
+- [ ] OQ-1: Ngưỡng "quá hạn" việc bảo trì + tần suất cảnh báo? → **Chốt 10/10/2026: ngưỡng 4 giờ** từ lúc báo hỏng. Tần suất cảnh báo chưa chốt (hiện cảnh báo 1 lần).
