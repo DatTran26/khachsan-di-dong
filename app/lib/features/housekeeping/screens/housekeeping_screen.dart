@@ -31,14 +31,14 @@ class HousekeepingScreen extends ConsumerWidget {
     final state = ref.watch(housekeepingProvider);
     final role = ref.watch(authProvider.select((s) => s.user?.role));
 
-    if (state.isLoading && state.tasks.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.tasks.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(housekeepingProvider.notifier).load());
-    }
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.tasks.isEmpty,
+      onRetry: ref.read(housekeepingProvider.notifier).load,
+      skeleton: SkeletonList(itemHeight: role == UserRole.manager ? 96 : 150),
+    );
+    if (gate != null) return gate;
     return role == UserRole.manager
         ? _ManagerBoard(tasks: state.tasks)
         : _StaffList(tasks: state.tasks);
@@ -398,6 +398,10 @@ class _ManagerBoard extends ConsumerWidget {
             message: 'Phòng chỉ về Sẵn sàng sau khi quản lý xác nhận sạch.',
           ),
         if (waiting > 0) const SizedBox(height: 16),
+        if (!online) ...[
+          const OfflineActionNote(),
+          const SizedBox(height: 16),
+        ],
       ],
     );
 
@@ -409,25 +413,30 @@ class _ManagerBoard extends ConsumerWidget {
       );
     }
 
+    final reload = ref.read(housekeepingProvider.notifier).load;
     if (!wide) {
-      return ListView(
-        padding: EdgeInsets.fromLTRB(pad, 16, pad, 24),
-        children: [
-          header,
-          for (final (title, list) in columns) ...[
-            SectionLabel('$title · ${list.length}'),
-            const SizedBox(height: 8),
-            if (list.isEmpty)
-              const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: MetaText('Không có việc.')),
-            for (final t in list)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 10), child: card(t)),
-            const SizedBox(height: 8),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(pad, 16, pad, 24),
+          children: [
+            header,
+            for (final (title, list) in columns) ...[
+              SectionLabel('$title · ${list.length}'),
+              const SizedBox(height: 8),
+              if (list.isEmpty)
+                const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: MetaText('Không có việc.')),
+              for (final t in list)
+                Padding(
+                    padding: const EdgeInsets.only(bottom: 10), child: card(t)),
+              const SizedBox(height: 8),
+            ],
+            MetaText('Hoàn tất hôm nay: $doneToday phòng'),
           ],
-          MetaText('Hoàn tất hôm nay: $doneToday phòng'),
-        ],
+        ),
       );
     }
 
@@ -651,8 +660,14 @@ class _StaffList extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(housekeepingProvider.notifier).load(),
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          if (!online)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: OfflineActionNote(),
+            ),
           if (user != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
