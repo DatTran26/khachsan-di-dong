@@ -18,6 +18,7 @@ import '../../rooms/providers/rooms_provider.dart';
 
 /// Khung chung sau đăng nhập.
 /// - Màn rộng (≥900px, web tại quầy): thanh bên espresso + thanh đầu trang trắng.
+/// - Tablet (600–899px): thanh đầu trang espresso + thanh điều hướng dọc bên trái.
 /// - Màn hẹp (Android): thanh đầu trang espresso viền vàng + thanh điều hướng dưới (≤5 mục) hoặc ngăn kéo.
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -85,10 +86,10 @@ class _AppShellState extends ConsumerState<AppShell> {
     final items = navItemsFor(role);
     final badges = _badges(role);
 
-    final wide = Breakpoints.hasSidebar(context);
+    final size = Breakpoints.of(context);
     final title = titleFor(role, location);
 
-    if (wide) {
+    if (size == WindowSize.expanded) {
       return Scaffold(
         body: Row(
           children: [
@@ -112,8 +113,15 @@ class _AppShellState extends ConsumerState<AppShell> {
       );
     }
 
-    final useBottomNav = items.length <= 5;
+    final rail = size == WindowSize.medium && items.isNotEmpty;
+    final useBottomNav = !rail && items.length <= 5;
     final currentIndex = items.indexWhere((d) => location.startsWith(d.path));
+    final content = Column(
+      children: [
+        if (!isOnline) const OfflineBanner(),
+        Expanded(child: widget.child),
+      ],
+    );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
@@ -139,16 +147,22 @@ class _AppShellState extends ConsumerState<AppShell> {
           const SizedBox(width: 8),
         ],
       ),
-      drawer: useBottomNav
+      drawer: useBottomNav || rail
           ? null
           : _MobileDrawer(
               items: items, location: location, user: user, badges: badges),
-      body: Column(
-        children: [
-          if (!isOnline) const OfflineBanner(),
-          Expanded(child: widget.child),
-        ],
-      ),
+      body: rail
+          ? Row(
+              children: [
+                _Rail(
+                    items: items,
+                    selectedIndex: currentIndex < 0 ? 0 : currentIndex,
+                    badges: badges),
+                const VerticalDivider(width: 1),
+                Expanded(child: content),
+              ],
+            )
+          : content,
       bottomNavigationBar: useBottomNav && items.isNotEmpty
           ? NavigationBar(
               selectedIndex: currentIndex < 0 ? 0 : currentIndex,
@@ -188,6 +202,42 @@ class _AppShellState extends ConsumerState<AppShell> {
           .length;
     }
     return result;
+  }
+}
+
+/// Thanh điều hướng dọc cho tablet — cuộn được khi màn ngang thấp (quản lý có 7 mục).
+class _Rail extends StatelessWidget {
+  final List<NavItem> items;
+  final int selectedIndex;
+  final Map<String, int> badges;
+
+  const _Rail(
+      {required this.items, required this.selectedIndex, required this.badges});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (i) => context.go(items[i].path),
+              destinations: [
+                for (final d in items)
+                  NavigationRailDestination(
+                    icon: _BadgeIcon(icon: d.icon, count: badges[d.path] ?? 0),
+                    selectedIcon: _BadgeIcon(
+                        icon: d.selectedIcon, count: badges[d.path] ?? 0),
+                    label: Text(d.label),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
