@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/room.dart';
 
+// Bộ widget dùng chung — màn mới dùng các khối này thay vì tự dựng:
+// - Trạng thái: StatusChip, OverdueBadge, AppBanner.
+// - Tải/rỗng/lỗi: initialLoadGate + khung xương (loading_skeleton.dart), EmptyState, ErrorState.
+// - Mất kết nối: OfflineActionNote cạnh nút ghi bị khóa.
+// - Lọc: FilterPill, SegmentedPills. Bố cục: AppCard, SectionLabel, MetaText, Breakpoints.
+// Màu/cỡ chữ/khoảng cách lấy từ AppColors, AppText, AppSpacing (core/theme/app_theme.dart),
+// không viết cứng mã màu hay cỡ chữ trong màn hình.
+export 'loading_skeleton.dart';
+
 /// Tông màu trạng thái — dùng chung cho chip, chấm, ô phòng.
 enum StatusTone {
   ready,
@@ -133,9 +142,10 @@ class StatusChip extends StatelessWidget {
   /// Chip không bấm. [dot] false bỏ chấm. [dense] thu chiều cao.
   @override
   Widget build(BuildContext context) {
+    // Cao tối thiểu thay vì cố định: chip giãn theo cỡ chữ hệ thống, chữ dài thì cắt "…".
     return Container(
-      height: dense ? 22 : 24,
-      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10),
+      constraints: BoxConstraints(minHeight: dense ? 22 : 24),
+      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: 3),
       decoration: BoxDecoration(
           color: tone.bg, borderRadius: BorderRadius.circular(12)),
       child: Row(
@@ -149,12 +159,16 @@ class StatusChip extends StatelessWidget {
                     BoxDecoration(color: tone.fg, shape: BoxShape.circle)),
             const SizedBox(width: 6),
           ],
-          Text(label,
-              style: TextStyle(
-                  color: tone.fg,
-                  fontSize: dense ? 11.5 : 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.1)),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: tone.fg,
+                    fontSize: dense ? 11.5 : 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.1)),
+          ),
         ],
       ),
     );
@@ -171,6 +185,7 @@ class OverdueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Quá hạn',
+      excludeSemantics: true, // chữ "QH" viết tắt không cần đọc
       child: Container(
         height: 20,
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -178,10 +193,8 @@ class OverdueBadge extends StatelessWidget {
         decoration: BoxDecoration(
             color: AppColors.danger, borderRadius: BorderRadius.circular(10)),
         child: Text(short ? 'QH' : 'Quá hạn',
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w700)),
+            style: AppText.micro
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -572,20 +585,52 @@ class MetaText extends StatelessWidget {
   /// Một dòng meta 13px. [color] và [weight] null thì màu muted, đậm mặc định.
   @override
   Widget build(BuildContext context) => Text(text,
-      style: TextStyle(
-          fontSize: 13,
-          color: color ?? AppColors.muted,
-          fontWeight: weight,
-          height: 1.4));
+      style: AppText.meta.copyWith(
+          color: color ?? AppColors.muted, fontWeight: weight, height: 1.4));
 }
+
+/// Ba mức bố cục: điện thoại / tablet / web tại quầy.
+enum WindowSize { compact, medium, expanded }
 
 /// Kích thước màn hình dùng chung.
 class Breakpoints {
-  static const double wide = 1100; // web: bảng + khung chi tiết
+  static const double medium = 600; // tablet: thanh điều hướng dọc
   static const double sidebar = 900; // hiện thanh bên
+  static const double wide = 1100; // web: bảng + khung chi tiết
   /// Từ 1100px: bảng kèm khung chi tiết.
   static bool isWide(BuildContext c) => MediaQuery.sizeOf(c).width >= wide;
+
   /// Từ 900px: hiện thanh bên của [AppShell].
   static bool hasSidebar(BuildContext c) =>
       MediaQuery.sizeOf(c).width >= sidebar;
+
+  static WindowSize of(BuildContext c) {
+    final w = MediaQuery.sizeOf(c).width;
+    if (w >= sidebar) return WindowSize.expanded;
+    if (w >= medium) return WindowSize.medium;
+    return WindowSize.compact;
+  }
+}
+
+/// Chặn lần tải đầu: còn đang tải → khung xương, lỗi → [ErrorState] có nút thử lại.
+/// Trả `null` khi đã có dữ liệu (hoặc tải xong mà rỗng) để màn tự dựng nội dung.
+///
+/// ```dart
+/// final gate = initialLoadGate(
+///   loading: state.isLoading, error: state.error, isEmpty: state.rooms.isEmpty,
+///   onRetry: () => ref.read(roomsProvider.notifier).load(),
+///   skeleton: const SkeletonGrid());
+/// if (gate != null) return gate;
+/// ```
+Widget? initialLoadGate({
+  required bool loading,
+  required String? error,
+  required bool isEmpty,
+  required VoidCallback onRetry,
+  required Widget skeleton,
+}) {
+  if (!isEmpty) return null;
+  if (loading) return skeleton;
+  if (error != null) return ErrorState(message: error, onRetry: onRetry);
+  return null;
 }
