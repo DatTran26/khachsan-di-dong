@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   check:
-    name: Analyze · Test
+    name: Analyze · Test · Build web
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -43,3 +43,7 @@ jobs:
 
       - name: Test (gồm ma trận bố cục 3 bề rộng × chữ 200%)
         run: flutter test
+
+      # Bản nghiệm thu chạy trên web — bắt lỗi chỉ lộ khi biên dịch dart2js.
+      - name: Build web
+        run: flutter build web
