@@ -24,9 +24,23 @@ class AppColors {
   static const Color muted = Color(0xFF6B6356);
   static const Color onDarkMuted = Color(0xFFBFB39C);
   static const Color onDark = Color(0xFFD9D0C1);
+  static const Color onDarkSoft = Color(0xFFCFC5B3);
+  static const Color onDarkFaint = Color(0xFFA89C87); // 6.3:1 trên espresso
+  static const Color onDarkOverlay = Color(0x1FFFFFFF);
+  static const Color goldHairline =
+      Color(0x40C9A24D); // đường kẻ vàng trên nền tối
+  static const Color goldSelected =
+      Color(0x29C9A24D); // nền mục đang chọn ở thanh bên
+  static const Color surfaceMuted = Color(0xFFFAF8F3); // đầu bảng
+  static const Color surfaceSunken =
+      Color(0xFFF0ECE3); // khung chứa nhóm, thanh tiến độ
+  static const Color track = Color(0xFFECE7DC); // nền nhóm nút chọn một
+  static const Color iconMuted =
+      Color(0xFF948B7C); // chỉ dùng cho icon/chữ bị vô hiệu
 
   // Trạng thái
-  static const Color ready = Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
+  static const Color ready =
+      Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
   static const Color readyBg = Color(0xFFE7F3E8);
   static const Color occupied = Color(0xFF1E5FAE);
   static const Color occupiedBg = Color(0xFFE5EEF9);
