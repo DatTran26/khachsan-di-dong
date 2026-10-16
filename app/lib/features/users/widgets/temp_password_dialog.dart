@@ -43,18 +43,14 @@ class TempPasswordDialog extends StatelessWidget {
                 Expanded(
                   child: SelectableText(
                     tempPassword,
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                      color: AppColors.goldText,
-                    ),
+                    style: AppText.headlineLg.copyWith(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                        color: AppColors.goldText),
                   ),
                 ),
                 OutlinedButton.icon(
-                  style:
-                      OutlinedButton.styleFrom(minimumSize: const Size(0, 36)),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: tempPassword));
                     showAppSnack(context, 'Đã sao chép mật khẩu tạm.',
