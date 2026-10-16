@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
@@ -42,6 +43,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authProvider.notifier)
           .login(_phoneCtrl.text.trim(), _passwordCtrl.text);
       if (!mounted) return;
+      // Báo trình duyệt/hệ điều hành lưu số điện thoại + mật khẩu vừa dùng.
+      TextInput.finishAutofillContext();
       final user = ref.read(authProvider).user!;
       context
           .go(user.mustChangePassword ? '/doi-mat-khau' : homeFor(user.role));
@@ -59,16 +62,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final form = Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: AutofillGroup(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Đăng nhập',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            Text('Đăng nhập',
+                style: AppText.displaySm.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
-            const Text('Dùng số điện thoại quản lý đã cấp cho bạn.',
-                style: TextStyle(fontSize: 14, color: AppColors.muted)),
+            Text('Dùng số điện thoại quản lý đã cấp cho bạn.',
+                style: AppText.body.copyWith(color: AppColors.muted)),
             const SizedBox(height: 20),
             if (revokedMsg != null && _error == null) ...[
               AppBanner(
@@ -104,6 +108,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               controller: _passwordCtrl,
               obscureText: _obscure,
               autofillHints: const [AutofillHints.password],
+              textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
                 labelText: 'Mật khẩu',
@@ -128,15 +133,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Đăng nhập', style: TextStyle(fontSize: 15)),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, semanticsLabel: 'Đang đăng nhập'))
+                    : const Text('Đăng nhập', style: AppText.bodyLg),
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'Quên mật khẩu? Liên hệ quản lý để được cấp mật khẩu tạm.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+              style: AppText.overline.copyWith(color: AppColors.muted),
             ),
           ],
         ),
