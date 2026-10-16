@@ -103,8 +103,8 @@ class RoomDetailPanel extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text('Phòng ${room.number}',
-                        style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.w700)),
+                        style: AppText.headlineLg
+                            .copyWith(fontWeight: FontWeight.w700)),
                   ),
                   if (isManager)
                     IconButton(
@@ -189,7 +189,7 @@ class RoomDetailPanel extends ConsumerWidget {
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.danger,
-                    side: const BorderSide(color: Color(0xFFF2C4C6)),
+                    side: const BorderSide(color: AppColors.dangerBorder),
                   ),
                   onPressed: online
                       ? () => _placeOutOfService(context, ref, room)
@@ -245,7 +245,8 @@ class RoomDetailPanel extends ConsumerWidget {
                 occupied
                     ? 'Phòng đang có khách — khách vẫn ở hết kỳ. Sau khi trả phòng, phòng sẽ không được nhận khách mới cho tới khi mở lại.'
                     : 'Lễ tân sẽ không nhận khách vào phòng này cho tới khi mở lại phục vụ.',
-                style: const TextStyle(color: AppColors.muted, height: 1.5),
+                style:
+                    AppText.body.copyWith(color: AppColors.muted, height: 1.5),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -505,7 +506,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
                       _expected == null
                           ? 'Chưa chọn'
                           : DateFormat('HH:mm · dd/MM').format(_expected!),
-                      style: TextStyle(
+                      style: AppText.body.copyWith(
                           color: _expected == null
                               ? AppColors.muted
                               : AppColors.text),
@@ -576,15 +577,12 @@ class _CheckOutBlock extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Khách đang ở',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w600)),
+          Text('Khách đang ở',
+              style: AppText.meta.copyWith(
+                  color: AppColors.muted, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(stay?.guestName ?? '—',
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              style: AppText.titleLg.copyWith(fontWeight: FontWeight.w700)),
           if (stay != null) ...[
             MetaText(
                 '${stay.guestCount} người · nhận lúc ${fmt.format(stay.checkedInAt.toLocal())}'),
@@ -651,7 +649,7 @@ class _OverdueSection extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.dangerBg,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(color: const Color(0xFFF2C4C6)),
+          border: Border.all(color: AppColors.dangerBorder),
         ),
         child: Column(
           children: [
@@ -665,8 +663,8 @@ class _OverdueSection extends ConsumerWidget {
                         t.isHousekeeping
                             ? 'Việc dọn phòng quá hạn'
                             : 'Việc sửa quá hạn',
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
+                        style:
+                            AppText.body.copyWith(fontWeight: FontWeight.w600)),
                   ),
                   if (!t.isHousekeeping || isManager)
                     TextButton(
