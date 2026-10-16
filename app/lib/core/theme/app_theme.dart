@@ -24,9 +24,23 @@ class AppColors {
   static const Color muted = Color(0xFF6B6356);
   static const Color onDarkMuted = Color(0xFFBFB39C);
   static const Color onDark = Color(0xFFD9D0C1);
+  static const Color onDarkSoft = Color(0xFFCFC5B3);
+  static const Color onDarkFaint = Color(0xFFA89C87); // 6.3:1 trên espresso
+  static const Color onDarkOverlay = Color(0x1FFFFFFF);
+  static const Color goldHairline =
+      Color(0x40C9A24D); // đường kẻ vàng trên nền tối
+  static const Color goldSelected =
+      Color(0x29C9A24D); // nền mục đang chọn ở thanh bên
+  static const Color surfaceMuted = Color(0xFFFAF8F3); // đầu bảng
+  static const Color surfaceSunken =
+      Color(0xFFF0ECE3); // khung chứa nhóm, thanh tiến độ
+  static const Color track = Color(0xFFECE7DC); // nền nhóm nút chọn một
+  static const Color iconMuted =
+      Color(0xFF948B7C); // chỉ dùng cho icon/chữ bị vô hiệu
 
   // Trạng thái
-  static const Color ready = Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
+  static const Color ready =
+      Color(0xFF2D7B31); // 4.6:1 trên readyBg (chữ chip nhỏ cần ≥4.5:1)
   static const Color readyBg = Color(0xFFE7F3E8);
   static const Color occupied = Color(0xFF1E5FAE);
   static const Color occupiedBg = Color(0xFFE5EEF9);
@@ -40,13 +54,69 @@ class AppColors {
   static const Color oosBg = Color(0xFFEDEAE4);
   static const Color danger = Color(0xFFC0262D);
   static const Color dangerBg = Color(0xFFFDEBEC);
+  static const Color dangerSurface = Color(0xFFFFF8F8); // thẻ cảnh báo nhạt
+  static const Color dangerBorder = Color(0xFFF2C4C6);
+  static const Color dangerText = Color(0xFF8A1C21);
+  static const Color inspectBorder = Color(0xFFE7B7D1);
   static const Color neutral = Color(0xFF6B6356);
   static const Color neutralBg = Color(0xFFEFEBE3);
   static const Color dotMuted = Color(0xFFBDB5A7);
+
+  // Ô phòng ngừng phục vụ
+  static const Color oosSurface = Color(0xFFF3F0EA);
+  static const Color oosHatch = Color(0xFFDDD7CB);
+
+  // Dòng thời gian trạng thái việc
+  static const Color timelineLine = Color(0xFFDDD6C9);
+  static const Color timelineRing = Color(0xFFCFC7B8);
+
+  // Banner: chữ đậm hơn nền một bậc + viền
+  static const Color infoText = Color(0xFF5A420E);
+  static const Color infoBorder = Color(0xFFE8D6A8);
+  static const Color warnText = Color(0xFF7A2E10);
+  static const Color warnBorder = Color(0xFFF0C3AE);
+  static const Color successText = Color(0xFF1F5A22);
+  static const Color successBorder = Color(0xFFBFDDC1);
+}
+
+/// Khoảng cách chuẩn — lưới 4px.
+class AppSpacing {
+  static const double xxs = 4;
+  static const double xs = 8;
+  static const double sm = 12;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+}
+
+/// Thang chữ dùng chung. Font Be Vietnam Pro đến từ `textTheme` qua DefaultTextStyle,
+/// nên các kiểu ở đây chỉ mang cỡ chữ; độ đậm/màu thêm bằng `.copyWith(…)`.
+class AppText {
+  static const TextStyle micro =
+      TextStyle(fontSize: 11); // nhãn trong ô phòng, huy hiệu
+  static const TextStyle caption = TextStyle(fontSize: 12);
+  static const TextStyle overline =
+      TextStyle(fontSize: 12.5); // đầu mục in hoa, dòng phụ
+  static const TextStyle meta = TextStyle(fontSize: 13);
+  static const TextStyle body = TextStyle(fontSize: 14);
+  static const TextStyle bodyLg = TextStyle(fontSize: 15);
+  static const TextStyle title = TextStyle(fontSize: 16);
+  static const TextStyle titleLg = TextStyle(fontSize: 18);
+  static const TextStyle headline = TextStyle(fontSize: 20);
+  static const TextStyle headlineLg = TextStyle(fontSize: 22);
+  static const TextStyle displaySm = TextStyle(fontSize: 24);
+  static const TextStyle display = TextStyle(fontSize: 28);
+  static const TextStyle hero = TextStyle(fontSize: 40);
+
+  /// Đầu cột bảng (web).
+  static const TextStyle tableHead = TextStyle(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
 }
 
 /// Theme sáng Material 3: Be Vietnam Pro, nút vàng, app bar espresso.
 class AppTheme {
+  /// Vùng chạm tối thiểu theo hướng dẫn Android.
+  static const double minTouch = 48;
   static const double radiusSm = 8;
   static const double radiusMd = 12;
   static const double radiusLg = 16;
@@ -135,9 +205,9 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.espresso,
           disabledBackgroundColor: AppColors.neutralBg,
-          disabledForegroundColor: const Color(0xFF948B7C),
+          disabledForegroundColor: AppColors.iconMuted,
           elevation: 0,
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -149,8 +219,8 @@ class AppTheme {
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.espresso,
           disabledBackgroundColor: AppColors.neutralBg,
-          disabledForegroundColor: const Color(0xFF948B7C),
-          minimumSize: const Size(0, 44),
+          disabledForegroundColor: AppColors.iconMuted,
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -161,7 +231,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.text,
           side: const BorderSide(color: AppColors.border),
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
@@ -171,7 +241,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.goldText,
-          minimumSize: const Size(0, 44),
+          minimumSize: const Size(0, minTouch),
           textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radiusSm)),
@@ -230,6 +300,19 @@ class AppTheme {
                   ? AppColors.goldText
                   : AppColors.muted,
             )),
+      ),
+      navigationRailTheme: const NavigationRailThemeData(
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.goldTint,
+        selectedIconTheme: IconThemeData(color: AppColors.goldText),
+        unselectedIconTheme: IconThemeData(color: AppColors.muted),
+        selectedLabelTextStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.goldText),
+        unselectedLabelTextStyle: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+        labelType: NavigationRailLabelType.all,
       ),
       popupMenuTheme: PopupMenuThemeData(
         color: AppColors.surface,
