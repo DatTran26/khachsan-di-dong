@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -50,14 +51,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
     final rooms = state.filtered;
     final selected = _selectedId != null ? state.byId(_selectedId!) : null;
 
-    if (state.isLoading && state.rooms.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.rooms.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(roomsProvider.notifier).load());
-    }
+    final reload = ref.read(roomsProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.rooms.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonGrid(),
+    );
+    if (gate != null) return gate;
 
     final toolbar = _Toolbar(
       filter: state.filter,
@@ -95,29 +97,45 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
         total: state.rooms.length,
         selectedId: _selectedId,
         onSelect: (r) => setState(() => _selectedId = r.id),
+        onRefresh: reload,
       );
     } else {
-      list = GridView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 128,
-          mainAxisExtent: RoomTile.extent(context),
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+      list = RefreshIndicator(
+        onRefresh: reload,
+        child: GridView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 128,
+            mainAxisExtent: RoomTile.extent(context),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          children: [
+            for (final r in rooms)
+              RoomTile(
+                  room: r, onTap: () => showRoomDetailSheet(context, r.id)),
+          ],
         ),
-        children: [
-          for (final r in rooms)
-            RoomTile(room: r, onTap: () => showRoomDetailSheet(context, r.id)),
-        ],
       );
     }
 
     if (!wide) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: toolbar),
+          if (rooms.isNotEmpty && rooms.length != state.rooms.length)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Semantics(
+                liveRegion: true,
+                child: MetaText(
+                    'Đang hiện ${rooms.length} / ${state.rooms.length} phòng'),
+              ),
+            ),
           Expanded(child: list),
         ],
       );
@@ -129,12 +147,22 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                toolbar,
-                const SizedBox(height: 16),
-                Expanded(child: list)
+            // Bảng lấp phần còn lại dưới thanh công cụ nhưng không thấp hơn 360px; cửa sổ thấp
+            // (laptop nhỏ, phóng to, chữ hệ thống to) thì cả cột cuộn thay vì bảng bị ép tràn.
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: toolbar),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                SliverLayoutBuilder(
+                  builder: (context, c) => SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: math.max(
+                          c.viewportMainAxisExtent - c.precedingScrollExtent,
+                          360),
+                      child: list,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -245,12 +273,14 @@ class _RoomTable extends StatelessWidget {
   final int total;
   final String? selectedId;
   final ValueChanged<Room> onSelect;
+  final Future<void> Function() onRefresh;
 
   const _RoomTable(
       {required this.rooms,
       required this.total,
       required this.selectedId,
-      required this.onSelect});
+      required this.onSelect,
+      required this.onRefresh});
 
   static const _flex = [12, 12, 12, 14, 16, 10];
 
