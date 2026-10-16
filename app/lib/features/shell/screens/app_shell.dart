@@ -78,6 +78,11 @@ class _AppShellState extends ConsumerState<AppShell> {
   /// Mất mạng thì chèn [OfflineBanner]. Không tự đăng xuất.
   @override
   Widget build(BuildContext context) {
+    ref.listen(isOnlineProvider, (prev, next) {
+      if (prev == false && next) {
+        showAppSnack(context, 'Đã kết nối lại.', tone: SnackTone.info);
+      }
+    });
     final user = ref.watch(authProvider).user;
     final role = user?.role;
     final isOnline = ref.watch(isOnlineProvider);
@@ -331,37 +336,39 @@ class _SideNavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.goldLight : AppColors.onDark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Material(
-        color: active ? const Color(0x29C9A24D) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap ?? () => context.go(item.path),
-          child: Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: active
-                ? const BoxDecoration(
-                    border: Border(
-                        left: BorderSide(color: AppColors.gold, width: 3)))
-                : null,
-            child: Row(
-              children: [
-                Icon(active ? item.selectedIcon : item.icon,
-                    color: color, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(item.label,
-                      style: TextStyle(
-                          color: color,
-                          fontSize: 14,
-                          fontWeight:
-                              active ? FontWeight.w600 : FontWeight.w500)),
-                ),
-                if (count > 0) _CountBadge(count),
-              ],
+    return Semantics(
+      selected: active,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Material(
+          color: active ? AppColors.goldSelected : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap ?? () => context.go(item.path),
+            child: Container(
+              height: AppTheme.minTouch,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: active
+                  ? const BoxDecoration(
+                      border: Border(
+                          left: BorderSide(color: AppColors.gold, width: 3)))
+                  : null,
+              child: Row(
+                children: [
+                  Icon(active ? item.selectedIcon : item.icon,
+                      color: color, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(item.label,
+                        style: AppText.body.copyWith(
+                            color: color,
+                            fontWeight:
+                                active ? FontWeight.w600 : FontWeight.w500)),
+                  ),
+                  if (count > 0) _CountBadge(count),
+                ],
+              ),
             ),
           ),
         ),
@@ -401,10 +408,13 @@ class _BadgeIcon extends StatelessWidget {
   /// Badge Material mặc định. Không tự điều hướng.
   @override
   Widget build(BuildContext context) => count > 0
-      ? Badge(
-          label: Text('$count'),
-          backgroundColor: AppColors.danger,
-          child: Icon(icon),
+      ? Semantics(
+          label: '$count việc quá hạn',
+          child: Badge(
+            label: ExcludeSemantics(child: Text('$count')),
+            backgroundColor: AppColors.danger,
+            child: Icon(icon),
+          ),
         )
       : Icon(icon);
 }
