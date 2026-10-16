@@ -82,11 +82,16 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
       width: 480,
       content: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_error != null) ...[
               AppBanner(tone: BannerTone.error, message: _error!),
+              const SizedBox(height: 12),
+            ],
+            if (!online) ...[
+              const OfflineActionNote(),
               const SizedBox(height: 12),
             ],
             DropdownButtonFormField<String>(
@@ -106,6 +111,8 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
             TextFormField(
               controller: _location,
               maxLength: 100,
+              textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
                   labelText: 'Vị trí',
                   hintText: 'Ví dụ: Phòng tắm',
@@ -114,8 +121,11 @@ class _ReportIssueDialogState extends ConsumerState<_ReportIssueDialog> {
             const SizedBox(height: 14),
             TextFormField(
               controller: _desc,
+              // Mở từ một phòng cụ thể → phòng đã chọn sẵn, gõ mô tả ngay.
+              autofocus: widget.initialRoomId != null,
               maxLines: 4,
               maxLength: 500,
+              textCapitalization: TextCapitalization.sentences,
               decoration: const InputDecoration(
                 labelText: 'Mô tả sự cố *',
                 alignLabelWithHint: true,

@@ -19,7 +19,15 @@ class StaysScreen extends ConsumerStatefulWidget {
 }
 
 class _StaysScreenState extends ConsumerState<StaysScreen> {
-  String _query = '';
+  final _search = TextEditingController();
+
+  String get _query => _search.text;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +42,15 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
     final wide = Breakpoints.isWide(context);
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
-    if (state.isLoading && state.stays.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.stays.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(staysProvider.notifier).load());
-    }
+    final reload = ref.read(staysProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.stays.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonList(),
+    );
+    if (gate != null) return gate;
 
     final q = _query.trim().toLowerCase();
     final stays = state.stays
@@ -78,6 +87,7 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
           onCheckOut: checkOut);
     } else {
       body = ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
         itemCount: stays.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -107,25 +117,40 @@ class _StaysScreenState extends ConsumerState<StaysScreen> {
                 SizedBox(
                   width: 280,
                   child: TextField(
-                    onChanged: (v) => setState(() => _query = v),
-                    decoration: const InputDecoration(
+                    controller: _search,
+                    textInputAction: TextInputAction.search,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
                       hintText: 'Tìm tên khách hoặc số phòng…',
-                      prefixIcon: Icon(Icons.search, size: 20),
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Xóa tìm kiếm',
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () => setState(_search.clear),
+                            ),
                     ),
                   ),
                 ),
                 if (!canCheckOut)
                   const MetaText('Chỉ lễ tân trả phòng tại quầy.'),
+                if (canCheckOut && !online)
+                  const SizedBox(width: 360, child: OfflineActionNote()),
               ],
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: wide
-                ? Padding(
-                    padding: EdgeInsets.fromLTRB(pad, 0, pad, 24), child: body)
-                : body,
+            child: RefreshIndicator(
+              onRefresh: reload,
+              child: wide
+                  ? Padding(
+                      padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
+                      child: body)
+                  : body,
+            ),
           ),
         ],
       ),
@@ -160,14 +185,13 @@ class _StayTable extends StatelessWidget {
               alignment: end ? Alignment.centerRight : Alignment.centerLeft,
               child: child),
         );
-    const head = TextStyle(
-        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    const head = AppText.tableHead;
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           Container(
-            color: const Color(0xFFFAF8F3),
+            color: AppColors.surfaceMuted,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(children: [
               cell(0, const Text('Phòng', style: head)),
@@ -182,6 +206,7 @@ class _StayTable extends StatelessWidget {
           const Divider(height: 1, color: AppColors.border),
           Expanded(
             child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
               itemCount: stays.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
               itemBuilder: (_, i) {
@@ -196,11 +221,11 @@ class _StayTable extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(s.room.number,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w700)),
+                                style: AppText.body
+                                    .copyWith(fontWeight: FontWeight.w700)),
                             Text('Tầng ${s.room.floor}',
-                                style: const TextStyle(
-                                    fontSize: 12, color: AppColors.muted)),
+                                style: AppText.caption
+                                    .copyWith(color: AppColors.muted)),
                           ]),
                     ),
                     cell(1, Text(s.guestName, overflow: TextOverflow.ellipsis)),
@@ -227,7 +252,8 @@ class _StayTable extends StatelessWidget {
                               style: OutlinedButton.styleFrom(
                                   minimumSize: const Size(0, 36)),
                               onPressed: online ? () => onCheckOut(s) : null,
-                              child: const Text('Trả phòng'),
+                              child: Text('Trả phòng',
+                                  semanticsLabel: 'Trả phòng ${s.room.number}'),
                             )
                           : const SizedBox.shrink(),
                       end: true,
@@ -266,8 +292,8 @@ class _StayCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text('Phòng ${stay.room.number}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
+                    style:
+                        AppText.titleLg.copyWith(fontWeight: FontWeight.w700)),
               ),
               if (_isDue(stay))
                 const StatusChip('Quá giờ trả', tone: StatusTone.danger),
@@ -275,8 +301,7 @@ class _StayCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(stay.guestName,
-              style:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              style: AppText.bodyLg.copyWith(fontWeight: FontWeight.w600)),
           MetaText(
               '${stay.guestCount} người · nhận ${_fmt.format(stay.checkedInAt.toLocal())}'),
           if (stay.expectedCheckout != null)
@@ -287,7 +312,7 @@ class _StayCard extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
                 onPressed: online ? onCheckOut : null,
-                child: const Text('Trả phòng')),
+                child: Text('Trả phòng ${stay.room.number}')),
           ],
         ],
       ),
