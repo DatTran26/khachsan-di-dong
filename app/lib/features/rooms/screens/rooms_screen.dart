@@ -25,7 +25,9 @@ class RoomsScreen extends ConsumerStatefulWidget {
 /// Chọn phòng trên bảng rộng và mở sheet trên màn hẹp.
 class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   String? _selectedId;
-  final _search = TextEditingController();
+  // Bộ lọc nằm ở provider nên còn giữ khi quay lại màn — ô tìm kiếm phải hiện đúng từ khóa đang lọc.
+  late final _search =
+      TextEditingController(text: ref.read(roomsProvider).filter.query);
 
   /// Giải phóng controller ô tìm. Không đổi bộ lọc trên provider.
   @override
