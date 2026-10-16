@@ -328,7 +328,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
@@ -345,14 +345,13 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 16),
               Text(title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                  style: AppText.title.copyWith(fontWeight: FontWeight.w700)),
               if (message != null) ...[
                 const SizedBox(height: 6),
                 Text(message!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.muted, height: 1.5)),
+                    style: AppText.body
+                        .copyWith(color: AppColors.muted, height: 1.5)),
               ],
               if (action != null) ...[const SizedBox(height: 16), action!],
             ],
@@ -395,8 +394,7 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: const TextStyle(
-            fontSize: 12.5,
+        style: AppText.overline.copyWith(
             fontWeight: FontWeight.w700,
             color: AppColors.muted,
             letterSpacing: .5),
@@ -431,12 +429,11 @@ class FilterPill extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Text(label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    selected ? AppColors.goldLight : (color ?? AppColors.text),
-              )),
+              style: AppText.meta.copyWith(
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected
+                      ? AppColors.goldLight
+                      : (color ?? AppColors.text))),
         ),
       ),
     );
@@ -461,8 +458,7 @@ class SegmentedPills<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-          color: const Color(0xFFECE7DC),
-          borderRadius: BorderRadius.circular(10)),
+          color: AppColors.track, borderRadius: BorderRadius.circular(10)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -486,13 +482,11 @@ class SegmentedPills<T> extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Center(
                           child: Text(label,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: v == value
-                                    ? AppColors.goldText
-                                    : AppColors.muted,
-                              )),
+                              style: AppText.meta.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: v == value
+                                      ? AppColors.goldText
+                                      : AppColors.muted)),
                         ),
                       ),
                     ),
