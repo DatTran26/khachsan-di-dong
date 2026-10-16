@@ -312,15 +312,14 @@ class _RoomTable extends StatelessWidget {
     Widget cell(int i, Widget child) => Expanded(
         flex: _flex[i],
         child: Align(alignment: Alignment.centerLeft, child: child));
-    const head = TextStyle(
-        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    const head = AppText.tableHead;
 
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           Container(
-            color: const Color(0xFFFAF8F3),
+            color: AppColors.surfaceMuted,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(children: [
               cell(0, const Text('Phòng', style: head)),
@@ -333,55 +332,60 @@ class _RoomTable extends StatelessWidget {
           ),
           const Divider(height: 1, color: AppColors.border),
           Expanded(
-            child: ListView.separated(
-              itemCount: rooms.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, i) {
-                final r = rooms[i];
-                return Material(
-                  color: r.id == selectedId
-                      ? AppColors.goldTint
-                      : Colors.transparent,
-                  child: InkWell(
-                    onTap: () => onSelect(r),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      child: Row(children: [
-                        cell(
-                          0,
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(r.number,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14)),
-                                Text('Tầng ${r.floor}',
-                                    style: const TextStyle(
-                                        fontSize: 12, color: AppColors.muted)),
-                              ]),
+            child: RefreshIndicator(
+              onRefresh: onRefresh,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: rooms.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, i) {
+                  final r = rooms[i];
+                  return Semantics(
+                    selected: r.id == selectedId,
+                    child: Material(
+                      color: r.id == selectedId
+                          ? AppColors.goldTint
+                          : Colors.transparent,
+                      child: InkWell(
+                        onTap: () => onSelect(r),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          child: Row(children: [
+                            cell(
+                              0,
+                              Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(r.number,
+                                        style: AppText.body.copyWith(
+                                            fontWeight: FontWeight.w700)),
+                                    Text('Tầng ${r.floor}',
+                                        style: AppText.caption
+                                            .copyWith(color: AppColors.muted)),
+                                  ]),
+                            ),
+                            cell(1, Text(r.roomType.name, style: AppText.body)),
+                            cell(
+                                2,
+                                StatusChip(r.occupancy.label,
+                                    tone: r.occupancy.tone)),
+                            cell(
+                                3,
+                                StatusChip(r.cleaning.label,
+                                    tone: r.cleaning.tone)),
+                            cell(
+                                4,
+                                StatusChip(r.service.label,
+                                    tone: r.service.tone)),
+                            cell(5, MetaText(_when(r.updatedAt))),
+                          ]),
                         ),
-                        cell(
-                            1,
-                            Text(r.roomType.name,
-                                style: const TextStyle(fontSize: 14))),
-                        cell(
-                            2,
-                            StatusChip(r.occupancy.label,
-                                tone: r.occupancy.tone)),
-                        cell(
-                            3,
-                            StatusChip(r.cleaning.label,
-                                tone: r.cleaning.tone)),
-                        cell(4,
-                            StatusChip(r.service.label, tone: r.service.tone)),
-                        cell(5, MetaText(_when(r.updatedAt))),
-                      ]),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
           const Divider(height: 1),
