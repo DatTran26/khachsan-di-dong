@@ -139,10 +139,8 @@ class _AppShellState extends ConsumerState<AppShell> {
               isOnline && lastUpdated != null
                   ? 'Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated)}'
                   : (user?.fullName ?? ''),
-              style: const TextStyle(
-                  fontSize: 12.5,
-                  color: AppColors.onDarkMuted,
-                  fontWeight: FontWeight.w400),
+              style: AppText.overline.copyWith(
+                  color: AppColors.onDarkMuted, fontWeight: FontWeight.w400),
             ),
             Text(title),
           ],
@@ -266,53 +264,64 @@ class _Sidebar extends StatelessWidget {
       width: 248,
       color: AppColors.espresso,
       padding: const EdgeInsets.fromLTRB(14, 20, 14, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 20),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0x40C9A24D)))),
-            child: Row(
-              children: [
-                const BrandMark(),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Khách Sạn Di Động',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15)),
-                      Text(role?.shortLabel ?? '',
-                          style: const TextStyle(
-                              color: AppColors.goldLight,
-                              fontSize: 12,
-                              letterSpacing: .3)),
-                    ],
+      // Cuộn được khi chữ hệ thống to hoặc màn thấp; Spacer vẫn đẩy chân trang xuống đáy.
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 20),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: const BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: AppColors.goldHairline))),
+                    child: Row(
+                      children: [
+                        const BrandMark(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Khách Sạn Di Động',
+                                  style: AppText.bodyLg.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
+                              Text(role?.shortLabel ?? '',
+                                  style: AppText.caption.copyWith(
+                                      color: AppColors.goldLight,
+                                      letterSpacing: .3)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  for (final item in items)
+                    _SideNavTile(
+                      item: item,
+                      active: location.startsWith(item.path),
+                      count: badges[item.path] ?? 0,
+                    ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.only(top: 12),
+                    decoration: const BoxDecoration(
+                        border: Border(
+                            top: BorderSide(color: AppColors.goldHairline))),
+                    child: Text('Khách sạn giả định · dữ liệu giả lập',
+                        style: AppText.caption
+                            .copyWith(color: AppColors.onDarkFaint)),
+                  ),
+                ],
+              ),
             ),
           ),
-          for (final item in items)
-            _SideNavTile(
-              item: item,
-              active: location.startsWith(item.path),
-              count: badges[item.path] ?? 0,
-            ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0x40C9A24D)))),
-            child: const Text('Khách sạn giả định · dữ liệu giả lập',
-                style: TextStyle(color: Color(0xFFA89C87), fontSize: 12)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -391,10 +400,8 @@ class _CountBadge extends StatelessWidget {
           decoration: BoxDecoration(
               color: AppColors.danger, borderRadius: BorderRadius.circular(10)),
           child: Text('$count',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700)),
+              style: AppText.micro
+                  .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         ),
       );
 }
@@ -436,17 +443,20 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      constraints: const BoxConstraints(minHeight: 68),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          Flexible(
+            child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.headline.copyWith(fontWeight: FontWeight.w700)),
+          ),
           const SizedBox(width: 16),
           if (isOnline) ...[
             Container(
@@ -461,14 +471,18 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            MetaText(lastUpdated != null
-                ? 'Đang đồng bộ · Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated!)}'
-                : 'Đang đồng bộ'),
+            Flexible(
+              child: MetaText(lastUpdated != null
+                  ? 'Đang đồng bộ · Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated!)}'
+                  : 'Đang đồng bộ'),
+            ),
           ] else
-            const MetaText('Mất kết nối',
-                color: AppColors.dirty, weight: FontWeight.w600),
+            const Flexible(
+              child: MetaText('Mất kết nối',
+                  color: AppColors.dirty, weight: FontWeight.w600),
+            ),
           const Spacer(),
-          _UserMenu(user: user, dark: false),
+          Flexible(child: _UserMenu(user: user, dark: false)),
         ],
       ),
     );
@@ -506,7 +520,7 @@ class _UserMenu extends ConsumerWidget {
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, color: AppColors.text)),
               Text(user?.role.label ?? '',
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+                  style: AppText.caption.copyWith(color: AppColors.muted)),
             ],
           ),
         ),
@@ -533,20 +547,27 @@ class _UserMenu extends ConsumerWidget {
               padding: const EdgeInsets.all(8),
               child: InitialAvatar(user?.fullName ?? '?', size: 34))
           : Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 InitialAvatar(user?.fullName ?? '?'),
                 const SizedBox(width: 10),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(user?.fullName ?? '',
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
-                    Text(user?.role.shortLabel ?? '',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.muted)),
-                  ],
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user?.fullName ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.body
+                              .copyWith(fontWeight: FontWeight.w600)),
+                      Text(user?.role.shortLabel ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              AppText.caption.copyWith(color: AppColors.muted)),
+                    ],
+                  ),
                 ),
                 const Icon(Icons.expand_more, color: AppColors.muted),
               ],
@@ -594,8 +615,8 @@ class _MobileDrawer extends ConsumerWidget {
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700)),
                           Text(user?.role.shortLabel ?? '',
-                              style: const TextStyle(
-                                  color: AppColors.goldLight, fontSize: 12)),
+                              style: AppText.caption
+                                  .copyWith(color: AppColors.goldLight)),
                         ],
                       ),
                     ),
