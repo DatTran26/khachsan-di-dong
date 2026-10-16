@@ -142,9 +142,10 @@ class StatusChip extends StatelessWidget {
   /// Chip không bấm. [dot] false bỏ chấm. [dense] thu chiều cao.
   @override
   Widget build(BuildContext context) {
+    // Cao tối thiểu thay vì cố định: chip giãn theo cỡ chữ hệ thống, chữ dài thì cắt "…".
     return Container(
-      height: dense ? 22 : 24,
-      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10),
+      constraints: BoxConstraints(minHeight: dense ? 22 : 24),
+      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: 3),
       decoration: BoxDecoration(
           color: tone.bg, borderRadius: BorderRadius.circular(12)),
       child: Row(
@@ -158,12 +159,16 @@ class StatusChip extends StatelessWidget {
                     BoxDecoration(color: tone.fg, shape: BoxShape.circle)),
             const SizedBox(width: 6),
           ],
-          Text(label,
-              style: TextStyle(
-                  color: tone.fg,
-                  fontSize: dense ? 11.5 : 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.1)),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: tone.fg,
+                    fontSize: dense ? 11.5 : 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.1)),
+          ),
         ],
       ),
     );
@@ -180,6 +185,7 @@ class OverdueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Quá hạn',
+      excludeSemantics: true, // chữ "QH" viết tắt không cần đọc
       child: Container(
         height: 20,
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -187,10 +193,8 @@ class OverdueBadge extends StatelessWidget {
         decoration: BoxDecoration(
             color: AppColors.danger, borderRadius: BorderRadius.circular(10)),
         child: Text(short ? 'QH' : 'Quá hạn',
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w700)),
+            style: AppText.micro
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
     );
   }
