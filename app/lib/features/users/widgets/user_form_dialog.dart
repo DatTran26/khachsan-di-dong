@@ -105,6 +105,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
       width: 420,
       content: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -116,6 +117,7 @@ class _UserFormDialogState extends ConsumerState<UserFormDialog> {
               controller: _fullName,
               decoration: const InputDecoration(labelText: 'Họ tên *'),
               textInputAction: TextInputAction.next,
+              textCapitalization: TextCapitalization.words,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Vui lòng nhập họ tên.'
                   : null,

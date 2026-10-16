@@ -72,13 +72,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           padding: const EdgeInsets.only(bottom: 6),
           child: Row(children: [
             Icon(ok ? Icons.check_circle : Icons.radio_button_unchecked,
-                size: 18,
-                color: ok ? AppColors.ready : const Color(0xFFBDB5A7)),
+                size: 18, color: ok ? AppColors.ready : AppColors.dotMuted),
             const SizedBox(width: 8),
             Text(text,
-                style: TextStyle(
-                    fontSize: 13,
-                    color: ok ? AppColors.ready : AppColors.muted)),
+                style: AppText.meta
+                    .copyWith(color: ok ? AppColors.ready : AppColors.muted)),
           ]),
         );
 
@@ -87,8 +85,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           prefixIcon: const Icon(Icons.lock_outline),
         );
 
-    final form = Form(
+    final form = AutofillGroup(
+        child: Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -99,6 +99,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           TextFormField(
             controller: _currentCtrl,
             obscureText: _obscure,
+            autofillHints: const [AutofillHints.password],
+            textInputAction: TextInputAction.next,
             decoration: pw(forced ? 'Mật khẩu tạm' : 'Mật khẩu hiện tại'),
             validator: (v) => (v == null || v.isEmpty)
                 ? (forced
@@ -110,6 +112,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           TextFormField(
             controller: _newCtrl,
             obscureText: _obscure,
+            autofillHints: const [AutofillHints.newPassword],
+            textInputAction: TextInputAction.next,
             decoration: pw('Mật khẩu mới'),
             validator: (_) => (_longEnough && _letterAndNumber)
                 ? null
@@ -119,6 +123,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           TextFormField(
             controller: _confirmCtrl,
             obscureText: _obscure,
+            autofillHints: const [AutofillHints.newPassword],
+            textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _submit(),
             decoration: pw('Nhập lại mật khẩu mới'),
             validator: (_) => _matches ? null : 'Mật khẩu nhập lại chưa khớp.',
@@ -152,7 +158,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2))
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, semanticsLabel: 'Đang lưu mật khẩu'))
                   : const Text('Lưu mật khẩu mới'),
             ),
           ),
@@ -169,7 +176,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           ),
         ],
       ),
-    );
+    ));
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -193,19 +200,16 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       const BrandMark(size: 40),
                       const SizedBox(height: 14),
                       Text(forced ? 'Đặt mật khẩu mới' : 'Đổi mật khẩu',
-                          style: const TextStyle(
+                          style: AppText.headlineLg.copyWith(
                               color: Colors.white,
-                              fontSize: 22,
                               fontWeight: FontWeight.w700)),
                       const SizedBox(height: 6),
                       Text(
                         forced
                             ? 'Bạn đang dùng mật khẩu tạm — vui lòng đặt mật khẩu mới để tiếp tục.'
                             : 'Mật khẩu mới áp dụng từ lần đăng nhập sau trên mọi thiết bị.',
-                        style: const TextStyle(
-                            color: AppColors.onDarkMuted,
-                            fontSize: 14,
-                            height: 1.5),
+                        style: AppText.body.copyWith(
+                            color: AppColors.onDarkMuted, height: 1.5),
                       ),
                     ],
                   ),

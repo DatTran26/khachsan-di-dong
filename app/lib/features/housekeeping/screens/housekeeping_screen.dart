@@ -26,14 +26,14 @@ class HousekeepingScreen extends ConsumerWidget {
     final state = ref.watch(housekeepingProvider);
     final role = ref.watch(authProvider.select((s) => s.user?.role));
 
-    if (state.isLoading && state.tasks.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.tasks.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(housekeepingProvider.notifier).load());
-    }
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.tasks.isEmpty,
+      onRetry: ref.read(housekeepingProvider.notifier).load,
+      skeleton: SkeletonList(itemHeight: role == UserRole.manager ? 96 : 150),
+    );
+    if (gate != null) return gate;
     return role == UserRole.manager
         ? _ManagerBoard(tasks: state.tasks)
         : _StaffList(tasks: state.tasks);
@@ -240,8 +240,8 @@ void _showDetail(
               children: [
                 Expanded(
                   child: Text('Phòng ${task.room.number}',
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: AppText.headlineLg
+                          .copyWith(fontWeight: FontWeight.w700)),
                 ),
                 StatusChip(_label(task), tone: _tone(task)),
               ],
@@ -314,6 +314,10 @@ class _ManagerBoard extends ConsumerWidget {
             message: 'Phòng chỉ về Sẵn sàng sau khi quản lý xác nhận sạch.',
           ),
         if (waiting > 0) const SizedBox(height: 16),
+        if (!online) ...[
+          const OfflineActionNote(),
+          const SizedBox(height: 16),
+        ],
       ],
     );
 
@@ -325,25 +329,30 @@ class _ManagerBoard extends ConsumerWidget {
       );
     }
 
+    final reload = ref.read(housekeepingProvider.notifier).load;
     if (!wide) {
-      return ListView(
-        padding: EdgeInsets.fromLTRB(pad, 16, pad, 24),
-        children: [
-          header,
-          for (final (title, list) in columns) ...[
-            SectionLabel('$title · ${list.length}'),
-            const SizedBox(height: 8),
-            if (list.isEmpty)
-              const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: MetaText('Không có việc.')),
-            for (final t in list)
-              Padding(
-                  padding: const EdgeInsets.only(bottom: 10), child: card(t)),
-            const SizedBox(height: 8),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(pad, 16, pad, 24),
+          children: [
+            header,
+            for (final (title, list) in columns) ...[
+              SectionLabel('$title · ${list.length}'),
+              const SizedBox(height: 8),
+              if (list.isEmpty)
+                const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: MetaText('Không có việc.')),
+              for (final t in list)
+                Padding(
+                    padding: const EdgeInsets.only(bottom: 10), child: card(t)),
+              const SizedBox(height: 8),
+            ],
+            MetaText('Hoàn tất hôm nay: $doneToday phòng'),
           ],
-          MetaText('Hoàn tất hôm nay: $doneToday phòng'),
-        ],
+        ),
       );
     }
 
@@ -363,7 +372,7 @@ class _ManagerBoard extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0ECE3),
+                        color: AppColors.surfaceSunken,
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
                       child: Column(
@@ -375,9 +384,8 @@ class _ManagerBoard extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Text(columns[i].$1,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14)),
+                                      style: AppText.body.copyWith(
+                                          fontWeight: FontWeight.w700)),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -386,10 +394,7 @@ class _ManagerBoard extends ConsumerWidget {
                                       color: AppColors.surface,
                                       borderRadius: BorderRadius.circular(10)),
                                   child: Text('${columns[i].$2.length}',
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.muted)),
+                                      style: AppText.tableHead),
                                 ),
                               ],
                             ),
@@ -398,12 +403,17 @@ class _ManagerBoard extends ConsumerWidget {
                             child: columns[i].$2.isEmpty
                                 ? const Center(
                                     child: MetaText('Không có việc.'))
-                                : ListView.separated(
-                                    itemCount: columns[i].$2.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 10),
-                                    itemBuilder: (_, j) =>
-                                        card(columns[i].$2[j]),
+                                : RefreshIndicator(
+                                    onRefresh: reload,
+                                    child: ListView.separated(
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(),
+                                      itemCount: columns[i].$2.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(height: 10),
+                                      itemBuilder: (_, j) =>
+                                          card(columns[i].$2[j]),
+                                    ),
                                   ),
                           ),
                           if (i == columns.length - 1)
@@ -434,7 +444,10 @@ class _ManagerTaskCard extends ConsumerWidget {
   List<Widget> _actions(BuildContext context, WidgetRef ref,
       {bool large = false}) {
     final n = ref.read(housekeepingProvider.notifier);
-    final size = large ? const Size.fromHeight(48) : const Size(0, 36);
+    // Bảng web dày đặc giữ nút thấp; điện thoại cần vùng chạm đủ 48.
+    final size = large
+        ? const Size.fromHeight(AppTheme.minTouch)
+        : Size(0, Breakpoints.isWide(context) ? 36 : AppTheme.minTouch);
     switch (task.status) {
       case HousekeepingStatus.unassigned:
         return [
@@ -486,34 +499,46 @@ class _ManagerTaskCard extends ConsumerWidget {
       borderColor: task.isOverdue
           ? AppColors.danger
           : task.status == HousekeepingStatus.pendingConfirm
-              ? const Color(0xFFE7B7D1)
+              ? AppColors.inspectBorder
               : null,
       onTap: () =>
           _showDetail(context, task, _actions(context, ref, large: true)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text('Phòng ${task.room.number}',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 15)),
-              ),
-              if (task.isOverdue)
-                const OverdueBadge()
-              else
-                StatusChip(_label(task), tone: _tone(task), dense: true),
-            ],
+          // Trình đọc màn hình đọc phần thông tin thành một câu; các nút vẫn tách riêng.
+          MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Cột bảng điều phối hẹp: chip xuống dòng khi chữ to thay vì đè số phòng.
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text('Phòng ${task.room.number}',
+                        style: AppText.bodyLg
+                            .copyWith(fontWeight: FontWeight.w700)),
+                    if (task.isOverdue)
+                      const OverdueBadge()
+                    else
+                      StatusChip(_label(task), tone: _tone(task), dense: true),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                if (task.assignee != null)
+                  MetaText('Phụ trách: ${task.assignee!.fullName}'),
+                if (task.status == HousekeepingStatus.pendingConfirm &&
+                    task.completedAt != null)
+                  MetaText(
+                      'Báo xong lúc ${hm.format(task.completedAt!.toLocal())}')
+                else
+                  dueText(task.dueAt, task.isOverdue),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          if (task.assignee != null)
-            MetaText('Phụ trách: ${task.assignee!.fullName}'),
-          if (task.status == HousekeepingStatus.pendingConfirm &&
-              task.completedAt != null)
-            MetaText('Báo xong lúc ${hm.format(task.completedAt!.toLocal())}')
-          else
-            dueText(task.dueAt, task.isOverdue),
           if (actions.isNotEmpty) ...[
             const SizedBox(height: 10),
             // Cột bảng điều phối hẹp → xếp nút dọc để chữ không bị xuống dòng.
@@ -558,8 +583,14 @@ class _StaffList extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(housekeepingProvider.notifier).load(),
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
+          if (!online)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: OfflineActionNote(),
+            ),
           if (user != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -595,8 +626,8 @@ class _StaffList extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text('Phòng ${t.room.number}',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
+                            style: AppText.body
+                                .copyWith(fontWeight: FontWeight.w600)),
                       ),
                       StatusChip(t.status.label, tone: _tone(t)),
                     ],
@@ -618,7 +649,7 @@ class _StaffTaskCard extends ConsumerWidget {
   List<Widget> _actions(BuildContext context, WidgetRef ref,
       {bool vertical = false}) {
     final n = ref.read(housekeepingProvider.notifier);
-    const size = Size.fromHeight(48);
+    const size = Size.fromHeight(AppTheme.minTouch);
     if (task.status == HousekeepingStatus.assigned) {
       return [
         OutlinedButton(
@@ -679,25 +710,33 @@ class _StaffTaskCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text('Phòng ${task.room.number}',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
-              ),
-              if (task.isOverdue)
-                const OverdueBadge()
-              else
-                StatusChip(_label(task), tone: _tone(task)),
-            ],
+          // Đọc liền số phòng, trạng thái, tầng và hạn; các nút vẫn tách riêng.
+          MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Phòng ${task.room.number}',
+                          style: AppText.titleLg
+                              .copyWith(fontWeight: FontWeight.w700)),
+                    ),
+                    if (task.isOverdue)
+                      const OverdueBadge()
+                    else
+                      StatusChip(_label(task), tone: _tone(task)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                MetaText('Tầng ${task.room.floor}$started'),
+                if (task.returnNote != null)
+                  MetaText('Quản lý ghi chú: “${task.returnNote}”',
+                      color: AppColors.text),
+                dueText(task.dueAt, task.isOverdue),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          MetaText('Tầng ${task.room.floor}$started'),
-          if (task.returnNote != null)
-            MetaText('Quản lý ghi chú: “${task.returnNote}”',
-                color: AppColors.text),
-          dueText(task.dueAt, task.isOverdue),
           const SizedBox(height: 12),
           Row(
             children: [

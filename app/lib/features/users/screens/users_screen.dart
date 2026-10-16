@@ -31,14 +31,15 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     final wide = Breakpoints.isWide(context);
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
-    if (state.isLoading && state.users.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.users.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(usersProvider.notifier).load());
-    }
+    final reload = ref.read(usersProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.users.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonList(),
+    );
+    if (gate != null) return gate;
 
     final users = state.users
         .where((u) => _roleFilter == null || u.role == _roleFilter)
@@ -84,6 +85,10 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
               ),
             ],
           ),
+          if (!online) ...[
+            const SizedBox(height: 12),
+            const OfflineActionNote(),
+          ],
           const SizedBox(height: 16),
           Expanded(
             child: users.isEmpty
@@ -101,20 +106,30 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                             const _HeaderRow(),
                             const Divider(height: 1, color: AppColors.border),
                             Expanded(
-                              child: ListView.separated(
-                                itemCount: rows.length,
-                                separatorBuilder: (_, __) =>
-                                    const Divider(height: 1),
-                                itemBuilder: (_, i) => rows[i],
+                              child: RefreshIndicator(
+                                onRefresh: reload,
+                                child: ListView.separated(
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  itemCount: rows.length,
+                                  separatorBuilder: (_, __) =>
+                                      const Divider(height: 1),
+                                  itemBuilder: (_, i) => rows[i],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       )
-                    : ListView.separated(
-                        itemCount: rows.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                        itemBuilder: (_, i) => rows[i],
+                    : RefreshIndicator(
+                        onRefresh: reload,
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: rows.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 10),
+                          itemBuilder: (_, i) => rows[i],
+                        ),
                       ),
           ),
         ],
@@ -130,15 +145,14 @@ class _HeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const s = TextStyle(
-        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    const s = AppText.tableHead;
     Widget c(int i, String t, {bool end = false}) => Expanded(
         flex: _flex[i],
         child: Align(
             alignment: end ? Alignment.centerRight : Alignment.centerLeft,
             child: Text(t, style: s)));
     return Container(
-      color: const Color(0xFFFAF8F3),
+      color: AppColors.surfaceMuted,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(children: [
         c(0, 'Họ tên'),
@@ -262,12 +276,15 @@ class _UserRow extends ConsumerWidget {
 
   List<Widget> _actions(BuildContext context, WidgetRef ref) {
     if (!_canManage) return const [];
+    // Bảng web giữ nút thấp; thẻ trên điện thoại cần vùng chạm đủ 48.
+    final h = wide ? 34.0 : AppTheme.minTouch;
     final small = OutlinedButton.styleFrom(
-        minimumSize: const Size(0, 34),
+        minimumSize: Size(0, h),
         padding: const EdgeInsets.symmetric(horizontal: 12));
     final ghost = TextButton.styleFrom(
-        minimumSize: const Size(0, 34),
+        minimumSize: Size(0, h),
         padding: const EdgeInsets.symmetric(horizontal: 10));
+    final who = user.fullName;
     return [
       TextButton(
         style: ghost,
@@ -275,28 +292,29 @@ class _UserRow extends ConsumerWidget {
             ? () => showDialog(
                 context: context, builder: (_) => UserFormDialog(user: user))
             : null,
-        child: const Text('Sửa'),
+        child: Text('Sửa', semanticsLabel: 'Sửa tài khoản $who'),
       ),
       if (!_isSelf && user.status != AccountStatus.locked)
         TextButton(
             style: ghost,
             onPressed: online ? () => _reset(context, ref) : null,
-            child: const Text('Đặt lại mật khẩu')),
+            child: Text('Đặt lại mật khẩu',
+                semanticsLabel: 'Đặt lại mật khẩu cho $who')),
       if (!_isSelf && user.status != AccountStatus.locked)
         OutlinedButton(
           style: small.copyWith(
             foregroundColor: const WidgetStatePropertyAll(AppColors.danger),
             side: const WidgetStatePropertyAll(
-                BorderSide(color: Color(0xFFF2C4C6))),
+                BorderSide(color: AppColors.dangerBorder)),
           ),
           onPressed: online ? () => _lock(context, ref) : null,
-          child: const Text('Khóa'),
+          child: Text('Khóa', semanticsLabel: 'Khóa tài khoản $who'),
         ),
       if (user.status == AccountStatus.locked)
         OutlinedButton(
             style: small,
             onPressed: online ? () => _unlock(context, ref) : null,
-            child: const Text('Mở khóa')),
+            child: Text('Mở khóa', semanticsLabel: 'Mở khóa tài khoản $who')),
     ];
   }
 
@@ -324,8 +342,8 @@ class _UserRow extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontWeight: FontWeight.w700)),
               if (_isSelf)
-                const Text('Bạn',
-                    style: TextStyle(fontSize: 12, color: AppColors.goldText)),
+                Text('Bạn',
+                    style: AppText.caption.copyWith(color: AppColors.goldText)),
             ],
           ),
         ),
