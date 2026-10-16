@@ -219,13 +219,27 @@ class _Toolbar extends StatelessWidget {
       children: [
         SizedBox(
           width: 220,
-          child: TextField(
-            controller: search,
-            onChanged: (v) => onChanged(filter.copyWith(query: v)),
-            decoration: const InputDecoration(
-              hintText: 'Tìm số phòng…',
-              prefixIcon: Icon(Icons.search, size: 20),
-              contentPadding: EdgeInsets.symmetric(vertical: 10),
+          child: ValueListenableBuilder(
+            valueListenable: search,
+            builder: (context, value, _) => TextField(
+              controller: search,
+              textInputAction: TextInputAction.search,
+              onChanged: (v) => onChanged(filter.copyWith(query: v)),
+              decoration: InputDecoration(
+                hintText: 'Tìm số phòng…',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                suffixIcon: value.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Xóa tìm kiếm',
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () {
+                          search.clear();
+                          onChanged(filter.copyWith(query: ''));
+                        },
+                      ),
+              ),
             ),
           ),
         ),
