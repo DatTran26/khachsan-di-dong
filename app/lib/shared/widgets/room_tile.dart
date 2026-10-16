@@ -27,7 +27,8 @@ class RoomTile extends StatelessWidget {
   bool get _oos => room.service == ServiceStatus.outOfService;
 
   /// Chiều cao ô trên lưới, co giãn theo cỡ chữ hệ thống (đầu ô ~31px + 3 dòng trạng thái ~16px + lề).
-  static double extent(BuildContext context) => MediaQuery.textScalerOf(context).scale(106);
+  static double extent(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(106);
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +52,8 @@ class RoomTile extends StatelessWidget {
             child: Text(room.number,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontSize: 16,
-                    height: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: tone.fg)),
+                style: AppText.title.copyWith(
+                    height: 1.2, fontWeight: FontWeight.w700, color: tone.fg)),
           ),
           if (overdue) const OverdueBadge(short: true),
         ],
@@ -90,12 +88,10 @@ class RoomTile extends StatelessWidget {
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.fade,
-                        style: TextStyle(
-                          fontSize: 11,
-                          height: 1.3,
-                          letterSpacing: -.1,
-                          color: _oos ? AppColors.oos : AppColors.text,
-                        )),
+                        style: AppText.micro.copyWith(
+                            height: 1.3,
+                            letterSpacing: -.1,
+                            color: _oos ? AppColors.oos : AppColors.text)),
                   ),
                 ],
               ),
@@ -132,7 +128,7 @@ class RoomTile extends StatelessWidget {
               ? _DashedBorderPainter(radius: 10)
               : null,
           child: Material(
-            color: _oos ? const Color(0xFFF3F0EA) : AppColors.surface,
+            color: _oos ? AppColors.oosSurface : AppColors.surface,
             shape: RoundedRectangleBorder(
               borderRadius: radius,
               side: _oos && !overdue && !selected
@@ -153,7 +149,7 @@ class _HatchPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFDDD7CB)
+      ..color = AppColors.oosHatch
       ..strokeWidth = 2;
     canvas.save();
     canvas.clipRect(Offset.zero & size);

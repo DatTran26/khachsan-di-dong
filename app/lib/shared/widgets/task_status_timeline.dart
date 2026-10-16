@@ -95,7 +95,7 @@ class TaskStatusTimeline extends StatelessWidget {
                         height: 30,
                         color: _steps[i].state == _StepState.done
                             ? AppColors.gold
-                            : const Color(0xFFDDD6C9),
+                            : AppColors.timelineLine,
                       ),
                   ],
                 ),
@@ -109,18 +109,16 @@ class TaskStatusTimeline extends StatelessWidget {
                     children: [
                       Text(
                         _steps[i].label,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: _steps[i].state == _StepState.pending
-                              ? AppColors.muted
-                              : AppColors.text,
-                        ),
+                        style: AppText.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: _steps[i].state == _StepState.pending
+                                ? AppColors.muted
+                                : AppColors.text),
                       ),
                       if (_steps[i].note != null && _steps[i].note!.isNotEmpty)
                         Text(_steps[i].note!,
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.muted)),
+                            style: AppText.caption
+                                .copyWith(color: AppColors.muted)),
                     ],
                   ),
                 ),
@@ -182,7 +180,7 @@ class _Node extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFCFC7B8), width: 2),
+            border: Border.all(color: AppColors.timelineRing, width: 2),
           ),
         );
     }
