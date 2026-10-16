@@ -29,14 +29,14 @@ class MaintenanceScreen extends ConsumerWidget {
     final state = ref.watch(maintenanceProvider);
     final user = ref.watch(authProvider).user;
     final online = ref.watch(isOnlineProvider);
-    if (state.isLoading && state.tasks.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.tasks.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(maintenanceProvider.notifier).load());
-    }
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.tasks.isEmpty,
+      onRetry: ref.read(maintenanceProvider.notifier).load,
+      skeleton: const SkeletonList(itemHeight: 120),
+    );
+    if (gate != null) return gate;
     final isStaff = user?.role == UserRole.staff;
     final pad = Breakpoints.hasSidebar(context) ? 32.0 : 16.0;
 
@@ -276,6 +276,7 @@ class _StaffView extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: n.load,
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           if (mine.isNotEmpty) ...[
@@ -517,25 +518,30 @@ class _DeskView extends ConsumerWidget {
       );
     }
 
+    final reload = ref.read(maintenanceProvider.notifier).load;
     if (!wide) {
-      return ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          for (final (title, list) in columns) ...[
-            SectionLabel('$title · ${list.length}'),
-            const SizedBox(height: 8),
-            if (list.isEmpty)
-              const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: MetaText('Không có việc.')),
-            for (final t in list)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _TaskCard(task: t, actions: _actions(context, ref, t)),
-              ),
-            const SizedBox(height: 8),
+      return RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            for (final (title, list) in columns) ...[
+              SectionLabel('$title · ${list.length}'),
+              const SizedBox(height: 8),
+              if (list.isEmpty)
+                const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: MetaText('Không có việc.')),
+              for (final t in list)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _TaskCard(task: t, actions: _actions(context, ref, t)),
+                ),
+              const SizedBox(height: 8),
+            ],
           ],
-        ],
+        ),
       );
     }
 
