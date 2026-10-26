@@ -376,6 +376,10 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     return DateTime(now.year, now.month, now.day + nights, 12);
   }
 
+  DateTime _afterHours(int hours) {
+    return DateTime.now().add(Duration(hours: hours));
+  }
+
   /// Chọn ngày rồi giờ trả dự kiến. Hủy ngày thì giữ nguyên. Hủy giờ thì lấy 12:00 cùng ngày đã chọn.
   /// Không gọi API.
   Future<void> _pickExpected() async {
@@ -518,9 +522,15 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
           ),
           const SizedBox(height: 8),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: [
+              for (final h in const [1, 2, 3, 4])
+                FilterPill(
+                  label: '$h giờ',
+                  selected: false,
+                  onTap: () => setState(() => _expected = _afterHours(h)),
+                ),
               for (final n in const [1, 2, 3])
                 FilterPill(
                   label: '$n đêm',
