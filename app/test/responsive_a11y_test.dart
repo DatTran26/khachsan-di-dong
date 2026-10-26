@@ -13,6 +13,7 @@ import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_pr
 import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
 import 'package:khachsan_di_dong/features/housekeeping/screens/acceptance_photos_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
+import 'package:khachsan_di_dong/features/stays/providers/stays_provider.dart';
 import 'package:khachsan_di_dong/models/ai_summary.dart';
 
 import 'support/fakes.dart';
@@ -116,6 +117,7 @@ Future<void> _pump(WidgetTester tester, Size size, Widget screen) async {
       roomsProvider.overrideWith((ref) => FakeRooms(_rooms)),
       dashboardSummaryProvider
           .overrideWith((ref) => FakeDashboardSummary(_summary)),
+      staysProvider.overrideWith((ref) => FakeStays()),
       housekeepingProvider.overrideWith((ref) => FakeHousekeeping([
             fakeHousekeepingTask(
                 returnNote: 'Nhà vệ sinh còn tóc trên sàn, chụp lại giúp.'),

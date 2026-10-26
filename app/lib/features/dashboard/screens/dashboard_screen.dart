@@ -7,6 +7,7 @@ import '../../../shared/widgets/room_tile.dart';
 import '../../../shared/widgets/ui.dart';
 import '../../rooms/providers/rooms_provider.dart';
 import '../../rooms/widgets/room_detail_panel.dart';
+import '../../stays/providers/stays_provider.dart';
 import '../providers/dashboard_provider.dart';
 
 /// Nhóm lọc lưới phòng. Thẻ lấp đầy dùng lại [occupied], không có nhóm riêng.
@@ -80,6 +81,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     await Future.wait([
       ref.read(roomsProvider.notifier).load(),
       ref.read(dashboardSummaryProvider.notifier).load(),
+      ref.read(staysProvider.notifier).load(),
     ]);
   }
 
@@ -92,6 +94,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // Cờ quá hạn lấy từ API chỉ số → lễ tân cũng thấy việc dọn quá hạn (FR-006).
     final overdue = summary.overdueRoomIds;
     final rooms = roomsState.sorted;
+    final stays = ref.watch(staysProvider).stays;
+    final stayMap = {for (final s in stays) s.room.id: s};
     final wide = Breakpoints.hasSidebar(context);
     final pad = wide
         ? const EdgeInsets.fromLTRB(32, 24, 32, 32)
@@ -214,6 +218,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     for (final r in entry.value)
                       RoomTile(
                         room: r,
+                        stay: stayMap[r.id],
                         overdue: overdue.contains(r.id),
                         onTap: () => showRoomDetailSheet(context, r.id),
                       ),

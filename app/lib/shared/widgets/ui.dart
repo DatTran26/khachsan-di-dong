@@ -76,6 +76,54 @@ extension StatusToneX on StatusTone {
 
   /// Màu chấm trên ô phòng — trạng thái "bình thường" dùng xám nhạt để không gây chú ý.
   Color get dot => this == StatusTone.neutral ? AppColors.dotMuted : fg;
+
+  /// Màu khối đặc (Solid PMS) cho ô phòng — nhận diện từ xa, tương phản cao.
+  Color get solidBg {
+    switch (this) {
+      case StatusTone.ready:
+        return AppColors.solidReady;
+      case StatusTone.occupied:
+        return AppColors.solidOccupied;
+      case StatusTone.dirty:
+        return AppColors.solidDirty;
+      case StatusTone.cleaning:
+        return AppColors.solidCleaning;
+      case StatusTone.inspect:
+        return AppColors.solidInspect;
+      case StatusTone.oos:
+        return AppColors.solidOos;
+      case StatusTone.danger:
+        return AppColors.solidOverdue;
+      case StatusTone.neutral:
+        return AppColors.solidOos;
+      case StatusTone.gold:
+        return AppColors.gold;
+    }
+  }
+
+  /// Biểu tượng nhận diện trực quan theo trạng thái.
+  IconData get icon {
+    switch (this) {
+      case StatusTone.ready:
+        return Icons.check_rounded;
+      case StatusTone.occupied:
+        return Icons.person_rounded;
+      case StatusTone.dirty:
+        return Icons.cleaning_services_outlined;
+      case StatusTone.cleaning:
+        return Icons.hourglass_top_rounded;
+      case StatusTone.inspect:
+        return Icons.fact_check_outlined;
+      case StatusTone.oos:
+        return Icons.build_outlined;
+      case StatusTone.danger:
+        return Icons.warning_amber_rounded;
+      case StatusTone.neutral:
+        return Icons.meeting_room_outlined;
+      case StatusTone.gold:
+        return Icons.star_outline_rounded;
+    }
+  }
 }
 
 /// Đang ở thì tông occupied, trống thì trung tính.
@@ -114,16 +162,18 @@ extension ServiceTone on ServiceStatus {
 extension RoomSummaryTone on Room {
   /// Ưu tiên: ngừng phục vụ, đang ở, sẵn sàng, còn lại theo vệ sinh.
   StatusTone get summaryTone {
-    if (service == ServiceStatus.outOfService) return StatusTone.oos;
     if (occupancy == OccupancyStatus.occupied) return StatusTone.occupied;
+    if (service == ServiceStatus.outOfService) return StatusTone.oos;
     if (isReady) return StatusTone.ready;
     return cleaning.tone;
   }
 
   /// Nhãn một dòng cùng thứ tự ưu tiên với [summaryTone].
   String get summaryLabel {
+    if (occupancy == OccupancyStatus.occupied) {
+      return service == ServiceStatus.outOfService ? 'Đang ở • Có sự cố' : 'Đang ở';
+    }
     if (service == ServiceStatus.outOfService) return 'Ngừng phục vụ';
-    if (occupancy == OccupancyStatus.occupied) return 'Đang ở';
     if (isReady) return 'Sẵn sàng';
     return cleaning.label;
   }
