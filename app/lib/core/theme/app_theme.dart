@@ -62,6 +62,16 @@ class AppColors {
   static const Color neutralBg = Color(0xFFEFEBE3);
   static const Color dotMuted = Color(0xFFBDB5A7);
 
+  // Màu khối ô phòng PMS (Full Solid Block) - Rõ nét, nhận diện từ xa
+  static const Color solidReady = Color(0xFF229954);
+  static const Color solidOccupied = Color(0xFF2563EB);
+  static const Color solidHourly = Color(0xFF0E7490);
+  static const Color solidOverdue = Color(0xFFDC2626);
+  static const Color solidDirty = Color(0xFFD97706);
+  static const Color solidCleaning = Color(0xFF7C3AED);
+  static const Color solidInspect = Color(0xFF9C2F6B);
+  static const Color solidOos = Color(0xFF64748B);
+
   // Ô phòng ngừng phục vụ
   static const Color oosSurface = Color(0xFFF3F0EA);
   static const Color oosHatch = Color(0xFFDDD7CB);
