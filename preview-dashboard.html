@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>So Sánh UI Ô Phòng Chuẩn PMS - Khách Sạn Di Động</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #F4F6F9; }
+  </style>
+</head>
+<body class="p-8 text-[#1E293B]">
+
+  <div class="max-w-7xl mx-auto space-y-10">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-6 border-b border-slate-200">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">SO SÁNH 2 PHONG CÁCH UI Ô PHÒNG CHUẨN PMS THỰC TẾ</h1>
+        <p class="text-sm text-slate-500 mt-1">Khắc phục triệt để lỗi màu nhạt, chữ nhỏ rườm rà. Lễ tân đứng xa 3m vẫn nhận diện được ngay lập tức.</p>
+      </div>
+      <div class="flex items-center gap-3 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold">
+        <span class="text-slate-400 pl-2">Xem thử nghiệm:</span>
+        <button onclick="document.getElementById('pa1').scrollIntoView({behavior:'smooth'})" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Phương án 1 (Khối màu đậm)</button>
+        <button onclick="document.getElementById('pa2').scrollIntoView({behavior:'smooth'})" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Phương án 2 (Thẻ 2 tầng)</button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PHƯƠNG ÁN 1: KHỐI MÀU NGUYÊN BẢN (SOLID BLOCK) -->
+    <!-- ========================================== -->
+    <section id="pa1" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+      <div>
+        <div class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Được 90% phần mềm khách sạn (KiotViet, EzCloud, Pos365) áp dụng</div>
+        <h2 class="text-xl font-bold text-slate-900">PHƯƠNG ÁN 1: KHỐI MÀU NGUYÊN BẢN (FULL SOLID COLOR BLOCK)</h2>
+        <p class="text-sm text-slate-500 mt-1">
+          • <b>Không viền mờ, không divider, không icon phụ rối mắt.</b> Toàn bộ ô phủ màu trạng thái cực kỳ nổi bật.<br>
+          • <b>Số phòng to đùng (22px) màu trắng</b> ở vị trí trọng tâm. Dưới là thanh trạng thái rút gọn (Trống / Giờ trả / Phút lố).
+        </p>
+      </div>
+
+      <!-- 6 Trạng thái mẫu PA1 -->
+      <div class="grid grid-cols-6 gap-3.5">
+        
+        <!-- 101: Ready -->
+        <div class="bg-[#229954] text-white rounded-xl p-3 shadow-sm hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">101</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white">ĐƠN</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#229954] font-bold text-xs shadow-sm">
+            ✓ TRỐNG
+          </div>
+        </div>
+
+        <!-- 102: Occupied Overnight -->
+        <div class="bg-[#2563EB] text-white rounded-xl p-3 shadow-sm hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">102</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white">ĐÔI</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#2563EB] font-bold text-xs shadow-sm">
+            TRẢ 12:00
+          </div>
+        </div>
+
+        <!-- 104: Hourly -->
+        <div class="bg-[#0E7490] text-white rounded-xl p-3 shadow-sm hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">104</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white">VIP</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#0E7490] font-bold text-xs shadow-sm">
+            ⏱ CÒN 35p
+          </div>
+        </div>
+
+        <!-- 203: Overdue -->
+        <div class="bg-[#DC2626] text-white rounded-xl p-3 shadow-md hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28 ring-4 ring-red-200 animate-pulse">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">203</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-red-600">LỐ GIỜ</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#DC2626] font-black text-xs shadow-sm">
+            ⚠️ LỐ +45p
+          </div>
+        </div>
+
+        <!-- 107: Dirty -->
+        <div class="bg-[#D97706] text-white rounded-xl p-3 shadow-sm hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">107</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white">ĐÔI</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#D97706] font-bold text-xs shadow-sm">
+            🧹 CHƯA DỌN
+          </div>
+        </div>
+
+        <!-- 208: OOS -->
+        <div class="bg-[#64748B] text-white rounded-xl p-3 shadow-sm hover:scale-105 transition cursor-pointer flex flex-col justify-between h-28 opacity-90">
+          <div class="flex justify-between items-start">
+            <span class="text-2xl font-black tracking-tight">208</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/20 text-white">SỬA</span>
+          </div>
+          <div class="bg-white rounded-lg py-1 px-2 text-center text-[#64748B] font-bold text-xs shadow-sm">
+            🔧 TẠM KHÓA
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mô phỏng 1 tầng nhìn từ xa -->
+      <div class="pt-4 border-t border-slate-100">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Mô phỏng 1 tầng 10 phòng khi nhìn tổng thể:</div>
+        <div class="grid grid-cols-10 gap-2">
+          <div class="bg-[#229954] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">101</div><div class="bg-white text-[#229954] rounded text-[10px] font-bold mt-1 py-0.5">TRỐNG</div></div>
+          <div class="bg-[#2563EB] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">102</div><div class="bg-white text-[#2563EB] rounded text-[10px] font-bold mt-1 py-0.5">12:00</div></div>
+          <div class="bg-[#229954] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">103</div><div class="bg-white text-[#229954] rounded text-[10px] font-bold mt-1 py-0.5">TRỐNG</div></div>
+          <div class="bg-[#0E7490] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">104</div><div class="bg-white text-[#0E7490] rounded text-[10px] font-bold mt-1 py-0.5">⏱ 35p</div></div>
+          <div class="bg-[#2563EB] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">105</div><div class="bg-white text-[#2563EB] rounded text-[10px] font-bold mt-1 py-0.5">12:00</div></div>
+          <div class="bg-[#D97706] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">106</div><div class="bg-white text-[#D97706] rounded text-[10px] font-bold mt-1 py-0.5">🧹 BẨN</div></div>
+          <div class="bg-[#DC2626] text-white rounded-lg p-2 text-center shadow-md ring-2 ring-red-300"><div class="font-extrabold text-base">107</div><div class="bg-white text-[#DC2626] rounded text-[10px] font-black mt-1 py-0.5">⚠️ +45p</div></div>
+          <div class="bg-[#2563EB] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">108</div><div class="bg-white text-[#2563EB] rounded text-[10px] font-bold mt-1 py-0.5">12:00</div></div>
+          <div class="bg-[#229954] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">109</div><div class="bg-white text-[#229954] rounded text-[10px] font-bold mt-1 py-0.5">TRỐNG</div></div>
+          <div class="bg-[#229954] text-white rounded-lg p-2 text-center shadow-sm"><div class="font-extrabold text-base">110</div><div class="bg-white text-[#229954] rounded text-[10px] font-bold mt-1 py-0.5">TRỐNG</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- PHƯƠNG ÁN 2: THẺ HAI TẦNG (SPLIT-TONE TILE) -->
+    <!-- ========================================== -->
+    <section id="pa2" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+      <div>
+        <div class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Được các PMS quốc tế (Cloudbeds, Mews) áp dụng</div>
+        <h2 class="text-xl font-bold text-slate-900">PHƯƠNG ÁN 2: THẺ HAI TẦNG TƯƠNG PHẢN (SPLIT-TONE TILE)</h2>
+        <p class="text-sm text-slate-500 mt-1">
+          • <b>Nửa trên là khối màu đậm</b> chứa số phòng to (nhìn số phòng rất rõ).<br>
+          • <b>Nửa dưới là nền trắng sạch sẽ</b> chứa 1 dòng trạng thái và 1 dòng phụ nhỏ. Trông thanh lịch, hiện đại.
+        </p>
+      </div>
+
+      <!-- 6 Trạng thái mẫu PA2 -->
+      <div class="grid grid-cols-6 gap-3.5">
+        
+        <!-- 101: Ready -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="bg-[#229954] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">101</span>
+            <span class="text-xs">✓</span>
+          </div>
+          <div class="p-2.5">
+            <div class="text-xs font-bold text-[#229954]">SẴN SÀNG</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Đơn • Bán ngay</div>
+          </div>
+        </div>
+
+        <!-- 102: Occupied -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="bg-[#2563EB] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">102</span>
+            <span class="text-xs">👤</span>
+          </div>
+          <div class="p-2.5">
+            <div class="text-xs font-bold text-[#2563EB]">ĐANG Ở</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Trả lúc 12:00</div>
+          </div>
+        </div>
+
+        <!-- 104: Hourly -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="bg-[#0E7490] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">104</span>
+            <span class="text-xs">⏱</span>
+          </div>
+          <div class="p-2.5">
+            <div class="text-xs font-bold text-[#0E7490]">THEO TIẾNG</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Còn 35 phút</div>
+          </div>
+        </div>
+
+        <!-- 203: Overdue -->
+        <div class="bg-white border-2 border-red-500 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer">
+          <div class="bg-[#DC2626] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">203</span>
+            <span class="text-xs">⚠️</span>
+          </div>
+          <div class="p-2.5 bg-red-50">
+            <div class="text-xs font-extrabold text-[#DC2626]">QUÁ GIỜ TRẢ</div>
+            <div class="text-[11px] text-red-600 font-semibold mt-0.5">Đã lố +45p</div>
+          </div>
+        </div>
+
+        <!-- 107: Dirty -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="bg-[#D97706] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">107</span>
+            <span class="text-xs">🧹</span>
+          </div>
+          <div class="p-2.5">
+            <div class="text-xs font-bold text-[#D97706]">CHƯA DỌN</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Khách vừa trả</div>
+          </div>
+        </div>
+
+        <!-- 208: OOS -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer opacity-80">
+          <div class="bg-[#64748B] text-white px-3 py-2 flex justify-between items-center">
+            <span class="text-xl font-black">208</span>
+            <span class="text-xs">🔧</span>
+          </div>
+          <div class="p-2.5">
+            <div class="text-xs font-bold text-[#64748B]">TẠM KHÓA</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Đang sửa chữa</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mô phỏng 1 tầng nhìn từ xa PA2 -->
+      <div class="pt-4 border-t border-slate-100">
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5">Mô phỏng 1 tầng 10 phòng khi nhìn tổng thể:</div>
+        <div class="grid grid-cols-10 gap-2">
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#229954] text-white py-1 text-center font-bold text-sm">101</div><div class="text-[10px] text-center font-bold text-[#229954] py-1">TRỐNG</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#2563EB] text-white py-1 text-center font-bold text-sm">102</div><div class="text-[10px] text-center font-bold text-[#2563EB] py-1">12:00</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#229954] text-white py-1 text-center font-bold text-sm">103</div><div class="text-[10px] text-center font-bold text-[#229954] py-1">TRỐNG</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#0E7490] text-white py-1 text-center font-bold text-sm">104</div><div class="text-[10px] text-center font-bold text-[#0E7490] py-1">35p</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#2563EB] text-white py-1 text-center font-bold text-sm">105</div><div class="text-[10px] text-center font-bold text-[#2563EB] py-1">12:00</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#D97706] text-white py-1 text-center font-bold text-sm">106</div><div class="text-[10px] text-center font-bold text-[#D97706] py-1">BẨN</div></div>
+          <div class="bg-white border-2 border-red-500 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#DC2626] text-white py-1 text-center font-bold text-sm">107</div><div class="text-[10px] text-center font-bold text-[#DC2626] py-1 bg-red-50">LỐ 45p</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#2563EB] text-white py-1 text-center font-bold text-sm">108</div><div class="text-[10px] text-center font-bold text-[#2563EB] py-1">12:00</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#229954] text-white py-1 text-center font-bold text-sm">109</div><div class="text-[10px] text-center font-bold text-[#229954] py-1">TRỐNG</div></div>
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm"><div class="bg-[#229954] text-white py-1 text-center font-bold text-sm">110</div><div class="text-[10px] text-center font-bold text-[#229954] py-1">TRỐNG</div></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>
