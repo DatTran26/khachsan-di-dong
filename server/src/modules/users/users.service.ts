@@ -19,8 +19,13 @@ import { toUserDto } from './users.dto.js';
  */
 type Actor = User;
 
+/** 409 khi SĐT đụng unique, kể cả hai request tạo cùng lúc. */
 const phoneTaken = () => new AppError(409, 'PHONE_TAKEN', MSG.phoneTaken);
 
+/**
+ * Quản lý đi tiếp. Lễ tân bị 403 nếu đích hoặc vai trò mới là MANAGER, hoặc người gọi không phải lễ tân.
+ * `target` null khi tạo mới — chỉ xét `newRole`.
+ */
 function assertCanManage(actor: Actor, target: Pick<User, 'role'> | null, newRole?: Role) {
   if (actor.role === 'MANAGER') return;
   if (actor.role !== 'RECEPTIONIST') throw new ForbiddenError();
@@ -30,26 +35,45 @@ function assertCanManage(actor: Actor, target: Pick<User, 'role'> | null, newRol
 // Mọi thao tác quản lý tài khoản chạy tuần tự (khóa tư vấn trong transaction) → hai người cùng khóa
 // hai quản lý cuối cùng một lúc cũng không làm hệ thống mất hết quản lý.
 const ACCOUNT_ADMIN_LOCK = 724001;
+
+/**
+ * Khóa tư vấn `724001` đến hết transaction để hai người không cùng hạ nốt quản lý cuối cùng.
+ * @param tx Transaction thao tác tài khoản.
+ */
 async function serializeAccountAdmin(tx: Prisma.TransactionClient) {
   await tx.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(${ACCOUNT_ADMIN_LOCK}::bigint)`;
 }
 
+/**
+ * Chặn khóa hoặc đổi vai trò nếu `target` là quản lý ACTIVE duy nhất.
+ * Tài khoản quản lý đang khóa hoặc chờ kích hoạt không tính là "cuối cùng".
+ * @param message Câu 409 `LAST_MANAGER` (khóa khác với đổi vai trò).
+ */
 async function assertNotLastActiveManager(tx: Prisma.TransactionClient, target: User, message: string) {
   if (target.role !== 'MANAGER' || target.status !== 'ACTIVE') return;
   const others = await tx.user.count({ where: { role: 'MANAGER', status: 'ACTIVE', id: { not: target.id } } });
   if (others === 0) throw new AppError(409, 'LAST_MANAGER', message);
 }
 
+/**
+ * Đọc tài khoản trong transaction. Không có thì 404 "Tài khoản không tồn tại."
+ * @param id UUID. Không lọc theo quyền — `assertCanManage` chạy sau.
+ */
 async function loadTarget(tx: Prisma.TransactionClient, id: string) {
   const target = await tx.user.findUnique({ where: { id } });
   if (!target) throw new NotFoundError('Tài khoản không tồn tại.');
   return target;
 }
 
+/** @returns `true` khi Prisma báo P2002. Lỗi khác trả `false`. */
 function isUniqueViolation(error: unknown) {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
 }
 
+/**
+ * Ghi nhật ký thao tác tài khoản. Không đưa hash mật khẩu vào `changes`.
+ * @returns Promise của `writeAudit`.
+ */
 function audit(tx: Prisma.TransactionClient, actor: Actor, action: string, target: User, changes: AuditChange[] = []) {
   return writeAudit(tx, {
     actorId: actor.id,
@@ -62,12 +86,26 @@ function audit(tx: Prisma.TransactionClient, actor: Actor, action: string, targe
   });
 }
 
+/**
+ * Mọi tài khoản, sắp theo role rồi họ tên.
+ *
+ * Không lọc theo người gọi: lễ tân cũng nhận tài khoản quản lý (DTO không có hash).
+ * Route đã chặn nhân viên. Không phân trang.
+ * @returns Mảng DTO.
+ */
 export async function listUsers() {
   const users = await prisma.user.findMany({ orderBy: [{ role: 'asc' }, { fullName: 'asc' }] });
   return users.map(toUserDto);
 }
 
-/** Tạo TK: sinh MK tạm, trạng thái "Chờ kích hoạt", trả MK tạm MỘT lần (FR-auth-roles-005). */
+/**
+ * Tạo tài khoản: sinh mật khẩu tạm, trạng thái "Chờ kích hoạt", trả mật khẩu một lần (FR-auth-roles-005).
+ *
+ * `onDuty` mặc định false theo schema. Trùng SĐT → 409. Nhật ký không chứa mật khẩu tạm;
+ * mật khẩu chỉ nằm trong object trả về cho người tạo.
+ * @param input Họ tên, SĐT, vai trò đã qua zod ở route.
+ * @returns `{ user, tempPassword, message }`.
+ */
 export async function createUser(actor: Actor, input: { fullName: string; phone: string; role: Role }) {
   assertCanManage(actor, null, input.role);
   const tempPassword = generateTempPassword();
@@ -95,7 +133,14 @@ export async function createUser(actor: Actor, input: { fullName: string; phone:
   }
 }
 
-/** Sửa họ tên / SĐT / vai trò / đang trực — kèm version (chống ghi đè). */
+/**
+ * Sửa họ tên, SĐT, vai trò, hoặc đang trực — kèm version (chống ghi đè).
+ *
+ * Đổi vai trò của quản lý ACTIVE cuối cùng → 409. Bật `onDuty` của STAFF
+ * (từ false sang true) gọi `assignPendingTasks` trong cùng transaction.
+ * Patch rỗng vẫn đi qua `updateWithVersion` nên vẫn tăng version.
+ * @returns `{ user, message }` không kèm mật khẩu.
+ */
 export async function updateUser(
   actor: Actor,
   id: string,
@@ -126,7 +171,13 @@ export async function updateUser(
   }
 }
 
-/** Khóa TK → hủy ngay phiên đang mở (FR-auth-roles-009, SC-auth-roles-05). */
+/**
+ * Khóa tài khoản và hủy phiên đang mở (FR-auth-roles-009, SC-auth-roles-05).
+ *
+ * Không được tự khóa mình. Không khóa quản lý ACTIVE cuối cùng.
+ * Không kiểm tài khoản đã LOCKED sẵn — gọi lại vẫn UPDATE status và tăng version.
+ * @returns DTO và câu xác nhận. Không trả mật khẩu.
+ */
 export async function lockUser(actor: Actor, id: string, version: number) {
   return withTransaction(async (tx, enqueue) => {
     await serializeAccountAdmin(tx);
@@ -142,7 +193,13 @@ export async function lockUser(actor: Actor, id: string, version: number) {
   });
 }
 
-/** Mở khóa → MK tạm mới, "Chờ kích hoạt", đếm sai về 0 (FR-auth-roles-010). */
+/**
+ * Mở khóa: mật khẩu tạm mới, "Chờ kích hoạt", đếm sai về 0 (FR-auth-roles-010).
+ *
+ * Chỉ khi status hiện là `LOCKED`, nếu không 409 `NOT_LOCKED`. Không mở phiên.
+ * Mật khẩu tạm trả một lần trong response, không ghi vào nhật ký (nhật ký chỉ có đổi status).
+ * @returns `{ user, tempPassword, message }`.
+ */
 export async function unlockUser(actor: Actor, id: string, version: number) {
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
@@ -167,6 +224,10 @@ export async function unlockUser(actor: Actor, id: string, version: number) {
 /**
  * Đặt lại MK → MK tạm mới, "Chờ kích hoạt" (FR-auth-roles-008).
  * Hủy phiên đang mở: người dùng không biết MK tạm nên phải đăng nhập lại bằng MK tạm rồi đổi MK.
+ *
+ * Tài khoản đang LOCKED → 409, phải dùng mở khóa. Tự đặt lại mật khẩu của chính mình
+ * thì không hủy phiên (`target.id === actor.id`); người khác bị `PASSWORD_RESET`.
+ * @returns `{ user, tempPassword, message }`. Hash mới đã lưu, plaintext chỉ ở response.
  */
 export async function resetPassword(actor: Actor, id: string, version: number) {
   const tempPassword = generateTempPassword();

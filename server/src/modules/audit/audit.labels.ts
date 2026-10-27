@@ -134,11 +134,29 @@ const STATUS_BY_ENTITY: Partial<Record<AuditEntityType, Record<string, string>>>
   MAINTENANCE_TASK: { OPEN: 'chờ nhận', IN_PROGRESS: 'đang sửa', DONE: 'hoàn tất', CANCELLED: 'đã hủy' },
 };
 
+/**
+ * Nhãn tiếng Việt của một trường nhật ký.
+ *
+ * `status` đổi theo loại đối tượng (việc dọn, lượt lưu trú, …). Trường khác tra `FIELD_LABELS`.
+ * Không có trong bảng thì trả nguyên mã kỹ thuật để không nuốt dữ liệu.
+ * @param entityType Loại đối tượng của dòng change (đã fallback về dòng chính ở DTO).
+ * @param field Mã trường lưu trong CSDL (`occupancy`, `phone`, …).
+ * @returns Cụm chữ cho cột nhãn, không kèm giá trị.
+ */
 export function fieldLabel(entityType: AuditEntityType, field: string): string {
   if (field === 'status') return STATUS_FIELD_BY_ENTITY[entityType];
   return FIELD_LABELS[field] ?? field;
 }
 
+/**
+ * Nhãn tiếng Việt của một giá trị trước/sau.
+ *
+ * `null` hoặc chuỗi rỗng thành "—". `status` ưu tiên bảng theo loại đối tượng
+ * rồi mới tới `VALUE_LABELS`, vì `IN_PROGRESS` nghĩa khác nhau giữa dọn và sửa.
+ * Giá trị không nằm trong bảng (SĐT, họ tên, ghi chú) được trả nguyên văn.
+ * @param value Chuỗi đã lưu trong `audit_log_changes`, hoặc null.
+ * @returns Cụm hiển thị. Không định dạng lại số điện thoại.
+ */
 export function valueLabel(entityType: AuditEntityType, field: string, value: string | null): string {
   if (value === null || value === '') return '—';
   if (field === 'status') return STATUS_BY_ENTITY[entityType]?.[value] ?? VALUE_LABELS[value] ?? value;
@@ -154,7 +172,11 @@ const TIME_FORMAT = new Intl.DateTimeFormat('vi-VN', {
   hour12: false,
 });
 
-/** "14:32 05/10" theo giờ Việt Nam. */
+/**
+ * "14:32 05/10" theo giờ Việt Nam (`Asia/Ho_Chi_Minh`), 24 giờ, không kèm năm.
+ * @param date Mốc `occurredAt`. Không đổi timezone của process — formatter tự chuyển.
+ * @returns Chuỗi đã ghép giờ, phút, ngày, tháng. Không có giây.
+ */
 export function formatTime(date: Date): string {
   const parts = Object.fromEntries(TIME_FORMAT.formatToParts(date).map((p) => [p.type, p.value]));
   return `${parts.hour}:${parts.minute} ${parts.day}/${parts.month}`;

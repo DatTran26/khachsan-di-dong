@@ -37,10 +37,12 @@ const listQuerySchema = z.object({
 
 // ---- Xem --------------------------------------------------------------------
 
+/** GET `/` — lọc phòng. Mọi vai trò đã đăng nhập. Query sai enum → 400. */
 roomsRouter.get('/', async (req, res) => {
   res.json({ data: await listRooms(listQuerySchema.parse(req.query)) });
 });
 
+/** GET `/:id` — một phòng. UUID sai → 400; không có phòng → 404. */
 roomsRouter.get('/:id', async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await getRoom(id) });
@@ -48,11 +50,13 @@ roomsRouter.get('/:id', async (req, res) => {
 
 // ---- Danh mục (chỉ quản lý — chốt nhóm 25/09/2026) ----------------------------
 
+/** POST `/` — thêm một phòng. Chỉ quản lý. 201 kèm DTO. */
 roomsRouter.post('/', requireRole('MANAGER'), async (req, res) => {
   const input = z.object({ number: roomNumber, floor, roomTypeId: z.string().uuid() }).parse(req.body);
   res.status(201).json({ data: await createRoom(authOf(res).user, input) });
 });
 
+/** POST `/bulk` — tạo dải số. Chỉ quản lý. Phải đăng ký trước các route `/:id` nếu cùng method; POST không đụng GET `/:id`. */
 roomsRouter.post('/bulk', requireRole('MANAGER'), async (req, res) => {
   const input = z
     .object({ floor, from: z.number().int().positive(), to: z.number().int().positive(), roomTypeId: z.string().uuid() })
@@ -60,6 +64,7 @@ roomsRouter.post('/bulk', requireRole('MANAGER'), async (req, res) => {
   res.status(201).json({ data: await createRoomRange(authOf(res).user, input) });
 });
 
+/** PATCH `/:id` — sửa số, tầng, loại. Chỉ quản lý. Body bắt buộc `version`. */
 roomsRouter.patch('/:id', requireRole('MANAGER'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   const { version: v, ...patch } = z
@@ -68,6 +73,7 @@ roomsRouter.patch('/:id', requireRole('MANAGER'), async (req, res) => {
   res.json({ data: await updateRoom(authOf(res).user, id, v, patch) });
 });
 
+/** DELETE `/:id` — xóa phòng. Chỉ quản lý. `version` nằm trong body; thành công thì 204 không body. */
 roomsRouter.delete('/:id', requireRole('MANAGER'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   await deleteRoom(authOf(res).user, id, z.object({ version }).parse(req.body).version);
@@ -76,6 +82,7 @@ roomsRouter.delete('/:id', requireRole('MANAGER'), async (req, res) => {
 
 // ---- Ngừng phục vụ thủ công (quản lý, lễ tân — FR-007/008) ----------------------
 
+/** POST `/:id/out-of-service` — đặt ngừng phục vụ tay. Quản lý hoặc lễ tân. Bắt buộc `reason`. */
 roomsRouter.post('/:id/out-of-service', requireRole('MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   const { version: v, ...input } = z
@@ -88,6 +95,7 @@ roomsRouter.post('/:id/out-of-service', requireRole('MANAGER', 'RECEPTIONIST'), 
   res.json({ data: await placeOutOfService(authOf(res).user, id, v, input) });
 });
 
+/** POST `/:id/back-in-service` — gỡ ngừng phục vụ tay. Quản lý hoặc lễ tân. */
 roomsRouter.post('/:id/back-in-service', requireRole('MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await liftOutOfService(authOf(res).user, id, z.object({ version }).parse(req.body).version) });
@@ -95,6 +103,7 @@ roomsRouter.post('/:id/back-in-service', requireRole('MANAGER', 'RECEPTIONIST'),
 
 // ---- Nhận / trả phòng (chỉ lễ tân — BR-auth-roles-002) -------------------------
 
+/** POST `/:id/check-in` — nhận khách. Chỉ lễ tân (quản lý bị 403 dù biết version). */
 roomsRouter.post('/:id/check-in', requireRole('RECEPTIONIST'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   const { version: v, ...input } = z
@@ -109,6 +118,7 @@ roomsRouter.post('/:id/check-in', requireRole('RECEPTIONIST'), async (req, res) 
   res.json({ data: await checkIn(authOf(res).user, id, v, input) });
 });
 
+/** POST `/:id/check-out` — trả phòng. Chỉ lễ tân. Body chỉ cần `version` của phòng. */
 roomsRouter.post('/:id/check-out', requireRole('RECEPTIONIST'), async (req, res) => {
   const { id } = idParams.parse(req.params);
   res.json({ data: await checkOut(authOf(res).user, id, z.object({ version }).parse(req.body).version) });

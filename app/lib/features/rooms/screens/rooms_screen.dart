@@ -17,23 +17,29 @@ import 'room_types_screen.dart';
 class RoomsScreen extends ConsumerStatefulWidget {
   const RoomsScreen({super.key});
 
+  /// Tạo state chọn phòng và ô tìm. Danh sách do [roomsProvider] tự tải.
   @override
   ConsumerState<RoomsScreen> createState() => _RoomsScreenState();
 }
 
+/// Chọn phòng trên bảng rộng và mở sheet trên màn hẹp.
 class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   String? _selectedId;
   final _search = TextEditingController();
 
+  /// Giải phóng controller ô tìm. Không đổi bộ lọc trên provider.
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
   }
 
+  /// Ghi bộ lọc mới vào [roomsProvider]. Không gọi API.
   void _setFilter(RoomsFilter f) =>
       ref.read(roomsProvider.notifier).setFilter(f);
 
+  /// Bảng hoặc lưới phòng theo bề ngang. Màn rộng gắn [RoomDetailPanel] bên phải.
+  /// Lỗi khi danh sách rỗng thì [ErrorState], không vẽ bảng trống.
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(roomsProvider);
@@ -155,6 +161,7 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   }
 }
 
+/// Ô tìm, lọc tầng / sẵn sàng / ngừng phục vụ. Nút loại phòng và thêm phòng chỉ khi [canCreate].
 class _Toolbar extends StatelessWidget {
   final RoomsFilter filter;
   final List<int> floors;
@@ -172,6 +179,7 @@ class _Toolbar extends StatelessWidget {
     required this.onChanged,
   });
 
+  /// Gọi [onChanged] khi đổi ô tìm hoặc pill. Mở màn loại phòng hoặc form thêm, không tự ghi phòng.
   @override
   Widget build(BuildContext context) {
     return Wrap(
@@ -229,6 +237,7 @@ class _Toolbar extends StatelessWidget {
   }
 }
 
+/// Bảng phòng trên màn rộng. Bấm hàng gọi [onSelect], không mở sheet.
 class _RoomTable extends StatelessWidget {
   final List<Room> rooms;
   final int total;
@@ -250,8 +259,10 @@ class _RoomTable extends StatelessWidget {
     return DateFormat(today ? 'HH:mm' : 'HH:mm dd/MM').format(l);
   }
 
+  /// Hàng tiêu đề, từng phòng và dòng đếm. Không gọi API.
   @override
   Widget build(BuildContext context) {
+    /// Ô một cột theo flex [_flex], căn trái.
     Widget cell(int i, Widget child) => Expanded(
         flex: _flex[i],
         child: Align(alignment: Alignment.centerLeft, child: child));

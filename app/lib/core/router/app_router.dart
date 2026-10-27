@@ -16,6 +16,11 @@ import '../../features/shell/screens/app_shell.dart';
 import '../../shared/widgets/task_link.dart';
 import 'nav.dart';
 
+/// Router gốc. Nghe [authProvider] qua [ValueNotifier] để redirect.
+///
+/// Chưa [initialized] thì không redirect. Chưa đăng nhập thì về `/dang-nhap`.
+/// Còn mật khẩu tạm thì chỉ ở `/doi-mat-khau`. Đường ngoài quyền vai trò
+/// bị đưa về màn home của vai trò đó. Notifier sống cùng provider, không dispose.
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier<AuthState>(ref.read(authProvider));
   ref.listen(authProvider, (_, next) => notifier.value = next);
@@ -114,6 +119,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         redirect: (_, __) => '/dashboard',
       ),
     ],
+    /// Trang không khớp route. Nút về `/` để redirect theo vai trò.
     errorBuilder: (context, state) => Scaffold(
       body: Center(
         child: Column(

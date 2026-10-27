@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../models/housekeeping_photo.dart';
 
+/// Ảnh của một việc, cờ tải, lỗi và tập nhóm đang upload.
 class TaskPhotosState {
   final TaskPhotos? data;
   final bool isLoading;
@@ -18,6 +19,7 @@ class TaskPhotosState {
     this.uploading = const {},
   });
 
+  /// Bản sao. [clearError] true thì xóa lỗi. [uploading] thay cả set khi được truyền.
   TaskPhotosState copyWith({
     TaskPhotos? data,
     bool? isLoading,
@@ -38,10 +40,13 @@ class TaskPhotosState {
 class TaskPhotosNotifier extends StateNotifier<TaskPhotosState> {
   final String taskId;
 
+  /// Side effect: gọi [load] khi tạo.
   TaskPhotosNotifier(this.taskId) : super(const TaskPhotosState()) {
     load();
   }
 
+  /// GET `/housekeeping/tasks/{id}/photos`. Bỏ qua nếu notifier đã dispose.
+  /// [ApiException] ghi lỗi, không ném tiếp.
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
@@ -71,12 +76,14 @@ class TaskPhotosNotifier extends StateNotifier<TaskPhotosState> {
     }
   }
 
+  /// DELETE `/housekeeping/photos/{id}` rồi [load] nếu còn mounted. Ném [ApiException] nếu ảnh đã khóa.
   Future<void> delete(HousekeepingPhoto photo) async {
     await apiClient.delete('/housekeeping/photos/${photo.id}');
     if (mounted) await load();
   }
 }
 
+/// Ảnh theo [taskId]. Auto-dispose khi không còn widget xem.
 final taskPhotosProvider = StateNotifierProvider.autoDispose
     .family<TaskPhotosNotifier, TaskPhotosState, String>(
         (ref, taskId) => TaskPhotosNotifier(taskId));

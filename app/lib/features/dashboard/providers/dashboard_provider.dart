@@ -15,9 +15,11 @@ class OverdueTask {
   const OverdueTask(
       {required this.type, required this.taskId, required this.roomId});
 
+  /// `true` khi [type] là `HOUSEKEEPING`. Mọi mã khác coi là việc sửa.
   bool get isHousekeeping => type == 'HOUSEKEEPING';
 }
 
+/// Chỉ số tổng quan một thời điểm, khớp `GET /dashboard/summary`.
 class DashboardSummary {
   final int totalRooms;
   final int occupied;
@@ -51,6 +53,7 @@ class DashboardSummary {
     this.asOf,
   });
 
+  /// Bản rỗng trước lần tải thành công. [asOf] null để UI không hiện số 0 như dữ liệu thật.
   static const empty = DashboardSummary(
     totalRooms: 0,
     occupied: 0,
@@ -73,13 +76,21 @@ class DashboardSummary {
     return '$s%';
   }
 
+  /// Việc quá hạn của phòng [roomId]. Rỗng nếu phòng không có việc trong `overdue.tasks`.
   List<OverdueTask> overdueTasksOf(String roomId) =>
       overdueTasks.where((t) => t.roomId == roomId).toList();
 
+  /// Số phòng `DIRTY`. Thiếu khóa trong [cleaning] thì 0.
   int get needsCleaning => cleaning['DIRTY'] ?? 0;
+
+  /// Số phòng `CLEANING`. Thiếu khóa thì 0.
   int get cleaningNow => cleaning['CLEANING'] ?? 0;
+
+  /// Số phòng `PENDING_INSPECTION`. Thiếu khóa thì 0.
   int get pendingInspection => cleaning['PENDING_INSPECTION'] ?? 0;
 
+  /// Dựng từ JSON summary. Khối lồng nhau thiếu thì coi là rỗng, không ném.
+  /// [overdueRoomIds] lấy từ danh sách task, không đọc một mảng id riêng.
   factory DashboardSummary.fromJson(Map<String, dynamic> json) {
     final cleaningMap = (json['cleaning'] as Map<String, dynamic>?)
             ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
@@ -115,6 +126,7 @@ class DashboardSummary {
   }
 }
 
+/// Trạng thái tải chỉ số: dữ liệu hiện có, cờ đang tải, thông báo lỗi gần nhất.
 class DashboardSummaryState {
   final DashboardSummary summary;
   final bool isLoading;
@@ -126,6 +138,7 @@ class DashboardSummaryState {
     this.error,
   });
 
+  /// Bản sao. [clearError] true thì xóa lỗi kể cả khi [error] được truyền.
   DashboardSummaryState copyWith({
     DashboardSummary? summary,
     bool? isLoading,
@@ -139,6 +152,7 @@ class DashboardSummaryState {
       );
 }
 
+/// Giữ [DashboardSummary] và tải lại từ API. Tự gọi [load] trong constructor.
 class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   /// `false` → vai trò không được xem chỉ số (nhân viên / chưa đăng nhập): không gọi API.
   final bool enabled;
@@ -146,6 +160,8 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   /// Gọi `GET /dashboard/summary` — tách ra để test thay bằng bản giả.
   final Future<Map<String, dynamic>> Function() _fetch;
 
+  /// [enabled] false vẫn tạo state rỗng nhưng [load] không gọi API.
+  /// Side effect: gọi [load] ngay khi khởi tạo.
   DashboardSummaryNotifier({
     this.enabled = true,
     Future<Map<String, dynamic>> Function()? fetch,
@@ -164,6 +180,7 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
     });
   }
 
+  /// Hủy timer gom sự kiện rồi hủy notifier. Không gọi API.
   @override
   void dispose() {
     _debounce?.cancel();
@@ -173,6 +190,9 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   /// Lượt tải mới nhất — sự kiện realtime dồn dập thì phản hồi của lượt cũ về sau bị bỏ, không ghi đè số mới.
   int _loadSeq = 0;
 
+  /// GET `/dashboard/summary` rồi ghi state.
+  /// [silent] true không bật cờ tải (reload realtime). [enabled] false thì thoát ngay, không gọi mạng.
+  /// Lỗi (kể cả dữ liệu sai dạng) ghi [DashboardSummaryState.error], không ném tiếp. Phản hồi của lượt cũ bị bỏ.
   Future<void> load({bool silent = false}) async {
     if (!enabled) return;
     final seq = ++_loadSeq;
@@ -196,6 +216,9 @@ class DashboardSummaryNotifier extends StateNotifier<DashboardSummaryState> {
   }
 }
 
+/// Chỉ số dashboard theo vai trò đang đăng nhập.
+/// Nhân viên hoặc chưa có user: notifier tắt, không gọi API và không nghe socket.
+/// Quản lý và lễ tân: [DashboardSummaryNotifier.scheduleReload] khi phòng đổi hoặc việc dọn/sửa đổi.
 final dashboardSummaryProvider =
     StateNotifierProvider<DashboardSummaryNotifier, DashboardSummaryState>(
         (ref) {

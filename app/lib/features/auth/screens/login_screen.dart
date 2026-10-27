@@ -13,10 +13,12 @@ import '../widgets/login_slideshow.dart';
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
+  /// Tạo state form đăng nhập.
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
+/// SĐT, mật khẩu, cờ ẩn ký tự và lỗi đăng nhập.
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneCtrl = TextEditingController();
@@ -24,6 +26,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure = true;
   String? _error;
 
+  /// Giải phóng controller SĐT và mật khẩu.
   @override
   void dispose() {
     _phoneCtrl.dispose();
@@ -31,6 +34,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  /// [AuthNotifier.login]. Thành công thì vào đổi mật khẩu nếu còn MK tạm, không thì [homeFor].
+  /// [ApiException] hiện trên form, không snack.
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _error = null);
@@ -47,6 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  /// Form giữa màn. Rộng từ 900px thì có [_BrandPanel]. Hiện [AuthNotifier.revokedMessage] nếu phiên vừa bị thu.
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
@@ -214,9 +220,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
+/// Cột trái espresso trên màn rộng: khẩu hiệu và ba pill trục phòng.
 class _BrandPanel extends StatelessWidget {
   const _BrandPanel();
 
+  /// Không có tương tác. Không đọc auth.
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -278,10 +286,12 @@ class _BrandPanel extends StatelessWidget {
   }
 }
 
+/// Chip chữ trên nền tối của [_BrandPanel].
 class _Pill extends StatelessWidget {
   final String text;
   const _Pill(this.text);
 
+  /// [text] trên nền trắng mờ. Không bấm được.
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),

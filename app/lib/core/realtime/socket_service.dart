@@ -1,12 +1,22 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
+/// Callback nhận JSON phòng từ `room:updated` hoặc `room:created`.
 typedef RoomJsonCallback = void Function(Map<String, dynamic> json);
+/// Callback khi `room:deleted`. [roomId] là UUID, không phải số phòng.
 typedef RoomIdCallback = void Function(String roomId);
+/// Callback nhận DTO việc dọn hoặc việc sửa.
 typedef TaskJsonCallback = void Function(Map<String, dynamic> json);
+/// Callback snackbar. [kind] là mã server. [taskId] và [roomId] có thể null.
 typedef NotificationCallback = void Function(String kind, String message, String? taskId, String? roomId);
+/// Callback khi phiên chết. [reason] là mã (`LOGGED_OUT`, `EXPIRED`, …) hoặc mã lỗi kết nối.
 typedef SessionRevokedCallback = void Function(String reason, String message);
+/// Callback đổi trạng thái socket. `true` sau `onConnect`, `false` khi đứt hoặc lỗi.
 typedef ConnectionCallback = void Function(bool connected);
 
+/// Một kết nối Socket.IO tới backend.
+///
+/// Mọi thao tác ghi vẫn đi REST. Socket chỉ nhận sự kiện.
+/// [connect] hủy socket cũ trước khi mở socket mới. URL mặc định localhost.
 class SocketService {
   io.Socket? _socket;
 
@@ -24,8 +34,17 @@ class SocketService {
   void Function()? onTaskChanged;
 
   bool _connected = false;
+
+  /// `true` chỉ sau sự kiện connect, không phải sau khi gọi [connect].
   bool get isConnected => _connected;
 
+  /// Mở socket với [token] phiên. Handshake `auth.token`.
+  ///
+  /// Bật reconnect của thư viện. Lỗi `connect_error` mà mã là
+  /// `UNAUTHENTICATED`, `SESSION_EXPIRED` hoặc `SESSION_INVALID` thì gọi
+  /// [onSessionRevoked]. Mã khác (kể cả `PASSWORD_CHANGE_REQUIRED`) thì tự
+  /// [connect] lại sau 3 giây nếu vẫn là cùng instance và chưa nối.
+  /// [url] mặc định `http://localhost:3000`, không đọc cấu hình flavor.
   void connect(String token, {String url = 'http://localhost:3000'}) {
     _socket?.dispose();
     _socket = io.io(
@@ -128,14 +147,18 @@ class SocketService {
     _socket!.connect();
   }
 
+  /// Đóng socket và đánh dấu ngắt. Không gọi [onConnectionChanged].
+  /// Không xóa các callback đã gán.
   void disconnect() {
     _socket?.dispose();
     _socket = null;
     _connected = false;
   }
 
+  /// Chuỗi debug, không gồm token.
   @override
   String toString() => 'SocketService(connected: $_connected)';
 }
 
+/// Singleton. Auth và các provider gán callback trên instance này.
 final socketService = SocketService();
