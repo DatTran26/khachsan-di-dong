@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khách Sạn Di Động - 5 Trường Hợp Trực Quan Chuẩn PMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Be Vietnam Pro', sans-serif; background-color: #F8F6F1; }
+  </style>
+</head>
+<body class="p-8 text-[#1F1B16]">
+
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-6 border-b border-[#E7E1D5]">
+      <div>
+        <span class="inline-block px-3 py-1 bg-[#E7F3E8] text-[#229954] text-xs font-bold rounded-full mb-2">ĐÃ ĐỒNG BỘ TOÀN DIỆN VÀO CODE VÀ TEST</span>
+        <h1 class="text-2xl font-black text-[#1F1B16] tracking-tight">THIẾT KẾ TRỰC QUAN CHO 5 TRƯỜNG HỢP THỰC TẾ</h1>
+        <p class="text-sm text-[#6B6356] mt-1">Chuẩn giao diện quầy Lễ tân (PMS): Nhận diện từ xa bằng khối màu + Thông tin chi tiết ngữ cảnh.</p>
+      </div>
+      <div class="text-right">
+        <span class="text-xs text-[#8A7E6B] font-medium">Khách Sạn Di Động • Flutter App</span>
+        <div class="text-sm font-bold text-[#1F1B16]">Lưới phòng Dashboard</div>
+      </div>
+    </div>
+
+    <!-- 5 Ô phòng thực tế -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
+      <!-- Case 1: Trống sẵn sàng -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-emerald-800">1. TRỐNG SẴN SÀNG</div>
+        <div class="bg-[#229954] text-white rounded-xl p-3 shadow-md border border-white/20 flex flex-col justify-between h-28 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-xl font-black tracking-tight">101</span>
+            <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20">DLX</span>
+            <span class="text-sm">✓</span>
+          </div>
+          <div class="h-px bg-white/25"></div>
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wide uppercase">SẴN SÀNG</div>
+            <div class="text-[9.5px] text-emerald-100 font-medium">Deluxe • Sẵn sàng đón</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-[#6B6356]">
+          <b>Nền xanh lá:</b> Mời đón khách. Có thể bán phòng ngay.
+        </div>
+      </div>
+
+      <!-- Case 2: Trống cần dọn -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-amber-800">2. TRỐNG CẦN DỌN</div>
+        <div class="bg-[#D97706] text-white rounded-xl p-3 shadow-md border border-white/20 flex flex-col justify-between h-28 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-xl font-black tracking-tight">102</span>
+            <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20">STD</span>
+            <span class="text-sm">🧹</span>
+          </div>
+          <div class="h-px bg-white/25"></div>
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wide uppercase">CẦN DỌN</div>
+            <div class="text-[9.5px] text-amber-100 font-medium">Khách vừa trả • Chờ dọn</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-[#6B6356]">
+          <b>Nền cam đất:</b> Cảnh báo bẩn. Không bán khi chưa sạch.
+        </div>
+      </div>
+
+      <!-- Case 3: Thuê qua đêm -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-blue-800">3. THUÊ QUA ĐÊM</div>
+        <div class="bg-[#2563EB] text-white rounded-xl p-3 shadow-md border border-white/20 flex flex-col justify-between h-28 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-xl font-black tracking-tight">201</span>
+            <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20">VIP</span>
+            <span class="text-sm">👤</span>
+          </div>
+          <div class="h-px bg-white/25"></div>
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wide uppercase">ĐANG Ở</div>
+            <div class="text-[9.5px] text-blue-100 font-medium">A. Tuấn • Trả 12:00 trưa</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-[#6B6356]">
+          <b>Nền xanh dương:</b> Có khách ở đêm. Hẹn trả 12h trưa.
+        </div>
+      </div>
+
+      <!-- Case 4: Thuê theo tiếng -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-cyan-800">4. THUÊ THEO TIẾNG</div>
+        <div class="bg-[#0E7490] text-white rounded-xl p-3 shadow-md border border-white/20 flex flex-col justify-between h-28 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-xl font-black tracking-tight">202</span>
+            <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20">STD</span>
+            <span class="text-sm">⏰</span>
+          </div>
+          <div class="h-px bg-white/25"></div>
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wide uppercase">THEO TIẾNG</div>
+            <div class="text-[9.5px] text-cyan-100 font-medium">Còn 35 phút (Hạn 16:15)</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-[#6B6356]">
+          <b>Nền xanh ngọc:</b> Đếm ngược thời gian còn lại.
+        </div>
+      </div>
+
+      <!-- Case 5: Khách ở quá giờ -->
+      <div class="space-y-2">
+        <div class="text-xs font-bold text-red-800">5. KHÁCH Ở QUÁ GIỜ</div>
+        <div class="bg-[#DC2626] text-white rounded-xl p-3 shadow-xl border-2 border-white ring-4 ring-red-400/50 flex flex-col justify-between h-28 hover:scale-105 transition cursor-pointer animate-pulse">
+          <div class="flex justify-between items-center">
+            <span class="text-xl font-black tracking-tight">203</span>
+            <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-white/20">VIP</span>
+            <span class="text-sm">⚠️</span>
+          </div>
+          <div class="h-px bg-white/25"></div>
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wide uppercase">QUÁ GIỜ TRẢ PHÒNG</div>
+            <div class="text-[9.5px] text-red-100 font-medium font-bold">Đã lố: +45 phút (từ 12:00)</div>
+          </div>
+        </div>
+        <div class="text-[11px] text-red-700 font-medium">
+          <b>Viền sáng & Nền đỏ:</b> Báo động khẩn cấp khách trễ hạn.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Minh họa trên lưới tầng thực tế -->
+    <div class="bg-white rounded-2xl p-6 border border-[#E7E1D5] shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h2 class="text-base font-bold text-[#1F1B16]">MÔ PHỎNG LƯỚI TẦNG 2 TRÊN DASHBOARD THỰC TẾ</h2>
+        <span class="text-xs text-slate-400">10 phòng / tầng</span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2.5">
+        
+        <!-- 201: Ready -->
+        <div class="bg-[#229954] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">201</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">ĐƠN</span>
+            <span class="text-xs">✓</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">SẴN SÀNG</div>
+            <div class="text-[8px] text-emerald-100 truncate">Sẵn sàng</div>
+          </div>
+        </div>
+
+        <!-- 202: Occupied Night -->
+        <div class="bg-[#2563EB] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">202</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">ĐÔI</span>
+            <span class="text-xs">👤</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">ĐANG Ở</div>
+            <div class="text-[8px] text-blue-100 truncate">H. Minh • 12:00</div>
+          </div>
+        </div>
+
+        <!-- 203: Hourly -->
+        <div class="bg-[#0E7490] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">203</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">VIP</span>
+            <span class="text-xs">⏰</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">THEO TIẾNG</div>
+            <div class="text-[8px] text-cyan-100 truncate">Còn 35p (16:15)</div>
+          </div>
+        </div>
+
+        <!-- 204: Overdue -->
+        <div class="bg-[#DC2626] text-white rounded-lg p-2 shadow-md border-2 border-white ring-2 ring-red-400 flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">204</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">DLX</span>
+            <span class="text-xs">⚠️</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">QUÁ GIỜ</div>
+            <div class="text-[8px] text-red-100 truncate">Lố +45p</div>
+          </div>
+        </div>
+
+        <!-- 205: Dirty -->
+        <div class="bg-[#D97706] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">205</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">STD</span>
+            <span class="text-xs">🧹</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">CẦN DỌN</div>
+            <div class="text-[8px] text-amber-100 truncate">Khách vừa trả</div>
+          </div>
+        </div>
+
+        <!-- 206: Cleaning -->
+        <div class="bg-[#7C3AED] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">206</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">ĐÔI</span>
+            <span class="text-xs">⏳</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">ĐANG DỌN</div>
+            <div class="text-[8px] text-purple-100 truncate">NV đang dọn</div>
+          </div>
+        </div>
+
+        <!-- 207: Inspect -->
+        <div class="bg-[#9C2F6B] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">207</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">VIP</span>
+            <span class="text-xs">📋</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">CHỜ DUYỆT</div>
+            <div class="text-[8px] text-pink-100 truncate">Chờ kiểm tra</div>
+          </div>
+        </div>
+
+        <!-- 208: OOS -->
+        <div class="bg-[#64748B] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">208</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">STD</span>
+            <span class="text-xs">🔧</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">TẠM KHÓA</div>
+            <div class="text-[8px] text-slate-200 truncate">Đang sửa chữa</div>
+          </div>
+        </div>
+
+        <!-- 209: Ready -->
+        <div class="bg-[#229954] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">209</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">ĐƠN</span>
+            <span class="text-xs">✓</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">SẴN SÀNG</div>
+            <div class="text-[8px] text-emerald-100 truncate">Sẵn sàng</div>
+          </div>
+        </div>
+
+        <!-- 210: Ready -->
+        <div class="bg-[#229954] text-white rounded-lg p-2 shadow-sm flex flex-col justify-between h-24 hover:scale-105 transition cursor-pointer">
+          <div class="flex justify-between items-center">
+            <span class="text-base font-black">210</span>
+            <span class="text-[8px] font-bold px-1 rounded bg-white/20">DLX</span>
+            <span class="text-xs">✓</span>
+          </div>
+          <div class="h-px bg-white/20"></div>
+          <div>
+            <div class="text-[9.5px] font-extrabold">SẴN SÀNG</div>
+            <div class="text-[8px] text-emerald-100 truncate">Sẵn sàng</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

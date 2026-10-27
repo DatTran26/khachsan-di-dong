@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider.dart';
 import 'package:khachsan_di_dong/features/dashboard/screens/dashboard_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
+import 'package:khachsan_di_dong/features/stays/providers/stays_provider.dart';
 
 import 'support/fakes.dart';
 
@@ -58,6 +59,7 @@ Future<void> _pump(WidgetTester tester, DashboardSummary summary) async {
       roomsProvider.overrideWith((ref) => FakeRooms(_rooms)),
       dashboardSummaryProvider
           .overrideWith((ref) => FakeDashboardSummary(summary)),
+      staysProvider.overrideWith((ref) => FakeStays()),
     ],
     child: const MaterialApp(home: Scaffold(body: DashboardScreen())),
   ));

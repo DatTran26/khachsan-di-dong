@@ -6,10 +6,12 @@ import 'package:khachsan_di_dong/features/housekeeping/providers/housekeeping_pr
 import 'package:khachsan_di_dong/features/housekeeping/providers/photos_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/room_types_provider.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
+import 'package:khachsan_di_dong/features/stays/providers/stays_provider.dart';
 import 'package:khachsan_di_dong/features/users/providers/users_provider.dart';
 import 'package:khachsan_di_dong/models/housekeeping_photo.dart';
 import 'package:khachsan_di_dong/models/housekeeping_task.dart';
 import 'package:khachsan_di_dong/models/room.dart';
+import 'package:khachsan_di_dong/models/stay.dart';
 import 'package:khachsan_di_dong/models/user.dart';
 
 /// Notifier giả dùng chung cho widget test — không gọi API.
@@ -30,6 +32,15 @@ class FakeDashboardSummary extends DashboardSummaryNotifier {
 
   @override
   Future<void> load({bool silent = false}) async {}
+}
+
+class FakeStays extends StaysNotifier {
+  FakeStays([List<Stay> stays = const []]) {
+    state = StaysState(stays: stays);
+  }
+
+  @override
+  Future<void> load() async {}
 }
 
 /// Đếm số lần bấm tạo tóm tắt.

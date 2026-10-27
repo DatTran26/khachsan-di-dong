@@ -18,6 +18,7 @@ import '../../rooms/providers/rooms_provider.dart';
 
 /// Khung chung sau đăng nhập.
 /// - Màn rộng (≥900px, web tại quầy): thanh bên espresso + thanh đầu trang trắng.
+/// - Tablet (600–899px): thanh đầu trang espresso + thanh điều hướng dọc bên trái.
 /// - Màn hẹp (Android): thanh đầu trang espresso viền vàng + thanh điều hướng dưới (≤5 mục) hoặc ngăn kéo.
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -77,6 +78,11 @@ class _AppShellState extends ConsumerState<AppShell> {
   /// Mất mạng thì chèn [OfflineBanner]. Không tự đăng xuất.
   @override
   Widget build(BuildContext context) {
+    ref.listen(isOnlineProvider, (prev, next) {
+      if (prev == false && next) {
+        showAppSnack(context, 'Đã kết nối lại.', tone: SnackTone.info);
+      }
+    });
     final user = ref.watch(authProvider).user;
     final role = user?.role;
     final isOnline = ref.watch(isOnlineProvider);
@@ -85,10 +91,10 @@ class _AppShellState extends ConsumerState<AppShell> {
     final items = navItemsFor(role);
     final badges = _badges(role);
 
-    final wide = Breakpoints.hasSidebar(context);
+    final size = Breakpoints.of(context);
     final title = titleFor(role, location);
 
-    if (wide) {
+    if (size == WindowSize.expanded) {
       return Scaffold(
         body: Row(
           children: [
@@ -112,8 +118,15 @@ class _AppShellState extends ConsumerState<AppShell> {
       );
     }
 
-    final useBottomNav = items.length <= 5;
+    final rail = size == WindowSize.medium && items.isNotEmpty;
+    final useBottomNav = !rail && items.length <= 5;
     final currentIndex = items.indexWhere((d) => location.startsWith(d.path));
+    final content = Column(
+      children: [
+        if (!isOnline) const OfflineBanner(),
+        Expanded(child: widget.child),
+      ],
+    );
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 64,
@@ -126,10 +139,8 @@ class _AppShellState extends ConsumerState<AppShell> {
               isOnline && lastUpdated != null
                   ? 'Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated)}'
                   : (user?.fullName ?? ''),
-              style: const TextStyle(
-                  fontSize: 12.5,
-                  color: AppColors.onDarkMuted,
-                  fontWeight: FontWeight.w400),
+              style: AppText.overline.copyWith(
+                  color: AppColors.onDarkMuted, fontWeight: FontWeight.w400),
             ),
             Text(title),
           ],
@@ -139,16 +150,22 @@ class _AppShellState extends ConsumerState<AppShell> {
           const SizedBox(width: 8),
         ],
       ),
-      drawer: useBottomNav
+      drawer: useBottomNav || rail
           ? null
           : _MobileDrawer(
               items: items, location: location, user: user, badges: badges),
-      body: Column(
-        children: [
-          if (!isOnline) const OfflineBanner(),
-          Expanded(child: widget.child),
-        ],
-      ),
+      body: rail
+          ? Row(
+              children: [
+                _Rail(
+                    items: items,
+                    selectedIndex: currentIndex < 0 ? 0 : currentIndex,
+                    badges: badges),
+                const VerticalDivider(width: 1),
+                Expanded(child: content),
+              ],
+            )
+          : content,
       bottomNavigationBar: useBottomNav && items.isNotEmpty
           ? NavigationBar(
               selectedIndex: currentIndex < 0 ? 0 : currentIndex,
@@ -191,6 +208,42 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 }
 
+/// Thanh điều hướng dọc cho tablet — cuộn được khi màn ngang thấp (quản lý có 7 mục).
+class _Rail extends StatelessWidget {
+  final List<NavItem> items;
+  final int selectedIndex;
+  final Map<String, int> badges;
+
+  const _Rail(
+      {required this.items, required this.selectedIndex, required this.badges});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: IntrinsicHeight(
+            child: NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (i) => context.go(items[i].path),
+              destinations: [
+                for (final d in items)
+                  NavigationRailDestination(
+                    icon: _BadgeIcon(icon: d.icon, count: badges[d.path] ?? 0),
+                    selectedIcon: _BadgeIcon(
+                        icon: d.selectedIcon, count: badges[d.path] ?? 0),
+                    label: Text(d.label),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Thanh bên espresso. [badges] là số việc quá hạn theo path menu.
 class _Sidebar extends StatelessWidget {
   final List<NavItem> items;
@@ -211,53 +264,64 @@ class _Sidebar extends StatelessWidget {
       width: 248,
       color: AppColors.espresso,
       padding: const EdgeInsets.fromLTRB(14, 20, 14, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 20),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Color(0x40C9A24D)))),
-            child: Row(
-              children: [
-                const BrandMark(),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Khách Sạn Di Động',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15)),
-                      Text(role?.shortLabel ?? '',
-                          style: const TextStyle(
-                              color: AppColors.goldLight,
-                              fontSize: 12,
-                              letterSpacing: .3)),
-                    ],
+      // Cuộn được khi chữ hệ thống to hoặc màn thấp; Spacer vẫn đẩy chân trang xuống đáy.
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 20),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: const BoxDecoration(
+                        border: Border(
+                            bottom: BorderSide(color: AppColors.goldHairline))),
+                    child: Row(
+                      children: [
+                        const BrandMark(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Khách Sạn Di Động',
+                                  style: AppText.bodyLg.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
+                              Text(role?.shortLabel ?? '',
+                                  style: AppText.caption.copyWith(
+                                      color: AppColors.goldLight,
+                                      letterSpacing: .3)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  for (final item in items)
+                    _SideNavTile(
+                      item: item,
+                      active: location.startsWith(item.path),
+                      count: badges[item.path] ?? 0,
+                    ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.only(top: 12),
+                    decoration: const BoxDecoration(
+                        border: Border(
+                            top: BorderSide(color: AppColors.goldHairline))),
+                    child: Text('Khách sạn giả định · dữ liệu giả lập',
+                        style: AppText.caption
+                            .copyWith(color: AppColors.onDarkFaint)),
+                  ),
+                ],
+              ),
             ),
           ),
-          for (final item in items)
-            _SideNavTile(
-              item: item,
-              active: location.startsWith(item.path),
-              count: badges[item.path] ?? 0,
-            ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0x40C9A24D)))),
-            child: const Text('Khách sạn giả định · dữ liệu giả lập',
-                style: TextStyle(color: Color(0xFFA89C87), fontSize: 12)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -281,37 +345,39 @@ class _SideNavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active ? AppColors.goldLight : AppColors.onDark;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Material(
-        color: active ? const Color(0x29C9A24D) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap ?? () => context.go(item.path),
-          child: Container(
-            height: 44,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: active
-                ? const BoxDecoration(
-                    border: Border(
-                        left: BorderSide(color: AppColors.gold, width: 3)))
-                : null,
-            child: Row(
-              children: [
-                Icon(active ? item.selectedIcon : item.icon,
-                    color: color, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(item.label,
-                      style: TextStyle(
-                          color: color,
-                          fontSize: 14,
-                          fontWeight:
-                              active ? FontWeight.w600 : FontWeight.w500)),
-                ),
-                if (count > 0) _CountBadge(count),
-              ],
+    return Semantics(
+      selected: active,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Material(
+          color: active ? AppColors.goldSelected : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap ?? () => context.go(item.path),
+            child: Container(
+              height: AppTheme.minTouch,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: active
+                  ? const BoxDecoration(
+                      border: Border(
+                          left: BorderSide(color: AppColors.gold, width: 3)))
+                  : null,
+              child: Row(
+                children: [
+                  Icon(active ? item.selectedIcon : item.icon,
+                      color: color, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(item.label,
+                        style: AppText.body.copyWith(
+                            color: color,
+                            fontWeight:
+                                active ? FontWeight.w600 : FontWeight.w500)),
+                  ),
+                  if (count > 0) _CountBadge(count),
+                ],
+              ),
             ),
           ),
         ),
@@ -334,10 +400,8 @@ class _CountBadge extends StatelessWidget {
           decoration: BoxDecoration(
               color: AppColors.danger, borderRadius: BorderRadius.circular(10)),
           child: Text('$count',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700)),
+              style: AppText.micro
+                  .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         ),
       );
 }
@@ -351,10 +415,13 @@ class _BadgeIcon extends StatelessWidget {
   /// Badge Material mặc định. Không tự điều hướng.
   @override
   Widget build(BuildContext context) => count > 0
-      ? Badge(
-          label: Text('$count'),
-          backgroundColor: AppColors.danger,
-          child: Icon(icon),
+      ? Semantics(
+          label: '$count việc quá hạn',
+          child: Badge(
+            label: ExcludeSemantics(child: Text('$count')),
+            backgroundColor: AppColors.danger,
+            child: Icon(icon),
+          ),
         )
       : Icon(icon);
 }
@@ -376,17 +443,20 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68,
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      constraints: const BoxConstraints(minHeight: 68),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
-          Text(title,
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          Flexible(
+            child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.headline.copyWith(fontWeight: FontWeight.w700)),
+          ),
           const SizedBox(width: 16),
           if (isOnline) ...[
             Container(
@@ -401,14 +471,18 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            MetaText(lastUpdated != null
-                ? 'Đang đồng bộ · Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated!)}'
-                : 'Đang đồng bộ'),
+            Flexible(
+              child: MetaText(lastUpdated != null
+                  ? 'Đang đồng bộ · Cập nhật lúc ${DateFormat('HH:mm').format(lastUpdated!)}'
+                  : 'Đang đồng bộ'),
+            ),
           ] else
-            const MetaText('Mất kết nối',
-                color: AppColors.dirty, weight: FontWeight.w600),
+            const Flexible(
+              child: MetaText('Mất kết nối',
+                  color: AppColors.dirty, weight: FontWeight.w600),
+            ),
           const Spacer(),
-          _UserMenu(user: user, dark: false),
+          Flexible(child: _UserMenu(user: user, dark: false)),
         ],
       ),
     );
@@ -446,7 +520,7 @@ class _UserMenu extends ConsumerWidget {
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, color: AppColors.text)),
               Text(user?.role.label ?? '',
-                  style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+                  style: AppText.caption.copyWith(color: AppColors.muted)),
             ],
           ),
         ),
@@ -473,20 +547,27 @@ class _UserMenu extends ConsumerWidget {
               padding: const EdgeInsets.all(8),
               child: InitialAvatar(user?.fullName ?? '?', size: 34))
           : Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 InitialAvatar(user?.fullName ?? '?'),
                 const SizedBox(width: 10),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(user?.fullName ?? '',
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
-                    Text(user?.role.shortLabel ?? '',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.muted)),
-                  ],
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user?.fullName ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppText.body
+                              .copyWith(fontWeight: FontWeight.w600)),
+                      Text(user?.role.shortLabel ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              AppText.caption.copyWith(color: AppColors.muted)),
+                    ],
+                  ),
                 ),
                 const Icon(Icons.expand_more, color: AppColors.muted),
               ],
@@ -534,8 +615,8 @@ class _MobileDrawer extends ConsumerWidget {
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700)),
                           Text(user?.role.shortLabel ?? '',
-                              style: const TextStyle(
-                                  color: AppColors.goldLight, fontSize: 12)),
+                              style: AppText.caption
+                                  .copyWith(color: AppColors.goldLight)),
                         ],
                       ),
                     ),

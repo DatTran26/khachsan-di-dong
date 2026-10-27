@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/api/api_client.dart';
@@ -44,6 +45,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .read(authProvider.notifier)
           .login(_phoneCtrl.text.trim(), _passwordCtrl.text);
       if (!mounted) return;
+      // Báo trình duyệt/hệ điều hành lưu số điện thoại + mật khẩu vừa dùng.
+      TextInput.finishAutofillContext();
       final user = ref.read(authProvider).user!;
       context
           .go(user.mustChangePassword ? '/doi-mat-khau' : homeFor(user.role));
@@ -61,16 +64,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final form = Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: AutofillGroup(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Đăng nhập',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            Text('Đăng nhập',
+                style: AppText.displaySm.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
-            const Text('Dùng số điện thoại quản lý đã cấp cho bạn.',
-                style: TextStyle(fontSize: 14, color: AppColors.muted)),
+            Text('Dùng số điện thoại quản lý đã cấp cho bạn.',
+                style: AppText.body.copyWith(color: AppColors.muted)),
             const SizedBox(height: 20),
             if (revokedMsg != null && _error == null) ...[
               AppBanner(
@@ -106,6 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               controller: _passwordCtrl,
               obscureText: _obscure,
               autofillHints: const [AutofillHints.password],
+              textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
                 labelText: 'Mật khẩu',
@@ -130,15 +135,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Đăng nhập', style: TextStyle(fontSize: 15)),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, semanticsLabel: 'Đang đăng nhập'))
+                    : const Text('Đăng nhập', style: AppText.bodyLg),
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'Quên mật khẩu? Liên hệ quản lý để được cấp mật khẩu tạm.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12.5, color: AppColors.muted),
+              style: AppText.overline.copyWith(color: AppColors.muted),
             ),
           ],
         ),
@@ -185,24 +191,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                       24, MediaQuery.paddingOf(context).top + 32, 24, 28),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        BrandMark(size: 40),
-                        SizedBox(width: 12),
-                        Text('Khách Sạn Di Động',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700)),
+                        const BrandMark(size: 40),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text('Khách Sạn Di Động',
+                              style: AppText.titleLg.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700)),
+                        ),
                       ]),
                       // Chừa khoảng cho ảnh trình chiếu lộ ra phía sau.
-                      SizedBox(height: 72),
+                      const SizedBox(height: 72),
                       Text('Một trạng thái phòng cho cả khách sạn.',
-                          style: TextStyle(
+                          style: AppText.headlineLg.copyWith(
                               color: AppColors.goldLight,
-                              fontSize: 22,
                               fontWeight: FontWeight.w800,
                               height: 1.25)),
                     ],
@@ -245,33 +251,32 @@ class _BrandPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(children: [
-          BrandMark(size: 44),
-          SizedBox(width: 12),
-          Text('Khách Sạn Di Động',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700)),
+        Row(children: [
+          const BrandMark(size: 44),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text('Khách Sạn Di Động',
+                style: AppText.titleLg.copyWith(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
         ]),
         const Spacer(),
         Container(width: 56, height: 2, color: AppColors.gold),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Một trạng thái phòng\ncho cả khách sạn.',
-          style: TextStyle(
+          style: AppText.hero.copyWith(
               color: AppColors.goldLight,
-              fontSize: 40,
               fontWeight: FontWeight.w800,
               height: 1.2),
         ),
         const SizedBox(height: 20),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 460),
-          child: const Text(
+          child: Text(
             'Lễ tân, buồng phòng và bảo trì cùng cập nhật một nguồn dữ liệu — thay đổi hiện trên mọi thiết bị trong vài giây.',
-            style:
-                TextStyle(color: Color(0xFFCFC5B3), fontSize: 16, height: 1.6),
+            style: AppText.title
+                .copyWith(color: AppColors.onDarkSoft, height: 1.6),
           ),
         ),
         const SizedBox(height: 20),
@@ -279,8 +284,8 @@ class _BrandPanel extends StatelessWidget {
             spacing: 10,
             children: [_Pill('Lưu trú'), _Pill('Vệ sinh'), _Pill('Bảo trì')]),
         const Spacer(),
-        const Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
-            style: TextStyle(color: Color(0xFFA89C87), fontSize: 12)),
+        Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
+            style: AppText.caption.copyWith(color: AppColors.onDarkFaint)),
       ],
     );
   }
@@ -296,12 +301,10 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-            color: const Color(0x1FFFFFFF),
+            color: AppColors.onDarkOverlay,
             borderRadius: BorderRadius.circular(14)),
         child: Text(text,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600)),
+            style: AppText.overline
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
       );
 }

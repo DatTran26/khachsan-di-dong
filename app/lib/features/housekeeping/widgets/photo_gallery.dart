@@ -107,10 +107,8 @@ class _PhotoViewerState extends State<_PhotoViewer> {
                   Expanded(
                     child: Text(
                       '${photo.category.label} · ${_index + 1}/${widget.photos.length}',
-                      style: const TextStyle(
-                          color: AppColors.onDark,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600),
+                      style: AppText.bodyLg.copyWith(
+                          color: AppColors.onDark, fontWeight: FontWeight.w600),
                     ),
                   ),
                   IconButton(
@@ -130,10 +128,10 @@ class _PhotoViewerState extends State<_PhotoViewer> {
                 itemBuilder: (_, i) => _ZoomablePhoto(photo: widget.photos[i]),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(12),
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: Text('Chụm hai ngón hoặc chạm đúp để phóng to',
-                  style: TextStyle(color: AppColors.onDarkMuted, fontSize: 13)),
+                  style: AppText.meta.copyWith(color: AppColors.onDarkMuted)),
             ),
           ],
         ),
@@ -191,7 +189,8 @@ class _ZoomablePhotoState extends ConsumerState<_ZoomablePhoto> {
           child: Center(child: Image.memory(b, fit: BoxFit.contain)),
         ),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+          child: CircularProgressIndicator(semanticsLabel: 'Đang tải ảnh')),
       error: (e, _) => const Center(
         child: Text('Không tải được ảnh — kiểm tra kết nối rồi mở lại.',
             style: TextStyle(color: AppColors.onDark)),
@@ -217,7 +216,9 @@ class PhotoReviewSection extends ConsumerWidget {
     if (data == null && state.isLoading) {
       body = const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+            child: CircularProgressIndicator(
+                semanticsLabel: 'Đang tải ảnh nghiệm thu')),
       );
     } else if (data == null) {
       body = AppBanner(
@@ -307,7 +308,7 @@ class _Captioned extends StatelessWidget {
             child: Text(caption,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),
+                style: AppText.overline.copyWith(color: AppColors.muted)),
           ),
         ],
       );

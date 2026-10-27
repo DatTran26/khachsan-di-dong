@@ -103,8 +103,8 @@ class RoomDetailPanel extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text('Phòng ${room.number}',
-                        style: const TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.w700)),
+                        style: AppText.headlineLg
+                            .copyWith(fontWeight: FontWeight.w700)),
                   ),
                   if (isManager)
                     IconButton(
@@ -167,6 +167,11 @@ class RoomDetailPanel extends ConsumerWidget {
             ],
           ),
         ),
+        if (!online)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: OfflineActionNote(),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Wrap(
@@ -184,7 +189,7 @@ class RoomDetailPanel extends ConsumerWidget {
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.danger,
-                    side: const BorderSide(color: Color(0xFFF2C4C6)),
+                    side: const BorderSide(color: AppColors.dangerBorder),
                   ),
                   onPressed: online
                       ? () => _placeOutOfService(context, ref, room)
@@ -240,7 +245,8 @@ class RoomDetailPanel extends ConsumerWidget {
                 occupied
                     ? 'Phòng đang có khách — khách vẫn ở hết kỳ. Sau khi trả phòng, phòng sẽ không được nhận khách mới cho tới khi mở lại.'
                     : 'Lễ tân sẽ không nhận khách vào phòng này cho tới khi mở lại phục vụ.',
-                style: const TextStyle(color: AppColors.muted, height: 1.5),
+                style:
+                    AppText.body.copyWith(color: AppColors.muted, height: 1.5),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -364,6 +370,16 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
     super.dispose();
   }
 
+  /// Trả phòng lúc 12:00 sau [nights] đêm — chọn nhanh thay cho mở lịch + đồng hồ.
+  DateTime _afterNights(int nights) {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day + nights, 12);
+  }
+
+  DateTime _afterHours(int hours) {
+    return DateTime.now().add(Duration(hours: hours));
+  }
+
   /// Chọn ngày rồi giờ trả dự kiến. Hủy ngày thì giữ nguyên. Hủy giờ thì lấy 12:00 cùng ngày đã chọn.
   /// Không gọi API.
   Future<void> _pickExpected() async {
@@ -433,11 +449,12 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Nhận phòng',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('Nhận phòng',
+              style: AppText.title.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
           if (_error != null) ...[
             AppBanner(tone: BannerTone.error, message: _error!),
@@ -447,6 +464,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
             controller: _guest,
             maxLength: 100,
             textInputAction: TextInputAction.next,
+            textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
                 labelText: 'Tên khách *', counterText: ''),
             validator: (v) => (v == null || v.trim().isEmpty)
@@ -492,7 +510,7 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
                       _expected == null
                           ? 'Chưa chọn'
                           : DateFormat('HH:mm · dd/MM').format(_expected!),
-                      style: TextStyle(
+                      style: AppText.body.copyWith(
                           color: _expected == null
                               ? AppColors.muted
                               : AppColors.text),
@@ -500,6 +518,26 @@ class _CheckInFormState extends ConsumerState<_CheckInForm> {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final h in const [1, 2, 3, 4])
+                FilterPill(
+                  label: '$h giờ',
+                  selected: false,
+                  onTap: () => setState(() => _expected = _afterHours(h)),
+                ),
+              for (final n in const [1, 2, 3])
+                FilterPill(
+                  label: '$n đêm',
+                  selected: _expected == _afterNights(n),
+                  onTap: () => setState(() => _expected =
+                      _expected == _afterNights(n) ? null : _afterNights(n)),
+                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -549,15 +587,12 @@ class _CheckOutBlock extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Khách đang ở',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w600)),
+          Text('Khách đang ở',
+              style: AppText.meta.copyWith(
+                  color: AppColors.muted, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(stay?.guestName ?? '—',
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              style: AppText.titleLg.copyWith(fontWeight: FontWeight.w700)),
           if (stay != null) ...[
             MetaText(
                 '${stay.guestCount} người · nhận lúc ${fmt.format(stay.checkedInAt.toLocal())}'),
@@ -624,7 +659,7 @@ class _OverdueSection extends ConsumerWidget {
         decoration: BoxDecoration(
           color: AppColors.dangerBg,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-          border: Border.all(color: const Color(0xFFF2C4C6)),
+          border: Border.all(color: AppColors.dangerBorder),
         ),
         child: Column(
           children: [
@@ -638,8 +673,8 @@ class _OverdueSection extends ConsumerWidget {
                         t.isHousekeeping
                             ? 'Việc dọn phòng quá hạn'
                             : 'Việc sửa quá hạn',
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w600)),
+                        style:
+                            AppText.body.copyWith(fontWeight: FontWeight.w600)),
                   ),
                   if (!t.isHousekeeping || isManager)
                     TextButton(

@@ -35,10 +35,7 @@ class AiSummaryScreen extends ConsumerWidget {
 
     Widget body;
     if (state.isLoading && state.latest.isEmpty) {
-      body = const Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
-      );
+      body = const SkeletonList(count: 3, itemHeight: 120);
     } else if (state.error != null && state.latest.isEmpty) {
       body = ErrorState(
           message: state.error!,
@@ -170,8 +167,7 @@ class _SummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(summary.periodLabel,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              style: AppText.title.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           MetaText(
               '${summary.dataAsOfText} · tạo bởi ${summary.createdByName} lúc $created'),
@@ -183,8 +179,7 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 16),
           const SectionLabel('Tổng quan'),
           const SizedBox(height: 6),
-          Text(summary.overview,
-              style: const TextStyle(fontSize: 15, height: 1.5)),
+          Text(summary.overview, style: AppText.bodyLg.copyWith(height: 1.5)),
           if (summary.highlights.isNotEmpty) ...[
             const SizedBox(height: 16),
             const SectionLabel('Điểm nổi bật'),
@@ -228,8 +223,8 @@ class _SourceLabel extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(text,
-                style: TextStyle(
-                    fontSize: 13, color: fg, fontWeight: FontWeight.w600)),
+                style: AppText.meta
+                    .copyWith(color: fg, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -249,10 +244,9 @@ class _Bullet extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('•  ', style: TextStyle(fontSize: 14, height: 1.5)),
+            Text('•  ', style: AppText.body.copyWith(height: 1.5)),
             Expanded(
-                child: Text(text,
-                    style: const TextStyle(fontSize: 14, height: 1.5))),
+                child: Text(text, style: AppText.body.copyWith(height: 1.5))),
           ],
         ),
       );
@@ -274,8 +268,7 @@ class _AttentionRow extends StatelessWidget {
           Icon(oos ? Icons.block_rounded : Icons.schedule_rounded,
               size: 18, color: oos ? AppColors.oos : AppColors.danger),
           const SizedBox(width: 8),
-          Expanded(
-              child: Text(item.text, style: const TextStyle(fontSize: 14))),
+          Expanded(child: Text(item.text, style: AppText.body)),
           TextButton(
             onPressed: () => context.go('/dashboard?phong=${item.roomId}'),
             child: const Text('Tới dashboard'),

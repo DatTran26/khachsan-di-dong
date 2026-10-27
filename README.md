@@ -94,6 +94,7 @@ Mật khẩu chung = `SEED_PASSWORD` trong `server/.env` (mặc định `Demo@12
 - Backend — API, sự kiện realtime, mã lỗi, test: [`server/README.md`](server/README.md)
 - Sản phẩm: [`docs/_product/prd.md`](docs/_product/prd.md) · spec từng tính năng: [`docs/features/`](docs/features/)
 - Thiết kế CSDL: [`docs/_shared/database-design.md`](docs/_shared/database-design.md)
+- Giao diện app (token, bố cục, component, checklist trợ năng): [`docs/_shared/design-system.md`](docs/_shared/design-system.md)
 - Tiến độ & nhật ký làm việc: [`docs/_shared/worklog.md`](docs/_shared/worklog.md)
 
 ## Quy trình làm việc (gitflow)

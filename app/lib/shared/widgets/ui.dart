@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/room.dart';
 
+// Bộ widget dùng chung — màn mới dùng các khối này thay vì tự dựng:
+// - Trạng thái: StatusChip, OverdueBadge, AppBanner.
+// - Tải/rỗng/lỗi: initialLoadGate + khung xương (loading_skeleton.dart), EmptyState, ErrorState.
+// - Mất kết nối: OfflineActionNote cạnh nút ghi bị khóa.
+// - Lọc: FilterPill, SegmentedPills. Bố cục: AppCard, SectionLabel, MetaText, Breakpoints.
+// Màu/cỡ chữ/khoảng cách lấy từ AppColors, AppText, AppSpacing (core/theme/app_theme.dart),
+// không viết cứng mã màu hay cỡ chữ trong màn hình.
+export 'loading_skeleton.dart';
+
 /// Tông màu trạng thái — dùng chung cho chip, chấm, ô phòng.
 enum StatusTone {
   ready,
@@ -67,6 +76,54 @@ extension StatusToneX on StatusTone {
 
   /// Màu chấm trên ô phòng — trạng thái "bình thường" dùng xám nhạt để không gây chú ý.
   Color get dot => this == StatusTone.neutral ? AppColors.dotMuted : fg;
+
+  /// Màu khối đặc (Solid PMS) cho ô phòng — nhận diện từ xa, tương phản cao.
+  Color get solidBg {
+    switch (this) {
+      case StatusTone.ready:
+        return AppColors.solidReady;
+      case StatusTone.occupied:
+        return AppColors.solidOccupied;
+      case StatusTone.dirty:
+        return AppColors.solidDirty;
+      case StatusTone.cleaning:
+        return AppColors.solidCleaning;
+      case StatusTone.inspect:
+        return AppColors.solidInspect;
+      case StatusTone.oos:
+        return AppColors.solidOos;
+      case StatusTone.danger:
+        return AppColors.solidOverdue;
+      case StatusTone.neutral:
+        return AppColors.solidOos;
+      case StatusTone.gold:
+        return AppColors.gold;
+    }
+  }
+
+  /// Biểu tượng nhận diện trực quan theo trạng thái.
+  IconData get icon {
+    switch (this) {
+      case StatusTone.ready:
+        return Icons.check_rounded;
+      case StatusTone.occupied:
+        return Icons.person_rounded;
+      case StatusTone.dirty:
+        return Icons.cleaning_services_outlined;
+      case StatusTone.cleaning:
+        return Icons.hourglass_top_rounded;
+      case StatusTone.inspect:
+        return Icons.fact_check_outlined;
+      case StatusTone.oos:
+        return Icons.build_outlined;
+      case StatusTone.danger:
+        return Icons.warning_amber_rounded;
+      case StatusTone.neutral:
+        return Icons.meeting_room_outlined;
+      case StatusTone.gold:
+        return Icons.star_outline_rounded;
+    }
+  }
 }
 
 /// Đang ở thì tông occupied, trống thì trung tính.
@@ -105,16 +162,18 @@ extension ServiceTone on ServiceStatus {
 extension RoomSummaryTone on Room {
   /// Ưu tiên: ngừng phục vụ, đang ở, sẵn sàng, còn lại theo vệ sinh.
   StatusTone get summaryTone {
-    if (service == ServiceStatus.outOfService) return StatusTone.oos;
     if (occupancy == OccupancyStatus.occupied) return StatusTone.occupied;
+    if (service == ServiceStatus.outOfService) return StatusTone.oos;
     if (isReady) return StatusTone.ready;
     return cleaning.tone;
   }
 
   /// Nhãn một dòng cùng thứ tự ưu tiên với [summaryTone].
   String get summaryLabel {
+    if (occupancy == OccupancyStatus.occupied) {
+      return service == ServiceStatus.outOfService ? 'Đang ở • Có sự cố' : 'Đang ở';
+    }
     if (service == ServiceStatus.outOfService) return 'Ngừng phục vụ';
-    if (occupancy == OccupancyStatus.occupied) return 'Đang ở';
     if (isReady) return 'Sẵn sàng';
     return cleaning.label;
   }
@@ -133,9 +192,10 @@ class StatusChip extends StatelessWidget {
   /// Chip không bấm. [dot] false bỏ chấm. [dense] thu chiều cao.
   @override
   Widget build(BuildContext context) {
+    // Cao tối thiểu thay vì cố định: chip giãn theo cỡ chữ hệ thống, chữ dài thì cắt "…".
     return Container(
-      height: dense ? 22 : 24,
-      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10),
+      constraints: BoxConstraints(minHeight: dense ? 22 : 24),
+      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: 3),
       decoration: BoxDecoration(
           color: tone.bg, borderRadius: BorderRadius.circular(12)),
       child: Row(
@@ -149,12 +209,16 @@ class StatusChip extends StatelessWidget {
                     BoxDecoration(color: tone.fg, shape: BoxShape.circle)),
             const SizedBox(width: 6),
           ],
-          Text(label,
-              style: TextStyle(
-                  color: tone.fg,
-                  fontSize: dense ? 11.5 : 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.1)),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: tone.fg,
+                    fontSize: dense ? 11.5 : 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.1)),
+          ),
         ],
       ),
     );
@@ -171,6 +235,7 @@ class OverdueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Quá hạn',
+      excludeSemantics: true, // chữ "QH" viết tắt không cần đọc
       child: Container(
         height: 20,
         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -178,10 +243,8 @@ class OverdueBadge extends StatelessWidget {
         decoration: BoxDecoration(
             color: AppColors.danger, borderRadius: BorderRadius.circular(10)),
         child: Text(short ? 'QH' : 'Quá hạn',
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w700)),
+            style: AppText.micro
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -215,58 +278,86 @@ class AppBanner extends StatelessWidget {
     final (Color bg, Color fg, Color border, IconData defIcon) = switch (tone) {
       BannerTone.info => (
           AppColors.goldTint,
-          const Color(0xFF5A420E),
-          const Color(0xFFE8D6A8),
+          AppColors.infoText,
+          AppColors.infoBorder,
           Icons.info_outline
         ),
       BannerTone.warn => (
           AppColors.dirtyBg,
-          const Color(0xFF7A2E10),
-          const Color(0xFFF0C3AE),
+          AppColors.warnText,
+          AppColors.warnBorder,
           Icons.wifi_off_rounded
         ),
       BannerTone.error => (
           AppColors.dangerBg,
-          const Color(0xFF8A1C21),
-          const Color(0xFFF2C4C6),
+          AppColors.dangerText,
+          AppColors.dangerBorder,
           Icons.error_outline
         ),
       BannerTone.success => (
           AppColors.readyBg,
-          const Color(0xFF1F5A22),
-          const Color(0xFFBFDDC1),
+          AppColors.successText,
+          AppColors.successBorder,
           Icons.check_circle_outline
         ),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: radius ?? BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon ?? defIcon, color: fg, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text.rich(
-              TextSpan(children: [
-                if (title != null)
-                  TextSpan(
-                      text: '$title ',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                TextSpan(text: message),
-              ]),
-              style: TextStyle(color: fg, fontSize: 14, height: 1.4),
+    // Lỗi/cảnh báo mới hiện ra được trình đọc màn hình đọc ngay.
+    return Semantics(
+      liveRegion: tone == BannerTone.error || tone == BannerTone.warn,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: radius ?? BorderRadius.circular(AppTheme.radiusMd),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon ?? defIcon, color: fg, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  if (title != null)
+                    TextSpan(
+                        text: '$title ',
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  TextSpan(text: message),
+                ]),
+                style: AppText.body.copyWith(color: fg, height: 1.4),
+              ),
             ),
-          ),
-          if (action != null) ...[const SizedBox(width: 8), action!],
-        ],
+            if (action != null) ...[const SizedBox(width: 8), action!],
+          ],
+        ),
       ),
     );
   }
+}
+
+/// Đặt ngay cạnh nhóm nút ghi khi mất kết nối: nói rõ vì sao nút bị khóa thay vì chỉ làm mờ.
+class OfflineActionNote extends StatelessWidget {
+  const OfflineActionNote({super.key});
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        child: Row(
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 16, color: AppColors.dirty),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                'Mất kết nối — tạm khóa thao tác cho tới khi có mạng lại.',
+                style: AppText.meta.copyWith(
+                    color: AppColors.warnText, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 /// Màn trống: nói rõ đây là gì, vì sao trống, bước tiếp theo.
@@ -287,7 +378,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
@@ -304,14 +395,13 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 16),
               Text(title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
+                  style: AppText.title.copyWith(fontWeight: FontWeight.w700)),
               if (message != null) ...[
                 const SizedBox(height: 6),
                 Text(message!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.muted, height: 1.5)),
+                    style: AppText.body
+                        .copyWith(color: AppColors.muted, height: 1.5)),
               ],
               if (action != null) ...[const SizedBox(height: 16), action!],
             ],
@@ -354,8 +444,7 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: const TextStyle(
-            fontSize: 12.5,
+        style: AppText.overline.copyWith(
             fontWeight: FontWeight.w700,
             color: AppColors.muted,
             letterSpacing: .5),
@@ -390,12 +479,11 @@ class FilterPill extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           child: Text(label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    selected ? AppColors.goldLight : (color ?? AppColors.text),
-              )),
+              style: AppText.meta.copyWith(
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected
+                      ? AppColors.goldLight
+                      : (color ?? AppColors.text))),
         ),
       ),
     );
@@ -420,8 +508,7 @@ class SegmentedPills<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-          color: const Color(0xFFECE7DC),
-          borderRadius: BorderRadius.circular(10)),
+          color: AppColors.track, borderRadius: BorderRadius.circular(10)),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -445,13 +532,11 @@ class SegmentedPills<T> extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Center(
                           child: Text(label,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: v == value
-                                    ? AppColors.goldText
-                                    : AppColors.muted,
-                              )),
+                              style: AppText.meta.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: v == value
+                                      ? AppColors.goldText
+                                      : AppColors.muted)),
                         ),
                       ),
                     ),
@@ -613,20 +698,52 @@ class MetaText extends StatelessWidget {
   /// Một dòng meta 13px. [color] và [weight] null thì màu muted, đậm mặc định.
   @override
   Widget build(BuildContext context) => Text(text,
-      style: TextStyle(
-          fontSize: 13,
-          color: color ?? AppColors.muted,
-          fontWeight: weight,
-          height: 1.4));
+      style: AppText.meta.copyWith(
+          color: color ?? AppColors.muted, fontWeight: weight, height: 1.4));
 }
+
+/// Ba mức bố cục: điện thoại / tablet / web tại quầy.
+enum WindowSize { compact, medium, expanded }
 
 /// Kích thước màn hình dùng chung.
 class Breakpoints {
-  static const double wide = 1100; // web: bảng + khung chi tiết
+  static const double medium = 600; // tablet: thanh điều hướng dọc
   static const double sidebar = 900; // hiện thanh bên
+  static const double wide = 1100; // web: bảng + khung chi tiết
   /// Từ 1100px: bảng kèm khung chi tiết.
   static bool isWide(BuildContext c) => MediaQuery.sizeOf(c).width >= wide;
+
   /// Từ 900px: hiện thanh bên của [AppShell].
   static bool hasSidebar(BuildContext c) =>
       MediaQuery.sizeOf(c).width >= sidebar;
+
+  static WindowSize of(BuildContext c) {
+    final w = MediaQuery.sizeOf(c).width;
+    if (w >= sidebar) return WindowSize.expanded;
+    if (w >= medium) return WindowSize.medium;
+    return WindowSize.compact;
+  }
+}
+
+/// Chặn lần tải đầu: còn đang tải → khung xương, lỗi → [ErrorState] có nút thử lại.
+/// Trả `null` khi đã có dữ liệu (hoặc tải xong mà rỗng) để màn tự dựng nội dung.
+///
+/// ```dart
+/// final gate = initialLoadGate(
+///   loading: state.isLoading, error: state.error, isEmpty: state.rooms.isEmpty,
+///   onRetry: () => ref.read(roomsProvider.notifier).load(),
+///   skeleton: const SkeletonGrid());
+/// if (gate != null) return gate;
+/// ```
+Widget? initialLoadGate({
+  required bool loading,
+  required String? error,
+  required bool isEmpty,
+  required VoidCallback onRetry,
+  required Widget skeleton,
+}) {
+  if (!isEmpty) return null;
+  if (loading) return skeleton;
+  if (error != null) return ErrorState(message: error, onRetry: onRetry);
+  return null;
 }
