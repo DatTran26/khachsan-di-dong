@@ -7,8 +7,10 @@ import '../../../core/router/nav.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/ui.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/login_slideshow.dart';
 
 /// Đăng nhập. Web: nửa trái espresso giới thiệu, nửa phải là form. Mobile: đầu trang espresso + form.
+/// Nền phần giới thiệu là ảnh trình chiếu từ `assets/images/login/` (xem [LoginSlideshow]).
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -178,33 +180,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: EdgeInsets.fromLTRB(
-                  24, MediaQuery.paddingOf(context).top + 32, 24, 28),
               decoration: const BoxDecoration(
-                color: AppColors.espresso,
                 border:
                     Border(bottom: BorderSide(color: AppColors.gold, width: 3)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    const BrandMark(size: 40),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text('Khách Sạn Di Động',
-                          style: AppText.titleLg.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700)),
-                    ),
-                  ]),
-                  const SizedBox(height: 20),
-                  Text('Một trạng thái phòng cho cả khách sạn.',
-                      style: AppText.headlineLg.copyWith(
-                          color: AppColors.goldLight,
-                          fontWeight: FontWeight.w800,
-                          height: 1.25)),
-                ],
+              child: LoginSlideshow(
+                dotsAlignment: Alignment.topRight,
+                dotsPadding: EdgeInsets.fromLTRB(
+                    24, MediaQuery.paddingOf(context).top + 16, 24, 0),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      24, MediaQuery.paddingOf(context).top + 32, 24, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        const BrandMark(size: 40),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text('Khách Sạn Di Động',
+                              style: AppText.titleLg.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ]),
+                      // Chừa khoảng cho ảnh trình chiếu lộ ra phía sau.
+                      const SizedBox(height: 72),
+                      Text('Một trạng thái phòng cho cả khách sạn.',
+                          style: AppText.headlineLg.copyWith(
+                              color: AppColors.goldLight,
+                              fontWeight: FontWeight.w800,
+                              height: 1.25)),
+                    ],
+                  ),
+                ),
               ),
             ),
             Padding(
@@ -226,50 +235,58 @@ class _BrandPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.espresso,
         border: Border(right: BorderSide(color: AppColors.gold, width: 4)),
       ),
-      padding: const EdgeInsets.all(56),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const BrandMark(size: 44),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Text('Khách Sạn Di Động',
-                  style: AppText.titleLg.copyWith(
-                      color: Colors.white, fontWeight: FontWeight.w700)),
-            ),
-          ]),
-          const Spacer(),
-          Container(width: 56, height: 2, color: AppColors.gold),
-          const SizedBox(height: 20),
-          Text(
-            'Một trạng thái phòng\ncho cả khách sạn.',
-            style: AppText.hero.copyWith(
-                color: AppColors.goldLight,
-                fontWeight: FontWeight.w800,
-                height: 1.2),
-          ),
-          const SizedBox(height: 20),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: Text(
-              'Lễ tân, buồng phòng và bảo trì cùng cập nhật một nguồn dữ liệu — thay đổi hiện trên mọi thiết bị trong vài giây.',
-              style: AppText.title
-                  .copyWith(color: AppColors.onDarkSoft, height: 1.6),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Wrap(
-              spacing: 10,
-              children: [_Pill('Lưu trú'), _Pill('Vệ sinh'), _Pill('Bảo trì')]),
-          const Spacer(),
-          Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
-              style: AppText.caption.copyWith(color: AppColors.onDarkFaint)),
-        ],
+      child: LoginSlideshow(
+        dotsPadding: const EdgeInsets.all(56),
+        child: Padding(
+          padding: const EdgeInsets.all(56),
+          child: _brandContent(),
+        ),
       ),
+    );
+  }
+
+  Widget _brandContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          const BrandMark(size: 44),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text('Khách Sạn Di Động',
+                style: AppText.titleLg.copyWith(
+                    color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ]),
+        const Spacer(),
+        Container(width: 56, height: 2, color: AppColors.gold),
+        const SizedBox(height: 20),
+        Text(
+          'Một trạng thái phòng\ncho cả khách sạn.',
+          style: AppText.hero.copyWith(
+              color: AppColors.goldLight,
+              fontWeight: FontWeight.w800,
+              height: 1.2),
+        ),
+        const SizedBox(height: 20),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: Text(
+            'Lễ tân, buồng phòng và bảo trì cùng cập nhật một nguồn dữ liệu — thay đổi hiện trên mọi thiết bị trong vài giây.',
+            style: AppText.title
+                .copyWith(color: AppColors.onDarkSoft, height: 1.6),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Wrap(
+            spacing: 10,
+            children: [_Pill('Lưu trú'), _Pill('Vệ sinh'), _Pill('Bảo trì')]),
+        const Spacer(),
+        Text('WPCTeam · Đồ án QLDA CNTT · Dữ liệu giả lập',
+            style: AppText.caption.copyWith(color: AppColors.onDarkFaint)),
+      ],
     );
   }
 }
