@@ -275,7 +275,7 @@ class _StaffView extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _TaskCard(task: t, large: true, actions: [
-                  ElevatedButton(
+                  BusyButton(
                     style: ElevatedButton.styleFrom(minimumSize: size),
                     onPressed: online
                         ? () => _run(
@@ -296,7 +296,7 @@ class _StaffView extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _TaskCard(task: t, large: true, actions: [
-                  ElevatedButton(
+                  BusyButton(
                     style: ElevatedButton.styleFrom(minimumSize: size),
                     onPressed: online
                         ? () => _run(

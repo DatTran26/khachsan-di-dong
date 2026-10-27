@@ -516,7 +516,7 @@ List<Widget> _managerActions(
       ];
     case HousekeepingStatus.pendingConfirm:
       return [
-        ElevatedButton(
+        BusyButton(
           style: ElevatedButton.styleFrom(minimumSize: size),
           onPressed: online
               ? () => _run(context, ref, () => n.confirm(task.id, task.version),
@@ -698,7 +698,7 @@ List<Widget> _staffActions(
             : null,
         child: const Text('Từ chối'),
       ),
-      ElevatedButton(
+      BusyButton(
         style: ElevatedButton.styleFrom(minimumSize: size),
         onPressed: online
             ? () => _run(context, ref, () => n.accept(task.id, task.version),
