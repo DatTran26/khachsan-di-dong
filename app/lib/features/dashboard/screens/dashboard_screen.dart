@@ -9,6 +9,7 @@ import '../../rooms/providers/rooms_provider.dart';
 import '../../rooms/widgets/room_detail_panel.dart';
 import '../../stays/providers/stays_provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../widgets/room_quick_action_menu.dart';
 
 /// Nhóm lọc lưới phòng. Thẻ lấp đầy dùng lại [occupied], không có nhóm riêng.
 enum _Group { all, ready, occupied, needsCleaning, outOfService, overdue }
@@ -29,6 +30,14 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int? _floor;
   _Group _group = _Group.all;
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   /// Sau frame đầu, mở phòng nếu [DashboardScreen.openRoomId] có giá trị.
   @override
@@ -55,9 +64,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
-  /// Phòng có khớp tầng đang chọn và nhóm [_group] không.
+  /// Phòng có khớp tầng đang chọn, từ khóa tìm kiếm và nhóm [_group] không.
   /// [overdue] là tập id phòng có việc quá hạn từ chỉ số, không tự tính từ phòng.
   bool _matches(Room r, Set<String> overdue) {
+    if (_searchQuery.isNotEmpty && !r.number.contains(_searchQuery)) {
+      return false;
+    }
     if (_floor != null && r.floor != _floor) return false;
     switch (_group) {
       case _Group.all:
@@ -170,6 +182,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   color: g == _Group.overdue ? AppColors.danger : null,
                   onTap: () => setState(() => _group = g),
                 ),
+              // Ô tìm kiếm nhanh phòng gọn nhẹ trong Wrap (bỏ qua phím Tab để bảo toàn a11y)
+              FocusTraversalGroup(
+                descendantsAreTraversable: false,
+                child: SizedBox(
+                  width: 140,
+                  height: 32,
+                  child: TextField(
+                    controller: _searchCtrl,
+                    style: AppText.micro,
+                    decoration: InputDecoration(
+                      hintText: 'Tìm số phòng...',
+                      hintStyle:
+                          AppText.micro.copyWith(color: AppColors.muted),
+                      prefixIcon: const Icon(Icons.search, size: 14),
+                      prefixIconConstraints:
+                          const BoxConstraints(minWidth: 26),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 6),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(Icons.clear, size: 12),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: (val) =>
+                        setState(() => _searchQuery = val.trim()),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -188,6 +245,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 onPressed: () => setState(() {
                   _floor = null;
                   _group = _Group.all;
+                  _searchCtrl.clear();
+                  _searchQuery = '';
                 }),
                 child: const Text('Xóa bộ lọc'),
               ),
@@ -220,7 +279,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         room: r,
                         stay: stayMap[r.id],
                         overdue: overdue.contains(r.id),
-                        onTap: () => showRoomDetailSheet(context, r.id),
+                        onTap: () => showRoomQuickActionMenu(
+                          context,
+                          ref: ref,
+                          room: r,
+                          stay: stayMap[r.id],
+                          onOpenFullDetail: () =>
+                              showRoomDetailSheet(context, r.id),
+                        ),
                       ),
                   ],
                 ),

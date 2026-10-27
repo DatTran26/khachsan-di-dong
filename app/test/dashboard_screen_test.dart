@@ -5,6 +5,7 @@ import 'package:khachsan_di_dong/features/dashboard/providers/dashboard_provider
 import 'package:khachsan_di_dong/features/dashboard/screens/dashboard_screen.dart';
 import 'package:khachsan_di_dong/features/rooms/providers/rooms_provider.dart';
 import 'package:khachsan_di_dong/features/stays/providers/stays_provider.dart';
+import 'package:khachsan_di_dong/shared/widgets/room_tile.dart';
 
 import 'support/fakes.dart';
 
@@ -66,7 +67,8 @@ Future<void> _pump(WidgetTester tester, DashboardSummary summary) async {
   await tester.pump();
 }
 
-Finder _tile(String number) => find.text(number);
+Finder _tile(String number) =>
+    find.descendant(of: find.byType(RoomTile), matching: find.text(number));
 
 void main() {
   test('DashboardSummary giữ từng việc quá hạn theo phòng', () {
@@ -147,5 +149,32 @@ void main() {
     await tester.tap(find.text('Xóa bộ lọc'));
     await tester.pump();
     expect(_tile('101'), findsOneWidget);
+  });
+
+  testWidgets('tìm kiếm số phòng trực tiếp trên thanh lọc', (tester) async {
+    await _pump(tester, _summary());
+    final searchFinder = find.byType(TextField);
+    expect(searchFinder, findsOneWidget);
+
+    await tester.enterText(searchFinder, '201');
+    await tester.pump();
+    expect(_tile('201'), findsOneWidget);
+    expect(_tile('101'), findsNothing);
+    expect(_tile('104'), findsNothing);
+
+    await tester.enterText(searchFinder, '');
+    await tester.pump();
+    expect(_tile('101'), findsOneWidget);
+    expect(_tile('201'), findsOneWidget);
+  });
+
+  testWidgets('bấm ô phòng mở menu thao tác nhanh', (tester) async {
+    await _pump(tester, _summary());
+    await tester.tap(_tile('104'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Phòng 104 · Standard'), findsOneWidget);
+    expect(find.text('Báo hỏng phòng này'), findsOneWidget);
+    expect(find.text('Xem toàn bộ chi tiết phòng'), findsOneWidget);
   });
 }
