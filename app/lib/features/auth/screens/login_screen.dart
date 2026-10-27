@@ -140,6 +140,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     : const Text('Đăng nhập', style: AppText.bodyLg),
               ),
             ),
+            const SizedBox(height: 16),
+            _buildDemoAccounts(),
             const SizedBox(height: 14),
             Text(
               'Quên mật khẩu? Liên hệ quản lý để được cấp mật khẩu tạm.',
@@ -220,6 +222,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                 child: form),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Hàng nút điền nhanh tài khoản mẫu phục vụ kiểm thử và chấm điểm đồ án.
+  Widget _buildDemoAccounts() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.flash_on_rounded,
+                  size: 14, color: AppColors.goldText),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  'Tài khoản demo (chạm điền):',
+                  style: AppText.micro.copyWith(
+                    color: AppColors.goldText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _demoChip(
+                label: 'Quản lý',
+                phone: '0900000001',
+                password: 'Demo@12345',
+              ),
+              _demoChip(
+                label: 'Lễ tân',
+                phone: '0900000002',
+                password: 'Demo@12345',
+              ),
+              _demoChip(
+                label: 'Nhân viên',
+                phone: '0900000004',
+                password: 'Demo@12345',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _demoChip({
+    required String label,
+    required String phone,
+    required String password,
+  }) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _phoneCtrl.text = phone;
+          _passwordCtrl.text = password;
+          _error = null;
+        });
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.borderStrong),
+        ),
+        child: Text(
+          label,
+          style: AppText.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
         ),
       ),
     );
