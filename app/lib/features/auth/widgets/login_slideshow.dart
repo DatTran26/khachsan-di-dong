@@ -36,7 +36,9 @@ class _LoginSlideshowState extends State<LoginSlideshow> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // Đợi sau frame đầu: lần thứ hai trở đi danh sách ảnh lấy từ cache và trả về đồng bộ,
+    // nếu gọi thẳng ở đây thì precacheImage chạy trong initState và lỗi (đổi khổ màn hình là mất ảnh).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   @override
@@ -81,17 +83,20 @@ class _LoginSlideshowState extends State<LoginSlideshow> {
       children: [
         const Positioned.fill(child: ColoredBox(color: AppColors.espresso)),
         if (_images.isNotEmpty) ...[
+          // Cắt theo khung: ảnh đang phóng to không được tràn qua vạch vàng sang phần form.
           Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 900),
-              layoutBuilder: (current, previous) => Stack(
-                  fit: StackFit.expand,
-                  children: [...previous, if (current != null) current]),
-              child: _Slide(
-                  key: ValueKey(_index),
-                  path: _images[_index],
-                  zoom: !still,
-                  duration: widget.interval),
+            child: ClipRect(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 900),
+                layoutBuilder: (current, previous) => Stack(
+                    fit: StackFit.expand,
+                    children: [...previous, if (current != null) current]),
+                child: _Slide(
+                    key: ValueKey(_index),
+                    path: _images[_index],
+                    zoom: !still,
+                    duration: widget.interval),
+              ),
             ),
           ),
           Positioned.fill(
