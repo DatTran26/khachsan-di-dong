@@ -3,8 +3,8 @@
 Mô hình: VPS chạy Docker Compose (`server/docker-compose.yml`, profile `full`) gồm PostgreSQL và API;
 Nginx đứng trước để có HTTPS và phục vụ bản Flutter Web.
 
-> Chưa có trong repo: file cấu hình Nginx, và cấu hình URL API cho bản build app (hiện cố định localhost).
-> Phải bổ sung hai phần này trước lần deploy đầu.
+> Chưa có trong repo: file cấu hình Nginx. Phải bổ sung trước lần deploy đầu.
+> Nginx cần chuyển cả `/api` và `/socket.io` (có header `Upgrade` cho WebSocket) về cổng 3000.
 
 ## 1. Biến môi trường (chỉ ghi tên, không ghi giá trị)
 
@@ -55,7 +55,15 @@ Lần đầu (CSDL trống) mới seed:
 docker compose exec api npx prisma db seed
 ```
 
-Web: build `flutter build web --release` (trỏ URL API của VPS), chép `app/build/web` vào thư mục Nginx phục vụ.
+App đọc địa chỉ backend lúc build qua `API_URL` (gốc tên miền, không có `/api`; bỏ trống = `http://localhost:3000`):
+
+```bash
+cd app
+flutter build web --release --dart-define=API_URL=https://<ten-mien>
+flutter build apk --release --dart-define=API_URL=https://<ten-mien>
+```
+
+Chép `app/build/web` vào thư mục Nginx phục vụ; APK ở `app/build/app/outputs/flutter-apk/app-release.apk`.
 
 ## 5. Smoke test sau deploy (≤10 phút)
 
