@@ -1,0 +1,102 @@
+# Đối soát Chương 1–5 báo cáo WPC
+
+Ngày rà soát: 29/10/2026. Bản gốc: `Bao_Cao_WPC_Ver2_1_1_1.docx`. Bản đã sửa: `Bao_Cao_WPC_Ver2_1_1_2.docx`.
+
+Nguồn đối chiếu là file `khach-san-di-dong-wps-daily-package-review.xlsx` (WPS 28/10), gồm 178 công việc, 97 gói ngày và 572 giờ. Trần ngân sách 151.000.000 VNĐ, đơn giá 237.500 VNĐ/giờ.
+
+Vai trò đã chốt:
+
+| Thành viên | Vai trò |
+|---|---|
+| Trần Tấn Đạt | PM / BA / Release |
+| Kim Ngọc Hoàng | Backend / CSDL / AI |
+| Ngô Quốc Bảo | Flutter Web, Android / UI-UX / QA |
+
+Nguyên tắc sửa: giữ nguyên định dạng (style, bảng, bố cục). Chỉ đổi chữ trong đoạn và ô bảng, sửa hoặc thay hình. Chương 6–7 không bị đụng tới vì đã ghi đúng vai trò.
+
+---
+
+## 1. Nội dung đã có (Chương 1–5)
+
+| Chương | Đã có | Đánh giá |
+|---|---|---|
+| 1 | Tên nhóm và đề tài; Bảng 1.1 thành viên; Bảng 1.2 phân công theo sprint; bối cảnh, hiện trạng, phát biểu bài toán; Bảng 1.3 SMART; phạm vi và ngoài phạm vi; Bảng 1.4 đối tượng sử dụng | Đủ khung. Đã sai vai trò Hoàng/Bảo (đã sửa). Còn thiếu mục 1.5.2 (đã bổ sung) |
+| 2 | 2.1 thời gian, vật liệu (Bảng 2.1); phát biểu bài toán; cấp quyền; tôn chỉ 2.2.1–2.2.9 (Bảng 2.2–2.5); phát biểu phạm vi (Bảng 2.6); WBS (Hình 2.1) | Số liệu 572 giờ / 151 triệu / 178 việc đã khớp. Đã sai vai trò (đã sửa) |
+| 3 | Bảng 3.1 ước lượng theo nhóm việc; Bảng 3.2 tải theo sprint; Bảng 3.3 lịch báo cáo ngày; PERT 4 nhánh và tổng quát (Hình 3.1–3.5, Bảng 3.4); tối ưu Sprint 4 (Bảng 3.5–3.7, Hình 3.6) | Số liệu khớp WPS. Sai vai trò trong bảng, chữ và hình (đã sửa). Sai số ngày-người (đã sửa) |
+| 4 | Bảng 4.1 đơn giá; Bảng 4.2 chi phí theo WBS; Bảng 4.3 chi phí 12 gói cấp 4; Hình 4.1 Gantt; EVM tại 03/10 (Bảng 4.4, 4.5) | Số liệu chi phí và EVM tính lại đều khớp. Sai vai trò (đã sửa). Sai một mã gói (đã sửa). Hình 4.1 đã thay bằng Gantt tổng quát |
+| 5 | Bảng 5.1 tiêu chuẩn chung; Bảng 5.2–5.5 kiểm tra 4 đợt; Bảng 5.6 vấn đề; Pareto (Hình 5.1); 80-20 (Bảng 5.7); Ishikawa (Hình 5.2–5.3); Bảng 5.8 kế hoạch Sprint 3 | Số liệu Pareto khớp (142 lần, 114 lần = 80,3%). Sai vai trò ở cột phụ trách, cột người kiểm tra và Hình 5.2 (đã sửa) |
+
+## 2. Kiểm tra theo số liệu đã chốt
+
+Các số dưới đây được tính lại từ WPS, sau khi đổi người phụ trách theo vai trò mới.
+
+| Hạng mục | Trong báo cáo | Tính lại từ WPS | Kết quả |
+|---|---|---|---|
+| Tổng giờ công | 572 | 572 (214 dòng việc, 178 mã WBS) | Khớp |
+| Số công việc | 178 công việc gốc, 214 dòng chi tiết, 97 gói ngày, 23 nhóm việc | 178 / 214 / 97 / 23 | Khớp |
+| Trần ngân sách | 151.000.000 | 135.850.000 + 660.000 + 800.000 + 13.690.000 | Khớp |
+| Nhân công | 572 × 237.500 = 135.850.000 | Như báo cáo | Khớp |
+| Giờ theo sprint | 230 / 153 / 127 / 62 | Như báo cáo | Khớp |
+| Đạt theo sprint | 80 / 8 / 12 / 18 = 118 | Như báo cáo | Khớp |
+| Hoàng (Backend) theo sprint | 70 / 66 / 64 / 29 = 229 | 80 / 79 / 51 / 15 = **225** | Sai, đã sửa |
+| Bảo (Flutter/QA) theo sprint | 80 / 79 / 51 / 15 = 225 | 70 / 66 / 64 / 29 = **229** | Sai, đã sửa |
+| Chi phí theo người | Hoàng 54.387.500; Bảo 53.437.500 | Hoàng 53.437.500 (39,3%); Bảo 54.387.500 (40,0%) | Đã sửa |
+| Ngày-người có gói việc | Đạt 18, Hoàng 32, Bảo 31 | Đạt **19**, Hoàng **31**, Bảo **31** (tổng 81) | Sai, đã sửa |
+| Bảng 3.1 (thời lượng, gói, giờ của 33 dòng) | — | Khớp từng dòng | Khớp |
+| Bảng 3.3 (giờ theo ngày, số gói) | — | Khớp 36 ngày | Khớp (đã đổi cột) |
+| PERT (TE, σ, Z, xác suất, chi phí đường) | — | Tính lại khớp | Khớp |
+| Bảng 4.2–4.5 (chi phí, PV/EV/AC, CPI 0,92, SPI 0,96, EAC, VAC) | — | Tính lại khớp | Khớp |
+| Pareto (142 lần, 9 vấn đề = 80,3%) | — | Tính lại khớp | Khớp |
+
+## 3. Số liệu và vai trò chưa thống nhất (đã sửa trong bản Ver2_1_1_2)
+
+1. **Vai trò Hoàng và Bảo bị ghi ngược trong toàn bộ Chương 1–5.** Bản Ver2 ghi Hoàng làm Flutter/UI-UX/QA và Bảo làm Backend/CSDL/AI, trong khi Chương 6–7 ghi đúng. Đã sửa 115 vị trí:
+   - Bảng 1.1: cột vai trò.
+   - Bảng 1.2: tên người theo từng khối việc.
+   - Bảng 2.1: dòng Nhân lực.
+   - Bảng 2.2, mục 2.2.8, Bảng 2.4 (gồm email và điện thoại theo người), đoạn "Kiểm tra chéo".
+   - Bảng 3.1 cột Phụ trách, Bảng 3.2, tiêu đề cột Bảng 3.3, các đoạn PERT 3.2.1–3.3.4.
+   - Bảng 4.3, các đoạn 4.1–4.3.
+   - Cột người kiểm tra ở Bảng 5.2–5.5, cột phụ trách ở Bảng 5.7–5.8, mục 5.5.3.
+
+   Giữ nguyên tên ở trang bìa, Bảng 1.1 (họ tên, MSSV, liên hệ), Bảng 2.5 (chữ ký) và câu "K13–K16 do Ngô Quốc Bảo tổng hợp" (Bảo là QA, đúng vai trò).
+2. **Giờ công từng người** đổi theo vai trò: Hoàng 225 giờ, Bảo 229 giờ. Các chỗ đã sửa: Bảng 1.2, mục 1.1.3, Bảng 2.2, mục 2.2.8, Bảng 3.2, mục 4.1.
+3. **Số ngày-người** ở mục 3.1: đổi "Đạt 18, Hoàng 32, Bảo 31" thành "Đạt 19, Hoàng 31, Bảo 31".
+4. **Mã gói sai** ở giải pháp mục 4.3.2: đổi "bộ test vận hành (2.2.5.10)" thành "(2.2.5.8)" cho khớp Bảng 4.3 và 4.4.
+5. **Hình có tên người theo vai trò cũ** đã được sửa trên ảnh:
+   - Hình 3.1, 3.2, 3.3, 3.4, 3.6: tiêu đề cột Hoàng và Bảo.
+   - Hình 3.5: nhãn tên trong 33 gói găng.
+   - Hình 5.2: dòng "Hoàng 225 h, Bảo 229 h" và dòng "Sprint 1: Đạt, Hoàng kín 80/80 giờ".
+
+## 4. Nội dung còn thiếu hoặc cần bổ sung
+
+| # | Nội dung | Trạng thái |
+|---|---|---|
+| 1 | Mục 1.5.2 Các bên liên quan (SH-01 → SH-10) | **Đã bổ sung**, dẫn sang Bảng 7.1 và 7.2 |
+| 2 | Logo WPCTeam và ý nghĩa tên nhóm, slogan (Chương 1) | Chưa có, chưa có file logo |
+| 3 | Đoạn kiểm soát thay đổi phạm vi (quyết định D-17: bàn giao 27/10, nghiệm thu 02/11) ở Chương 2 | Chưa có, nên thêm 1 đoạn ở mục 2.3 |
+| 4 | Lý do nâng trần ngân sách từ 30 triệu lên 151 triệu (quyết định 28/10) | Mục 4.1 mới nói cách chọn đơn giá, chưa ghi lịch sử quyết định |
+| 5 | Kết quả thực tế Sprint 3–4 và UAT 26/10 (Bảng 5.2–5.5, mục 5.5.3) | Vẫn là số liệu tại 03/10; báo cáo đã ghi rõ thời điểm. Cần điền nếu có số đo thật |
+| 6 | Kết quả đo thật cho realtime ≥95/100 và AI ≥18/20 | Chưa có (để cho Chương 10) |
+| 7 | Mục lục, danh mục hình, danh mục bảng | Đã đổi chữ dòng Hình 4.1. Nên bấm Update Field (F9) trong Word trước khi nộp để cập nhật số trang |
+
+## 5. Phần phải sửa hoặc làm lại (ngoài file Word)
+
+1. **File nguồn WPS (`.xlsx` và `.xml`) vẫn gán ngược người**: việc mã `S*-BAO-*` là backend nhưng ghi người làm Bảo, việc mã `S*-HOANG-*` là Flutter nhưng ghi người làm Hoàng. Cần đổi Resource Names trước khi lưu thành `.mpp`. File Excel Gantt mới đã dùng vai trò đúng.
+2. WPS còn 21 liên kết phụ thuộc không giữ được khi gom gói ngày (18 cùng ngày, 3 đảo thứ tự). Báo cáo đã nêu ở mục 3.1, nhưng nhóm chưa xử lý.
+3. Định dạng tiêu đề "1.3.", "1.4.", "1.5." thừa dấu chấm. Các mục 1.3.1, 1.4.1, 1.5.1 đang dùng style Normal nên không lên mục lục. **Chưa sửa** vì yêu cầu là không đổi format.
+4. Ngày trên bìa và trong Lời cảm ơn là 28/10/2026. Cần đổi sang ngày nộp chính thức.
+
+## 6. Sơ đồ Gantt
+
+- Đã tạo file riêng `KhachSanDiDong_Gantt_Sprint.xlsx`, gồm các sheet:
+  - **Tổng hợp**: 4 sprint, 23 nhóm việc và các mốc trên lưới 36 ngày làm việc. Kèm bảng giờ công theo người và sprint.
+  - **Sprint 1, Sprint 2, Sprint 3, Sprint 4**: mỗi sheet có đủ cấp 3 (nhóm việc), cấp 4 (gói ngày) và cấp 5 (công việc). Các cột gồm mã WBS, ngày, giờ, phụ trách, người kiểm tra, đầu ra, việc trước. Thanh Gantt tô màu theo người. Các dòng có outline để thu gọn.
+- Trong Word chỉ còn **Hình 4.1: Sơ đồ Gantt tổng quát theo sprint của dự án**. Hình thể hiện 4 sprint, 23 nhóm việc, các mốc và ngày trạng thái EVM 02/10. Đoạn văn mục 4.2 đã ghi tham chiếu tới file Excel; 12 gói EVM nằm ở sheet Sprint 2.
+
+## 7. Cách kiểm tra đã chạy
+
+- Tính lại toàn bộ số liệu từ sheet `WPS Gantt Draft`: tổng giờ, giờ theo người và sprint, giờ theo ngày, số gói theo ngày và theo nhóm, người phụ trách từng nhóm. Đối chiếu với Bảng 3.1–3.3.
+- Tính tay lại chi phí, PERT, EVM và Pareto. Tất cả khớp, trừ các lỗi nêu ở mục 3.
+- Đối chiếu nội dung văn bản trước và sau khi sửa. Chương 6, Chương 7, Kết luận và Tài liệu tham khảo không đổi.
+- `document.xml` hợp lệ. Word mở được file (74 trang) và xuất được PDF. **Chưa soát bằng mắt toàn bộ bố cục trang trong Word**, cần mở lại để kiểm tra vị trí Hình 4.1 và mục 1.5.2.
