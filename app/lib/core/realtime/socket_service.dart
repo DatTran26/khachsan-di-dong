@@ -1,5 +1,7 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
+import '../api/api_config.dart';
+
 /// Callback nhận JSON phòng từ `room:updated` hoặc `room:created`.
 typedef RoomJsonCallback = void Function(Map<String, dynamic> json);
 /// Callback khi `room:deleted`. [roomId] là UUID, không phải số phòng.
@@ -16,7 +18,7 @@ typedef ConnectionCallback = void Function(bool connected);
 /// Một kết nối Socket.IO tới backend.
 ///
 /// Mọi thao tác ghi vẫn đi REST. Socket chỉ nhận sự kiện.
-/// [connect] hủy socket cũ trước khi mở socket mới. URL mặc định localhost.
+/// [connect] hủy socket cũ trước khi mở socket mới. URL mặc định [apiUrl].
 class SocketService {
   io.Socket? _socket;
 

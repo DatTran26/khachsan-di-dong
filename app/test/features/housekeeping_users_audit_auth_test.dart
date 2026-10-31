@@ -68,6 +68,22 @@ void main() {
           ]);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('bấm chip demo thì tự điền số điện thoại và mật khẩu mẫu',
+        (tester) async {
+      await pumpLogin(tester);
+      expect(find.text('Quản lý'), findsOneWidget);
+      expect(find.text('Lễ tân'), findsOneWidget);
+      expect(find.text('Nhân viên'), findsOneWidget);
+
+      await tester.tap(find.text('Lễ tân'));
+      await tester.pump();
+
+      final fields =
+          tester.widgetList<TextField>(find.byType(TextField)).toList();
+      expect(fields[0].controller?.text, '0900000002');
+      expect(fields[1].controller?.text, 'Demo@12345');
+    });
   });
 
   group('Dọn phòng (nhân viên)', () {

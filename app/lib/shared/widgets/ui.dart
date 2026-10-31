@@ -647,6 +647,47 @@ class AppCard extends StatelessWidget {
   }
 }
 
+/// Nút chính cho thao tác ghi bất đồng bộ: khóa nút và hiện vòng xoay tới khi [onPressed] chạy xong,
+/// tránh bấm 2 lần gửi trùng request (lần sau sẽ bị server từ chối vì lệch `version`).
+class BusyButton extends StatefulWidget {
+  final Future<void> Function()? onPressed;
+  final Widget child;
+  final ButtonStyle? style;
+
+  const BusyButton(
+      {super.key, required this.onPressed, required this.child, this.style});
+
+  @override
+  State<BusyButton> createState() => _BusyButtonState();
+}
+
+class _BusyButtonState extends State<BusyButton> {
+  bool _busy = false;
+
+  Future<void> _press() async {
+    setState(() => _busy = true);
+    try {
+      await widget.onPressed!();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: widget.style,
+      onPressed: _busy || widget.onPressed == null ? null : _press,
+      child: _busy
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : widget.child,
+    );
+  }
+}
+
 /// Hàng thông tin nhỏ — "Hạn 14:50".
 class MetaText extends StatelessWidget {
   final String text;
