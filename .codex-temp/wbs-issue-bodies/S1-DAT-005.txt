@@ -1,0 +1,32 @@
+## Outcome
+
+Thiết lập Gitflow, nhánh develop-dat, develop-kim, develop-bao, SECURITY và contribution
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S1-DAT-005`
+- **Sprint:** S1
+- **Workstream:** Artefact nghiệp vụ Đạt đã có bằng chứng trong repository
+- **Owner:** Đạt
+- **KT / reviewer:** Team
+- **Estimate:** 4 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-08 đến 2026-09-08
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Quy ước repo
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Cần xác minh
+- **Evidence level:** No evidence
+- **Nguồn baseline:** AGENTS.md, SECURITY.md, .github/
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

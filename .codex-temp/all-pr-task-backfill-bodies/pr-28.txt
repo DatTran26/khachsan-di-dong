@@ -1,0 +1,44 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** Document Flutter models and theme
+- **Evidence treatment:** Documentation-only annotations
+- **Historical state:** Merged into `develop-dat`
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+<!-- CURSOR_AGENT_PR_BODY_BEGIN -->
+## Outcome
+
+Thêm chú thích `///` tiếng Việt cho model việc dọn, việc bảo trì, tóm tắt AI, ảnh, nhật ký, và theme ứng dụng. Không đổi hành vi.
+
+## Branch
+
+- Source: `cursor/app-models-theme-docs-75e0`
+- Target: `develop-dat`
+
+## Checks
+
+- [x] No secrets committed
+- [x] Personal branch is not targeting `main`
+- [x] Tests / hygiene considered — chỉ thêm comment, không chạy `flutter analyze`
+
+## Notes
+
+Năm commit, tách từ `develop-dat` tại `820ff37`:
+
+- docs: document housekeeping task model (`housekeeping_task.dart`)
+- docs: document maintenance task model (`maintenance_task.dart`)
+- docs: document AI summary model (`ai_summary.dart`)
+- docs: document app theme (`app_theme.dart`)
+- docs: document photo and audit models (`housekeeping_photo.dart`, `audit_entry.dart`)
+
+<!-- CURSOR_AGENT_PR_BODY_END -->
+
+<div><a href="https://cursor.com/agents/bc-d173923d-8fa5-4a32-ae20-ca97e45d75e0?cursor_ref=pr_footer&cursor_cta=open_in_web"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cursor.com/assets/images/open-in-web-dark.png"><source media="(prefers-color-scheme: light)" srcset="https://cursor.com/assets/images/open-in-web-light.png"><img alt="Open in Web" width="114" height="28" src="https://cursor.com/assets/images/open-in-web-dark.png"></picture></a>&nbsp;<a href="https://cursor.com/background-agent?bcId=bc-d173923d-8fa5-4a32-ae20-ca97e45d75e0&cursor_ref=pr_footer&cursor_cta=open_in_cursor"><picture><source media="(prefers-color-scheme: dark)" srcset="https://cursor.com/assets/images/open-in-cursor-dark.png"><source media="(prefers-color-scheme: light)" srcset="https://cursor.com/assets/images/open-in-cursor-light.png"><img alt="Open in Cursor" width="131" height="28" src="https://cursor.com/assets/images/open-in-cursor-dark.png"></picture></a>&nbsp;</div>
+
+
+
+</details>

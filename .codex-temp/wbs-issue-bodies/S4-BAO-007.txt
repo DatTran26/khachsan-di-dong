@@ -1,0 +1,32 @@
+## Outcome
+
+Test restore PostgreSQL từ backup staging và ghi thời gian cùng dữ liệu demo
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S4-BAO-007`
+- **Sprint:** S4
+- **Workstream:** Gia cố backend, diễn tập migration, APK Android
+- **Owner:** Bảo
+- **KT / reviewer:** 2h
+- **Estimate:** 2 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-22 đến 2026-10-22
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Biên bản restore
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

@@ -1,0 +1,40 @@
+## Backfilled delivery record
+
+- **WBS task candidates:** `S4-DAT-003`
+- **Evidence classification:** CI configuration + passing check
+- **Verified merge:** `develop` on 2026-10-16
+- **Acceptance boundary:** Không dùng PR này làm UAT/sign-off. Chỉ chuyển task WBS sang Đã xong sau khi có acceptance evidence phù hợp.
+- **WBS Issue links:** [S4-DAT-003 #217](https://github.com/DatTran26/khachsan-di-dong/issues/217)
+
+Các mã WBS ở trên là phạm vi ứng viên đối chiếu từ file thay đổi và mô tả PR. Chúng không tự xác nhận rằng task đã hoàn thành.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Outcome
+
+Thêm workflow **App CI** (`.github/workflows/app-ci.yml`) cho thư mục `app/`, cùng quy ước với Backend CI: chạy khi push vào `main`/`develop`/`develop-*`/`release/**`/`hotfix/**` và khi mở PR vào `main`/`develop`, chỉ khi có thay đổi trong `app/**`.
+
+3 commit:
+- `ci: run flutter analyze and test for the app` — Flutter 3.47.4 stable (cùng bản máy nhóm), có cache.
+- `ci: build the Flutter web bundle in app CI` — bắt lỗi chỉ lộ khi biên dịch web.
+- `ci: re-run app checks when a stacked PR is retargeted` — PR xếp chồng (vd #34–#45) được đổi base sang `develop` khi PR dưới merge xong thì chạy lại; sửa tiêu đề/mô tả thì không.
+
+## Branch
+
+- Source: `feat/flutter-ci`
+- Target: `develop`
+
+## Checks
+
+- [x] No secrets committed
+- [x] Personal branch is not targeting `main`
+- [x] Tests / hygiene considered — YAML hợp lệ; các bước giống hệt lệnh đã chạy trên máy (`flutter analyze`, `flutter test` 127/127, `flutter build web`)
+
+## Notes
+
+- Không đổi Backend CI.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+</details>

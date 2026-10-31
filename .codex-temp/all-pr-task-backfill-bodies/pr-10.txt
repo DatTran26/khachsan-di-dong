@@ -1,0 +1,23 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** Initial operations, dashboard and AI delivery gaps
+- **Evidence treatment:** Code + test/CI; mixed multi-sprint scope
+- **Historical state:** Merged into `develop`
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Tóm tắt  ### Sprint 1 — bù Definition of Done (backend) - **S1-BAO-01 — lint**: Biome (`npm run lint`, cảnh báo tính là lỗi) + bước Lint trong `backend-ci.yml` (`typescript-eslint` chưa hỗ trợ TypeScript 7). - **S1-DAT-05 — health check**: `GET /api/health` trả `503` khi CSDL sập. - **S1-BAO-05 — RBAC matrix**: `tests/rbac-matrix.test.ts` phủ mọi API × 3 vai trò + không token → 401. - Thêm `CLAUDE.md`.  ### Sprint 2 — ảnh nghiệm thu dọn phòng (FR-housekeeping-005/007/015, BR-006, NFR-006) - Báo dọn xong cần đủ ảnh `OVERVIEW` + `BED` + `BATHROOM`; `hasIssue: true` cần thêm `CLOSEUP`. Trả lại → lượt ảnh mới, ảnh cũ giữ để truy vết. - Chỉ nhân viên phụ trách + quản lý xem ảnh; chỉ JPG/PNG/WEBP (kiểm theo nội dung tệp), ≤ 5 MB. - Migration `20261007162114_housekeeping_photos`; tệp lưu ở `UPLOAD_DIR` (Docker volume `uploads`).  ### Sprint 3 — dashboard + tóm tắt AI - **S3-BAO-01**: `GET /api/dashboard/summary` trả thêm `overdue.tasks[]` (việc quá hạn + phòng) để tô cờ ô phòng (FR-room-dashboard-006). - **S3-BAO-03…06 — `ai-ops-summary`**: `POST /api/ai-summaries`, `GET /latest`, `GET /budget` (chỉ quản lý).   - Kỳ theo ca giờ VN 06–14 / 14–22 / 22–06 hoặc hôm nay; kỳ rỗng không gọi AI.   - Chỉ gửi số đếm/tỷ lệ + số phòng cần chú ý (không tên khách) tới OpenAI Responses API (`json_schema`, `store: false`), timeout 15 s.   - Mọi con số trong bản AI phải có trong dữ liệu gốc, nếu không → báo cáo mẫu. AI lỗi / quá giờ / hết hạn mức / chưa có key → báo cáo mẫu.   - Hạn mức theo **chi phí thực tế** (mặc định 300.000 VNĐ), chặn trước mỗi lượt; 1 lượt tạo mỗi lúc; mọi lượt ghi nhật ký.   - Migration `20261007164700_ai_summary_cost_budget`: bỏ `ai_quotas` (chưa từng có dữ liệu), thêm cột chi phí/kỳ/lý do vào `ai_summaries`. - Cấu hình Biome theo `preset`.  ## ⚠️ Cần lưu ý trước khi merge - **App**: "báo xong" trên app nhân viên sẽ bị từ chối (`PHOTOS_REQUIRED`) cho tới khi app có màn chụp/tải ảnh + gallery cho quản lý. Màn tóm tắt AI chưa có UI. - **Cần chốt**: model OpenAI + đơn giá (`OPENAI_MODEL`, `AI_PRICE_INPUT_VND_PER_1M`, `AI_PRICE_OUTPUT_VND_PER_1M`; mặc định `gpt-4o-mini`, 4.000 / 16.000 VNĐ mỗi 1 triệu token — cần đối chiếu bảng giá thật). Không có `OPENAI_API_KEY` thì luôn trả báo cáo mẫu.  ## Cách test ``` cd server npx prisma migrate deploy npm run lint npm run typecheck npm test   # 13 file, 344 test pass (AI được giả lập, không gọi mạng) ```  🤖 Generated with [Claude Code](https://claude.com/claude-code) 
+### Cập nhật 10/10 — chốt nghiệp vụ + sửa lỗi rà soát
+- **maintenance OQ-1 chốt 4 giờ**: mặc định `MAINTENANCE_DUE_MINUTES=240`, `0` = tắt (cập nhật spec maintenance + room-dashboard).
+- **Kỳ tóm tắt rỗng** vẫn kèm việc cần chú ý đang tồn tại; số phòng mọi kỳ là ảnh chụp tại T (ghi vào spec ai-ops-summary).
+- **Sửa `db:seed:demo`** (hỏng vì `PHOTOS_REQUIRED`) + thêm `db:seed:peak` (kịch bản "ca đỉnh" chạy trước demo). CI giờ chạy cả 2 seed.
+- **App dashboard**: cờ quá hạn lấy từ API (lễ tân cũng thấy), chỉ số tự tải lại khi có sự kiện việc dọn/sửa, lọc "Cần dọn" chỉ `DIRTY`, báo lỗi khi tải chỉ số hỏng. Đã chạy thử trên Flutter web với backend thật.
+- **App realtime**: kết nối lại socket sau khi đổi mật khẩu lần đầu. 
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+
+</details>

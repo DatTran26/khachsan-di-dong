@@ -1,0 +1,32 @@
+## Outcome
+
+Lập inventory biến môi trường: chỉ tên biến, owner, môi trường, quy tắc rotate, không ghi giá trị
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S4-DAT-008`
+- **Sprint:** S4
+- **Workstream:** Security, CI/CD, staging, rollback và hồ sơ bàn giao
+- **Owner:** Đạt
+- **KT / reviewer:** 1h
+- **Estimate:** 1 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-21 đến 2026-10-21
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Inventory env
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

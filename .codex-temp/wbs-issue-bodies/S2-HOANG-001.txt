@@ -1,0 +1,32 @@
+## Outcome
+
+Màn check-in Web: chọn phòng sẵn sàng, form khách, hiện lý do không đủ điều kiện
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S2-HOANG-001`
+- **Sprint:** S2
+- **Workstream:** Flutter Web và Android cho nhận trả, dọn phòng, bảo trì, nhật ký
+- **Owner:** Hoàng
+- **KT / reviewer:** Bảo
+- **Estimate:** 5 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-05 đến 2026-10-05
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Màn check-in
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** Code
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- [PR #38](https://github.com/DatTran26/khachsan-di-dong/pull/38): Code only
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

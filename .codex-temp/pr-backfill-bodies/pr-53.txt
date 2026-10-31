@@ -1,0 +1,43 @@
+## Backfilled delivery record
+
+- **WBS task candidates:** `S1-HOANG-005`, `S2-HOANG-004`, `S2-HOANG-007`
+- **Evidence classification:** Code + CI; UAT pending
+- **Verified merge:** `develop` on 2026-10-27
+- **Acceptance boundary:** UAT/sign-off của Đạt vẫn đang chờ. Không chuyển task WBS sang Đã xong chỉ từ code hoặc CI.
+- **Issue links:** Chưa tạo. Sẽ liên kết đến từng WBS Issue sau khi register được đưa lên GitHub Project.
+
+Các mã WBS ở trên là phạm vi ứng viên đối chiếu từ file thay đổi và mô tả PR. Chúng không tự xác nhận rằng task đã hoàn thành.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Thay đổi
+
+**Chống bấm 2 lần ở nút thao tác việc**
+- `f4c6fa2` fix(app): lock task action buttons while the request is in flight
+  - Thêm `BusyButton` (shared/widgets/ui.dart): khóa nút và hiện vòng xoay tới khi request xong.
+  - Áp cho: Nhận việc, Xác nhận sạch (dọn phòng); Nhận việc sửa, Báo đã sửa xong (bảo trì).
+  - Trước đây bấm 2 lần khi mạng chậm thì lần sau bị server từ chối vì lệch `version`, người dùng thấy báo lỗi dù thao tác đã thành công.
+
+**Ảnh trình chiếu màn đăng nhập**
+- `ec91057` feat(app): add a hotel photo slideshow behind the login brand panel
+  - Tự đọc mọi ảnh trong `app/assets/images/login/` (không cần sửa code khi thêm ảnh), chuyển mờ dần + phóng chậm, có lớp phủ tối giữ chữ đọc rõ.
+  - Thư mục trống → giữ nền espresso cũ; máy bật giảm chuyển động → đứng yên ở ảnh đầu.
+- `a230560` fix(app): keep login slideshow inside its panel and across layout changes
+  - Ảnh phóng to không còn tràn qua vạch vàng sang phần form.
+  - Sửa lỗi mất ảnh khi đổi giữa khổ điện thoại và khổ rộng.
+- `ef9282e` feat(app): add hotel room photos for the login slideshow
+
+Nhánh đã merge `origin/develop-kim` (gồm develop + release 0.2.0), không có xung đột.
+
+## Kiểm tra
+- `flutter analyze lib`: không lỗi
+- `flutter test`: 50/50 qua
+- `npm run typecheck` + `npm test` (server): 353/353 qua
+- Chạy bản web: màn đăng nhập khổ rộng 1280px và khổ điện thoại 375px, ảnh chuyển đúng, đổi khổ qua lại vẫn còn ảnh, không tràn.
+
+## Cách test
+1. `dev.cmd`, mở màn đăng nhập: ảnh chạy qua mỗi 5 giây ở panel trái (web) hoặc dải đầu trang (điện thoại).
+2. Đăng nhập tài khoản nhân viên, bấm nhanh 2 lần "Nhận việc": nút khóa và hiện vòng xoay, chỉ gửi 1 request, không báo lỗi xung đột.
+
+</details>

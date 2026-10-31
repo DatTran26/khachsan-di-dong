@@ -1,0 +1,2002 @@
+[
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 2/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `50afcef` feat(app): add grid and list loading skeletons\n- `f932a03` feat(app): add tablet window size and initial load gate\n- `4ee1618` fix(app): let status chips grow with large system text\n\n## Branch\n\n- Source: `feat/ui-ux-02-loading`\n- Target: `feat/ui-ux-01-tokens` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/33\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:18:06Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:06Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add grid and list loading skeletons",
+        "oid": "50afcefb4ecd7d37c776e8240f3f657f925cc387"
+      },
+      {
+        "authoredDate": "2026-10-16T23:18:14Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:14Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add tablet window size and initial load gate",
+        "oid": "f932a031e64b7ddffd2b739b956738239c60c77b"
+      },
+      {
+        "authoredDate": "2026-10-16T23:18:23Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:23Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): let status chips grow with large system text",
+        "oid": "4ee1618b8bd40ad07f5c70a61bc6d0eae86b2108"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/shared/widgets/loading_skeleton.dart",
+        "additions": 174,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/lib/shared/widgets/ui.dart",
+        "additions": 63,
+        "deletions": 18,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-02-loading",
+    "mergedAt": "2026-10-16T23:31:10Z",
+    "number": 34,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [2/13] Skeleton tải lần đầu, mức bố cục tablet, chip giãn theo cỡ chữ",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/34"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 3/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `61c6fab` feat(app): explain locked actions offline and announce banners\n- `5633f78` fix(app): scroll empty states and tokenize shared labels\n- `88e7676` refactor(app): use theme tokens in room tile, dialogs and timeline\n\n## Branch\n\n- Source: `feat/ui-ux-03-shared`\n- Target: `feat/ui-ux-02-loading` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/34\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:18:31Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:31Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): explain locked actions offline and announce banners",
+        "oid": "61c6fabc58483f74356d9e5453ccdce724a365c8"
+      },
+      {
+        "authoredDate": "2026-10-16T23:18:39Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:39Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): scroll empty states and tokenize shared labels",
+        "oid": "5633f7880ad77a1e1265844c9a005f3f85684293"
+      },
+      {
+        "authoredDate": "2026-10-16T23:18:46Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:46Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "refactor(app): use theme tokens in room tile, dialogs and timeline",
+        "oid": "88e7676e25a0e848e9477d4df2f0c6c4b73dbdcb"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/shared/widgets/confirm_dialog.dart",
+        "additions": 6,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/room_tile.dart",
+        "additions": 8,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/task_status_timeline.dart",
+        "additions": 9,
+        "deletions": 11,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/ui.dart",
+        "additions": 77,
+        "deletions": 55,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-03-shared",
+    "mergedAt": "2026-10-16T23:31:20Z",
+    "number": 35,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [3/13] Ghi chú khi mất mạng, banner live region, token cho widget dùng chung",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/35"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 4/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `6002b9a` feat(app): show a navigation rail on tablets\n- `82ea2ed` feat(app): announce reconnection and label nav badges\n- `cc11693` fix(app): keep web sidebar and top bar readable at large text\n\n## Branch\n\n- Source: `feat/ui-ux-04-shell`\n- Target: `feat/ui-ux-03-shared` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/35\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:18:53Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:18:53Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): show a navigation rail on tablets",
+        "oid": "6002b9a892d5e34b98294edf10dd9819cbc91640"
+      },
+      {
+        "authoredDate": "2026-10-16T23:19:00Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:00Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): announce reconnection and label nav badges",
+        "oid": "82ea2edc297a2c27d204c2b00f7ef8a626d9f455"
+      },
+      {
+        "authoredDate": "2026-10-16T23:19:07Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:07Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): keep web sidebar and top bar readable at large text",
+        "oid": "cc116931aa698bf3b289ff69ee33d5e8a1555b61"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/shell/screens/app_shell.dart",
+        "additions": 203,
+        "deletions": 122,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-04-shell",
+    "mergedAt": "2026-10-16T23:31:31Z",
+    "number": 36,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [4/13] Thanh điều hướng dọc cho tablet, báo kết nối lại, khung web giãn theo cỡ chữ",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/36"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 5/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `f1944f7` feat(app): show skeleton and allow pull-to-refresh on the dashboard\n- `8ac46d4` fix(app): keep the rooms search text when returning to the screen\n- `626c73b` feat(app): add rooms skeleton, pull-to-refresh and filtered count\n\n## Branch\n\n- Source: `feat/ui-ux-05-dashboard-rooms`\n- Target: `feat/ui-ux-04-shell` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/36\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:19:15Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:15Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): show skeleton and allow pull-to-refresh on the dashboard",
+        "oid": "f1944f7a682a9cc59816655922439fb6d48f76bb"
+      },
+      {
+        "authoredDate": "2026-10-16T23:19:21Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:21Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): keep the rooms search text when returning to the screen",
+        "oid": "8ac46d4ac2cf85280d546df9d41a81940b2b63fb"
+      },
+      {
+        "authoredDate": "2026-10-16T23:19:49Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:49Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add rooms skeleton, pull-to-refresh and filtered count",
+        "oid": "626c73bcd7b311d376e50effa500f087a8809207"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/dashboard/screens/dashboard_screen.dart",
+        "additions": 20,
+        "deletions": 25,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/screens/rooms_screen.dart",
+        "additions": 59,
+        "deletions": 27,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-05-dashboard-rooms",
+    "mergedAt": "2026-10-16T23:31:41Z",
+    "number": 37,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [5/13] Tổng quan và Phòng: skeleton, kéo-làm-mới, giữ từ khóa tìm kiếm",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/37"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 6/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `9b816d6` feat(app): add a clear button to the rooms search\n- `7960e3f` feat(app): refresh and mark the selected row in the rooms table\n- `abb1781` feat(app): add night shortcuts and offline note to room detail\n\n## Branch\n\n- Source: `feat/ui-ux-06-rooms-checkin`\n- Target: `feat/ui-ux-05-dashboard-rooms` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/37\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:19:56Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:19:56Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add a clear button to the rooms search",
+        "oid": "9b816d68dd6bfcc460fb978beaeb064e2aabd767"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:03Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:03Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): refresh and mark the selected row in the rooms table",
+        "oid": "7960e3f6250947c7327f7301f14727394bf7358e"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:10Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:10Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add night shortcuts and offline note to room detail",
+        "oid": "abb1781c145746ee90e5c6d3610d0ca40a99547c"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/rooms/screens/rooms_screen.dart",
+        "additions": 75,
+        "deletions": 57,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/widgets/room_detail_panel.dart",
+        "additions": 25,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-06-rooms-checkin",
+    "mergedAt": "2026-10-16T23:31:52Z",
+    "number": 38,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [6/13] Phòng: nút xóa tìm kiếm, bảng web; nhận phòng chọn nhanh số đêm",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/38"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 7/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `48463bc` feat(app): validate room, check-in and issue forms as fields are left\n- `9396ca9` refactor(app): use theme tokens in room detail\n- `ba613c9` feat(app): add stays skeleton, refresh, search clear and offline note\n\n## Branch\n\n- Source: `feat/ui-ux-07-forms-stays`\n- Target: `feat/ui-ux-06-rooms-checkin` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/38\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:20:17Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:17Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): validate room, check-in and issue forms as fields are left",
+        "oid": "48463bc51cd49779bd2c7b9f7f0e33f22c141b1b"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:25Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:25Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "refactor(app): use theme tokens in room detail",
+        "oid": "9396ca906efab273ed9f4bec8cddfdb56dd84304"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:32Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:32Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add stays skeleton, refresh, search clear and offline note",
+        "oid": "ba613c9792dff30ea25a2458d0b1d631ef0ecab8"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/maintenance/widgets/report_issue_dialog.dart",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/screens/room_form_screen.dart",
+        "additions": 7,
+        "deletions": 1,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/widgets/room_detail_panel.dart",
+        "additions": 17,
+        "deletions": 17,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/stays/screens/stays_screen.dart",
+        "additions": 43,
+        "deletions": 17,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-07-forms-stays",
+    "mergedAt": "2026-10-16T23:32:02Z",
+    "number": 39,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [7/13] Form kiểm tra lỗi khi rời ô; Lưu trú: skeleton, làm mới, ghi chú mất mạng",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/39"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 8/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `390b2cb` feat(app): label stay checkout buttons with the room number\n- `3ba69de` feat(app): add maintenance skeleton and pull-to-refresh\n- `a8faae2` fix(app): wrap the maintenance header and use 48dp desk buttons\n\n## Branch\n\n- Source: `feat/ui-ux-08-stays-maintenance`\n- Target: `feat/ui-ux-07-forms-stays` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/39\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:20:39Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:39Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): label stay checkout buttons with the room number",
+        "oid": "390b2cb1e04c5dc05adcc0c61f72259b845126d7"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:46Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:46Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add maintenance skeleton and pull-to-refresh",
+        "oid": "3ba69de0943f19ad0f6c8e91faaacc7d22935620"
+      },
+      {
+        "authoredDate": "2026-10-16T23:20:54Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:20:54Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): wrap the maintenance header and use 48dp desk buttons",
+        "oid": "a8faae2d70a7cf4f8d09e752c3955b70382929a6"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/maintenance/screens/maintenance_screen.dart",
+        "additions": 67,
+        "deletions": 55,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/stays/screens/stays_screen.dart",
+        "additions": 12,
+        "deletions": 13,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-08-stays-maintenance",
+    "mergedAt": "2026-10-16T23:32:13Z",
+    "number": 40,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [8/13] Lưu trú: nhãn nút trả phòng; Bảo trì: skeleton, làm mới, nút 48",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/40"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 9/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `e0d43ad` feat(app): add housekeeping skeleton, refresh and offline note\n- `14235e1` feat(app): use 48dp housekeeping buttons on phones\n- `a40d538` feat(app): read housekeeping task cards as one sentence\n\n## Branch\n\n- Source: `feat/ui-ux-09-housekeeping`\n- Target: `feat/ui-ux-08-stays-maintenance` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/40\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:21:01Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:01Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add housekeeping skeleton, refresh and offline note",
+        "oid": "e0d43ad86e30f7b326e737a5613be7f2b7afb462"
+      },
+      {
+        "authoredDate": "2026-10-16T23:21:08Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:08Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): use 48dp housekeeping buttons on phones",
+        "oid": "14235e1c93b25b5878c67406679756e5feaa0f53"
+      },
+      {
+        "authoredDate": "2026-10-16T23:21:15Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:15Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): read housekeeping task cards as one sentence",
+        "oid": "a40d538387a0c1d89642c6eaa85e0cec521e94e3"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/housekeeping/screens/housekeeping_screen.dart",
+        "additions": 123,
+        "deletions": 84,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-09-housekeeping",
+    "mergedAt": "2026-10-16T23:32:23Z",
+    "number": 41,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [9/13] Dọn phòng: skeleton, nút 48 trên điện thoại, thẻ việc đọc liền một câu",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/41"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 10/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `efc87bf` feat(app): add accounts skeleton, refresh and offline note\n- `004673e` feat(app): label account actions and validate the account form\n- `be9b257` feat(app): add audit log skeleton, refresh and load-more labels\n\n## Branch\n\n- Source: `feat/ui-ux-10-accounts-audit`\n- Target: `feat/ui-ux-09-housekeeping` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/41\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:21:22Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:22Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add accounts skeleton, refresh and offline note",
+        "oid": "efc87bfa96e80edd1c039a1a60c34b633addaa95"
+      },
+      {
+        "authoredDate": "2026-10-16T23:21:31Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:31Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): label account actions and validate the account form",
+        "oid": "004673ef4e86ea183be5c6f3252d32b88311f811"
+      },
+      {
+        "authoredDate": "2026-10-16T23:21:43Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:43Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): add audit log skeleton, refresh and load-more labels",
+        "oid": "be9b257cae8a6b440740d287307e9c8fcf3231f0"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/audit/screens/audit_screen.dart",
+        "additions": 47,
+        "deletions": 37,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/users/screens/users_screen.dart",
+        "additions": 49,
+        "deletions": 29,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/users/widgets/temp_password_dialog.dart",
+        "additions": 5,
+        "deletions": 9,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/users/widgets/user_form_dialog.dart",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-10-accounts-audit",
+    "mergedAt": "2026-10-16T23:32:34Z",
+    "number": 42,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [10/13] Tài khoản và Nhật ký: skeleton, làm mới, nhãn thao tác, kiểm tra form",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/42"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 11/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `2e220b1` feat(app): save login and password changes through autofill\n- `f2100c1` fix(app): keep the login header from overflowing at large text\n- `ef53cc3` refactor(app): use tokens and skeletons in AI summary, photos and room types\n\n## Branch\n\n- Source: `feat/ui-ux-11-auth-new-screens`\n- Target: `feat/ui-ux-10-accounts-audit` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/42\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:21:53Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:21:53Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "feat(app): save login and password changes through autofill",
+        "oid": "2e220b1533c3c9372f52b9b01141e5009d7f91da"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:03Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:03Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "fix(app): keep the login header from overflowing at large text",
+        "oid": "f2100c1bf1231e469dd4f841131bd3c6170aeb47"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:10Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:10Z",
+        "messageBody": "…m types\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "refactor(app): use tokens and skeletons in AI summary, photos and roo…",
+        "oid": "ef53cc3a3a5dcdb548755d42e582a5149754dc66"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/features/ai_summary/screens/ai_summary_screen.dart",
+        "additions": 8,
+        "deletions": 15,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/auth/screens/change_password_screen.dart",
+        "additions": 18,
+        "deletions": 14,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/auth/screens/login_screen.dart",
+        "additions": 43,
+        "deletions": 40,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/housekeeping/screens/acceptance_photos_screen.dart",
+        "additions": 6,
+        "deletions": 7,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/housekeeping/widgets/photo_gallery.dart",
+        "additions": 11,
+        "deletions": 10,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/screens/room_types_screen.dart",
+        "additions": 3,
+        "deletions": 3,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-11-auth-new-screens",
+    "mergedAt": "2026-10-16T23:32:44Z",
+    "number": 43,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(app): [11/13] Đăng nhập lưu qua autofill, không tràn; token cho màn AI/ảnh/loại phòng",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/43"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 12/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `57b8755` test(app): add fake notifiers and shared widget tests\n- `9a0aa1b` test(app): cover shell, dashboard, rooms, stays and maintenance\n- `43d05e2` test(app): cover housekeeping, accounts, audit and login\n\n## Branch\n\n- Source: `feat/ui-ux-12-tests`\n- Target: `feat/ui-ux-11-auth-new-screens` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/43\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:22:18Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:18Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "test(app): add fake notifiers and shared widget tests",
+        "oid": "57b8755c341b511951d644469c8b06d7df7d70d1"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:25Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:25Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "test(app): cover shell, dashboard, rooms, stays and maintenance",
+        "oid": "9a0aa1bdf514b4c76ca13d4f715bf6f57eccb305"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:33Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:33Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "test(app): cover housekeeping, accounts, audit and login",
+        "oid": "43d05e2d346abad3ec92be78b0a0062368049669"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/test/features/housekeeping_users_audit_auth_test.dart",
+        "additions": 126,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/test/features/shell_dashboard_rooms_test.dart",
+        "additions": 118,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/test/features/stays_maintenance_test.dart",
+        "additions": 86,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/test/helpers/fakes.dart",
+        "additions": 188,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/test/shared/ui_widgets_test.dart",
+        "additions": 125,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-12-tests",
+    "mergedAt": "2026-10-16T23:32:55Z",
+    "number": 44,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "test(app): [12/13] Test: fake notifier, widget dùng chung và từng nhóm màn",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/44"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nPhần 13/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:\n\n- `e433738` test(app): check every screen at three widths and 200% text\n- `81158d0` docs: add app design system guide\n- `08dfb3c` docs: link the design system guide from the README\n\n## Branch\n\n- Source: `feat/ui-ux-13-matrix-docs`\n- Target: `feat/ui-ux-12-tests` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`\n\n## Notes\n\n- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/44\n- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).\n- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:22:41Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:41Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "test(app): check every screen at three widths and 200% text",
+        "oid": "e433738de1cff8291eafa4ba2046242eeab5babb"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:48Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:48Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "docs: add app design system guide",
+        "oid": "81158d05142e85a1e88009651cd74883ac9f685a"
+      },
+      {
+        "authoredDate": "2026-10-16T23:22:55Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:22:55Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "docs: link the design system guide from the README",
+        "oid": "08dfb3c0bf8802ddcf10aca03338b52638260b5d"
+      }
+    ],
+    "files": [
+      {
+        "path": "README.md",
+        "additions": 1,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/test/features/layout_matrix_test.dart",
+        "additions": 111,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/_shared/design-system.md",
+        "additions": 64,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-13-matrix-docs",
+    "mergedAt": "2026-10-16T23:33:05Z",
+    "number": 45,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "test(app): [13/13] Test ma trận bố cục 3 bề rộng × chữ 200% và tài liệu design system",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/45"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nThêm workflow **App CI** (`.github/workflows/app-ci.yml`) cho thư mục `app/`, cùng quy ước với Backend CI: chạy khi push vào `main`/`develop`/`develop-*`/`release/**`/`hotfix/**` và khi mở PR vào `main`/`develop`, chỉ khi có thay đổi trong `app/**`.\n\n3 commit:\n- `ci: run flutter analyze and test for the app` — Flutter 3.47.4 stable (cùng bản máy nhóm), có cache.\n- `ci: build the Flutter web bundle in app CI` — bắt lỗi chỉ lộ khi biên dịch web.\n- `ci: re-run app checks when a stacked PR is retargeted` — PR xếp chồng (vd #34–#45) được đổi base sang `develop` khi PR dưới merge xong thì chạy lại; sửa tiêu đề/mô tả thì không.\n\n## Branch\n\n- Source: `feat/flutter-ci`\n- Target: `develop`\n\n## Checks\n\n- [x] No secrets committed\n- [x] Personal branch is not targeting `main`\n- [x] Tests / hygiene considered — YAML hợp lệ; các bước giống hệt lệnh đã chạy trên máy (`flutter analyze`, `flutter test` 127/127, `flutter build web`)\n\n## Notes\n\n- Không đổi Backend CI.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-16T23:28:52Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:28:52Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "ci: run flutter analyze and test for the app",
+        "oid": "7f10d5625e57763c525482cd1f37149f8f91364c"
+      },
+      {
+        "authoredDate": "2026-10-16T23:29:02Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:29:02Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "ci: build the Flutter web bundle in app CI",
+        "oid": "08e6167c95f58c8cee8c15ec7f6bdc8730a4033d"
+      },
+      {
+        "authoredDate": "2026-10-16T23:29:13Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          },
+          {
+            "email": "noreply@anthropic.com",
+            "id": "MDQ6VXNlcjgxODQ3",
+            "login": "claude",
+            "name": "Claude Opus 5.5"
+          }
+        ],
+        "committedDate": "2026-10-16T23:29:13Z",
+        "messageBody": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+        "messageHeadline": "ci: re-run app checks when a stacked PR is retargeted",
+        "oid": "1c9e3ccfed041d5595b1a46b4eb47e7894b66478"
+      }
+    ],
+    "files": [
+      {
+        "path": ".github/workflows/app-ci.yml",
+        "additions": 53,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/flutter-ci",
+    "mergedAt": "2026-10-16T23:33:26Z",
+    "number": 46,
+    "state": "MERGED",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-16T23:33:46Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/DatTran26/khachsan-di-dong/actions/runs/38981730442/job/117243907592",
+        "name": "Analyze · Test · Build web",
+        "startedAt": "2026-10-16T23:29:47Z",
+        "status": "COMPLETED",
+        "workflowName": "App CI"
+      }
+    ],
+    "title": "ci: add App CI for Flutter (analyze, test, build web)",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/46"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nBo sung day du ke hoach quan ly rui ro va quan ly truyen thong dang so tay Excel cung kich ban tu dong hoa Python cho Sprint MVP (2 commit/PR).\n\n- `71d07f5` docs(plan): add risk register generation script and workbook\n- `3593a15` docs(plan): add communication management plan scripts and workbook\n\n## Branch\n\n- Source: `feat/mvp-risk-communication-workbooks`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:43:09Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:45:40Z",
+        "messageBody": "",
+        "messageHeadline": "docs(plan): add risk register generation script and workbook",
+        "oid": "71d07f5d0e8264932f5e7a90e3773ab18cde9a5a"
+      },
+      {
+        "authoredDate": "2026-10-26T16:43:22Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:45:40Z",
+        "messageBody": "",
+        "messageHeadline": "docs(plan): add communication management plan scripts and workbook",
+        "oid": "3593a1528f86a6622729e7fc5db38520bf13b00c"
+      }
+    ],
+    "files": [
+      {
+        "path": "plans/260923-1658-four-sprint-mvp-backlog/build-communication-plan-workbook.py",
+        "additions": 1289,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/260923-1658-four-sprint-mvp-backlog/build-risk-register-workbook.py",
+        "additions": 552,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/260923-1658-four-sprint-mvp-backlog/communication-lessons-content.py",
+        "additions": 349,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/260923-1658-four-sprint-mvp-backlog/ke-hoach-quan-ly-rui-ro.xlsx",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/260923-1658-four-sprint-mvp-backlog/ke-hoach-quan-ly-truyen-thong.xlsx",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/mvp-risk-communication-workbooks",
+    "mergedAt": "2026-10-26T18:54:24Z",
+    "number": 47,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "docs(plan): add risk register and communication management workbooks",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/47"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nBo sung tai lieu dac ta ke hoach thuc thi nang cap toan dien UI/UX ung dung Flutter (Design System, App Shell, Dashboard, Chi tiet phong, Luu tru, Buong phong, Kiem toan va Xac thuc).\n\n- `64d68d7` docs(plan): add ui/ux upgrade master plan and foundation phases\n- `34b1753` docs(plan): add feature screens and integration phases for ui/ux upgrade\n\n## Branch\n\n- Source: `feat/ui-ux-upgrade-spec`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:43:28Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:46:53Z",
+        "messageBody": "",
+        "messageHeadline": "docs(plan): add ui/ux upgrade master plan and foundation phases",
+        "oid": "64d68d7e4b250bd5f9a855b72a24c245ebd5741d"
+      },
+      {
+        "authoredDate": "2026-10-26T16:43:34Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:46:53Z",
+        "messageBody": "",
+        "messageHeadline": "docs(plan): add feature screens and integration phases for ui/ux upgrade",
+        "oid": "34b17536e49f906f11d38e03d7c57210bc5202d4"
+      }
+    ],
+    "files": [
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/phase-01-design-system-foundation.md",
+        "additions": 68,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/phase-02-shell-dashboard-rooms.md",
+        "additions": 63,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/phase-03-stays-room-detail-maintenance.md",
+        "additions": 68,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/phase-04-housekeeping-users-audit-auth.md",
+        "additions": 70,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/phase-05-integration-qa-docs.md",
+        "additions": 37,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261017-0503-ui-ux-upgrade/plan.md",
+        "additions": 82,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-upgrade-spec",
+    "mergedAt": "2026-10-26T18:54:37Z",
+    "number": 48,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "docs(plan): add ui/ux upgrade execution plan and phase specifications",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/48"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nBo sung bao cao nghiem thu chat luong (QA Report) va nhat ky ky thuat phan anh toan bo ket qua thuc thi Sprint 3 nang cap UI/UX.\n\n- `d09eaf9` docs(qa): add ui/ux upgrade qa verification report\n- `d401501` docs(journal): add sprint 3 ui/ux upgrade engineering journal\n\n## Branch\n\n- Source: `feat/ui-ux-upgrade-qa-journal`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:43:40Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:47:17Z",
+        "messageBody": "",
+        "messageHeadline": "docs(qa): add ui/ux upgrade qa verification report",
+        "oid": "d09eaf9a33dc0971501f121ff7ea28d1e2bc46e6"
+      },
+      {
+        "authoredDate": "2026-10-26T16:43:49Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:47:17Z",
+        "messageBody": "",
+        "messageHeadline": "docs(journal): add sprint 3 ui/ux upgrade engineering journal",
+        "oid": "d401501ef5af0ede1f897a4c3c45692ff26d78c5"
+      }
+    ],
+    "files": [
+      {
+        "path": "plans/journals/2026-10-16-nng-cp-ui-ux-app-flutter-v-hp-nht-vi-sprint-3.md",
+        "additions": 30,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/reports/qa-261017-0503-ui-ux-upgrade.md",
+        "additions": 77,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/ui-ux-upgrade-qa-journal",
+    "mergedAt": "2026-10-26T18:54:45Z",
+    "number": 49,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "docs(qa): add ui/ux upgrade qa verification report and engineering journal",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/49"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nKhoi tao cau hinh phan luong 1DevTool va bo tai lieu ke hoach toi uu UI/UX o phong tinh gon (Compact Room Tile) tren Dashboard cho Le tan.\n\n- `6a364c4` chore(tools): add 1devtool tasks workflow configuration\n- `d66c422` docs(plan): add dashboard compact room tile ux redesign plan and phases\n\n## Branch\n\n- Source: `feat/dashboard-room-tile-plan`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:43:54Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:47:41Z",
+        "messageBody": "",
+        "messageHeadline": "chore(tools): add 1devtool tasks workflow configuration",
+        "oid": "6a364c49a0fa7095b0f12f0ded0c4097376d9c87"
+      },
+      {
+        "authoredDate": "2026-10-26T16:44:01Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:47:41Z",
+        "messageBody": "",
+        "messageHeadline": "docs(plan): add dashboard compact room tile ux redesign plan and phases",
+        "oid": "d66c42212e9cb18f13ec869e829baf26aaedbbea"
+      }
+    ],
+    "files": [
+      {
+        "path": ".1devtool/tasks.config.json",
+        "additions": 15,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261026-2325-dashboard-room-tile-ux-redesign/phase-01-compact-room-tile.md",
+        "additions": 35,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261026-2325-dashboard-room-tile-ux-redesign/phase-02-dashboard-filters-and-search.md",
+        "additions": 22,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261026-2325-dashboard-room-tile-ux-redesign/phase-03-validation-and-qa.md",
+        "additions": 23,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261026-2325-dashboard-room-tile-ux-redesign/plan.md",
+        "additions": 44,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/dashboard-room-tile-plan",
+    "mergedAt": "2026-10-26T18:54:53Z",
+    "number": 50,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "docs(plan): add dashboard compact room tile ux redesign plan and 1devtool config",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/50"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nCung cap mockup truc quan (Figma export) so sanh phong cach o phong cung nguyen mau HTML tuong tac (`preview-dashboard.html`) cho Dashboard Le tan.\n\n- `952985f` docs(mockup): add figma compact room tile mockups and comparison generators\n- `df6cabe` feat(prototype): add interactive html dashboard room tile preview\n\n## Branch\n\n- Source: `feat/dashboard-room-tile-mockup-prototype`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:45:01Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:48:15Z",
+        "messageBody": "…rators",
+        "messageHeadline": "docs(mockup): add figma compact room tile mockups and comparison gene…",
+        "oid": "952985f27896cf7cd7f80d2572e13ffb87e8e423"
+      },
+      {
+        "authoredDate": "2026-10-26T16:45:05Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:48:15Z",
+        "messageBody": "",
+        "messageHeadline": "feat(prototype): add interactive html dashboard room tile preview",
+        "oid": "df6cabeb71612fb0150a198872db1bd4fdf4f1ba"
+      }
+    ],
+    "files": [
+      {
+        "path": "docs/assets/figma/dashboard-compact-mockup.png",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/assets/figma/room-tile-style-comparison.png",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "preview-dashboard.html",
+        "additions": 245,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/generate_mockup.py",
+        "additions": 258,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/generate_tile_comparison.py",
+        "additions": 177,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/dashboard-room-tile-mockup-prototype",
+    "mergedAt": "2026-10-26T18:55:01Z",
+    "number": 51,
+    "state": "MERGED",
+    "statusCheckRollup": [],
+    "title": "feat(ux): add dashboard compact room tile visual mockups and interactive html prototype",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/51"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Outcome\n\nTrien khai giao dien o phong Solid PMS truc quan chuan 5 trang thai van hanh khach san (Trong, O dem, O tieng, Qua gio, Can don), ket noi du lieu `staysProvider` vao Dashboard va bo sung `FakeStays` cho bo widget tests.\n\n- `c65eb2b` feat(app): trien khai o phong solid pms truc quan cho 5 truong hop thuc te\n- `f7b799a` feat(app): connect stays provider to dashboard grid and update widget test fakes\n\n## Branch\n\n- Source: `feat/dashboard-solid-room-tile-pms`\n- Target: `develop`\n\n## Checks\n\n- [x] Khong commit secrets, tokens hay tep .env\n- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)\n- [x] `flutter test`: 127/127 tests passed\n- [x] `flutter analyze lib test`: 0 issues found\n- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)\r\n",
+    "commits": [
+      {
+        "authoredDate": "2026-10-26T16:45:01Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:48:15Z",
+        "messageBody": "…rators",
+        "messageHeadline": "docs(mockup): add figma compact room tile mockups and comparison gene…",
+        "oid": "952985f27896cf7cd7f80d2572e13ffb87e8e423"
+      },
+      {
+        "authoredDate": "2026-10-26T16:45:05Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T16:48:15Z",
+        "messageBody": "",
+        "messageHeadline": "feat(prototype): add interactive html dashboard room tile preview",
+        "oid": "df6cabeb71612fb0150a198872db1bd4fdf4f1ba"
+      },
+      {
+        "authoredDate": "2026-10-26T18:26:37Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T18:49:34Z",
+        "messageBody": "…uc te",
+        "messageHeadline": "feat(app): trien khai o phong solid pms truc quan cho 5 truong hop th…",
+        "oid": "c65eb2b150930e09c6f9955bdbaf43f149703595"
+      },
+      {
+        "authoredDate": "2026-10-26T18:48:45Z",
+        "authors": [
+          {
+            "email": "140488068+DatTran26@users.noreply.github.com",
+            "id": "U_kgDOCF-thA",
+            "login": "DatTran26",
+            "name": "Tran Tan Dat"
+          }
+        ],
+        "committedDate": "2026-10-26T18:49:34Z",
+        "messageBody": "… test fakes",
+        "messageHeadline": "feat(app): connect stays provider to dashboard grid and update widget…",
+        "oid": "f7b799a50c8e145d9ffb18e136223faea64ce453"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/lib/core/theme/app_theme.dart",
+        "additions": 10,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/dashboard/screens/dashboard_screen.dart",
+        "additions": 5,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/rooms/widgets/room_detail_panel.dart",
+        "additions": 12,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/room_tile.dart",
+        "additions": 334,
+        "deletions": 154,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/ui.dart",
+        "additions": 52,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/test/dashboard_screen_test.dart",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/test/responsive_a11y_test.dart",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/test/support/fakes.dart",
+        "additions": 11,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/_shared/design-system.md",
+        "additions": 22,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "docs/assets/figma/5-visual-cases-pms.png",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/assets/figma/dashboard-compact-mockup.png",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "docs/assets/figma/room-tile-style-comparison.png",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "plans/261027-0110-solid-room-tile-pms/plan.md",
+        "additions": 39,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "preview-dashboard.html",
+        "additions": 292,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/generate_5_cases.py",
+        "additions": 207,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/generate_mockup.py",
+        "additions": 258,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/generate_tile_comparison.py",
+        "additions": 177,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "scratch/update_dashboard.py",
+        "additions": 56,
+        "deletions": 0,
+        "changeType": "ADDED"
+      }
+    ],
+    "headRefName": "feat/dashboard-solid-room-tile-pms",
+    "mergedAt": "2026-10-26T18:55:08Z",
+    "number": 52,
+    "state": "MERGED",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-26T18:54:19Z",
+        "conclusion": "SKIPPED",
+        "detailsUrl": "https://github.com/DatTran26/khachsan-di-dong/actions/runs/40381889093/job/121780008594",
+        "name": "Analyze · Test · Build web",
+        "startedAt": "2026-10-26T18:54:19Z",
+        "status": "COMPLETED",
+        "workflowName": "App CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-26T18:53:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/DatTran26/khachsan-di-dong/actions/runs/40381272375/job/121777833988",
+        "name": "Analyze · Test · Build web",
+        "startedAt": "2026-10-26T18:50:14Z",
+        "status": "COMPLETED",
+        "workflowName": "App CI"
+      }
+    ],
+    "title": "feat(app): trien khai o phong solid pms va ket noi du lieu stays tren dashboard",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/52"
+  },
+  {
+    "baseRefName": "develop",
+    "body": "## Thay đổi\n\n**Chống bấm 2 lần ở nút thao tác việc**\n- `f4c6fa2` fix(app): lock task action buttons while the request is in flight\n  - Thêm `BusyButton` (shared/widgets/ui.dart): khóa nút và hiện vòng xoay tới khi request xong.\n  - Áp cho: Nhận việc, Xác nhận sạch (dọn phòng); Nhận việc sửa, Báo đã sửa xong (bảo trì).\n  - Trước đây bấm 2 lần khi mạng chậm thì lần sau bị server từ chối vì lệch `version`, người dùng thấy báo lỗi dù thao tác đã thành công.\n\n**Ảnh trình chiếu màn đăng nhập**\n- `ec91057` feat(app): add a hotel photo slideshow behind the login brand panel\n  - Tự đọc mọi ảnh trong `app/assets/images/login/` (không cần sửa code khi thêm ảnh), chuyển mờ dần + phóng chậm, có lớp phủ tối giữ chữ đọc rõ.\n  - Thư mục trống → giữ nền espresso cũ; máy bật giảm chuyển động → đứng yên ở ảnh đầu.\n- `a230560` fix(app): keep login slideshow inside its panel and across layout changes\n  - Ảnh phóng to không còn tràn qua vạch vàng sang phần form.\n  - Sửa lỗi mất ảnh khi đổi giữa khổ điện thoại và khổ rộng.\n- `ef9282e` feat(app): add hotel room photos for the login slideshow\n\nNhánh đã merge `origin/develop-kim` (gồm develop + release 0.2.0), không có xung đột.\n\n## Kiểm tra\n- `flutter analyze lib`: không lỗi\n- `flutter test`: 50/50 qua\n- `npm run typecheck` + `npm test` (server): 353/353 qua\n- Chạy bản web: màn đăng nhập khổ rộng 1280px và khổ điện thoại 375px, ảnh chuyển đúng, đổi khổ qua lại vẫn còn ảnh, không tràn.\n\n## Cách test\n1. `dev.cmd`, mở màn đăng nhập: ảnh chạy qua mỗi 5 giây ở panel trái (web) hoặc dải đầu trang (điện thoại).\n2. Đăng nhập tài khoản nhân viên, bấm nhanh 2 lần \"Nhận việc\": nút khóa và hiện vòng xoay, chỉ gửi 1 request, không báo lỗi xung đột.",
+    "commits": [
+      {
+        "authoredDate": "2026-10-27T03:54:10Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T03:54:10Z",
+        "messageBody": "Nhan viec, Xac nhan sach, Nhan viec sua, Bao da sua xong now show a spinner and ignore taps until the call returns, so a double tap no longer sends a second request that fails on a stale version.",
+        "messageHeadline": "fix(app): lock task action buttons while the request is in flight",
+        "oid": "f4c6fa28f925620561ed0584000c50d73795149c"
+      },
+      {
+        "authoredDate": "2026-10-27T04:04:52Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T04:04:52Z",
+        "messageBody": "Images dropped into app/assets/images/login/ are picked up from the asset manifest and cross-faded with a slow zoom. An empty folder keeps the plain espresso background, and reduced-motion devices stay on the first photo.",
+        "messageHeadline": "feat(app): add a hotel photo slideshow behind the login brand panel",
+        "oid": "ec91057f44a0276d1607b397e623a4cf72ea7404"
+      },
+      {
+        "authoredDate": "2026-10-27T04:18:06Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T04:18:06Z",
+        "messageBody": "…nges\n\nClip the zooming photo so it no longer spills past the gold divider into the form. Load the image list after the first frame, since a cached manifest resolves synchronously and made precacheImage run inside initState, which left the panel blank after switching between phone and wide layouts.",
+        "messageHeadline": "fix(app): keep login slideshow inside its panel and across layout cha…",
+        "oid": "a2305601ab299b1c7f5371071b8698ea2a62f622"
+      },
+      {
+        "authoredDate": "2026-10-27T04:18:48Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T04:18:48Z",
+        "messageBody": "",
+        "messageHeadline": "feat(app): add hotel room photos for the login slideshow",
+        "oid": "ef9282e76339b028f73f7256f3526e1e15df65a1"
+      },
+      {
+        "authoredDate": "2026-10-27T04:20:09Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T04:20:09Z",
+        "messageBody": "",
+        "messageHeadline": "Merge remote-tracking branch 'origin/develop-kim' into develop-kim",
+        "oid": "e03c93075d25ed22ae121014454e4c2be8bdeb3a"
+      },
+      {
+        "authoredDate": "2026-10-27T04:25:31Z",
+        "authors": [
+          {
+            "email": "hoangtv2009@gmail.com",
+            "id": "U_kgDOCsLCag",
+            "login": "HoangKim72",
+            "name": "HoangKim72"
+          }
+        ],
+        "committedDate": "2026-10-27T04:25:31Z",
+        "messageBody": "# Conflicts:\n#\tapp/lib/features/auth/screens/login_screen.dart",
+        "messageHeadline": "Merge remote-tracking branch 'origin/develop' into develop-kim",
+        "oid": "9b85fcd5195bb64e5b8b4b30a108eda8e143bc98"
+      }
+    ],
+    "files": [
+      {
+        "path": "app/assets/images/login/01-phong-huong-pho.jpg",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/assets/images/login/02-phong-ban-dem.jpg",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/assets/images/login/03-phong-huong-bien.jpg",
+        "additions": 0,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/assets/images/login/README.md",
+        "additions": 11,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/lib/features/auth/screens/login_screen.dart",
+        "additions": 80,
+        "deletions": 63,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/auth/widgets/login_slideshow.dart",
+        "additions": 178,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "app/lib/features/housekeeping/screens/housekeeping_screen.dart",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/features/maintenance/screens/maintenance_screen.dart",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/lib/shared/widgets/ui.dart",
+        "additions": 41,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "app/pubspec.yaml",
+        "additions": 2,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "develop-kim",
+    "mergedAt": "2026-10-27T06:50:22Z",
+    "number": 53,
+    "state": "MERGED",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-27T04:28:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/DatTran26/khachsan-di-dong/actions/runs/40449667352/job/122009168540",
+        "name": "Analyze · Test · Build web",
+        "startedAt": "2026-10-27T04:25:40Z",
+        "status": "COMPLETED",
+        "workflowName": "App CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-27T04:29:43Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/DatTran26/khachsan-di-dong/actions/runs/40449666893/job/122009167331",
+        "name": "Analyze · Test · Build web",
+        "startedAt": "2026-10-27T04:25:39Z",
+        "status": "COMPLETED",
+        "workflowName": "App CI"
+      }
+    ],
+    "title": "feat(app): login photo slideshow and double-tap guard on task buttons",
+    "url": "https://github.com/DatTran26/khachsan-di-dong/pull/53"
+  }
+]

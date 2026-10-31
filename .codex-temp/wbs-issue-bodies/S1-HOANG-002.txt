@@ -1,0 +1,33 @@
+## Outcome
+
+Dựng app shell: auth guard, chặn route theo vai trò, màn loading, lỗi và not-found
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S1-HOANG-002`
+- **Sprint:** S1
+- **Workstream:** Flutter Web, Android, Design Token và QA nền tảng
+- **Owner:** Hoàng
+- **KT / reviewer:** Đạt
+- **Estimate:** 3 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-15 đến 2026-09-16
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Widget test shell
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Cần đối chiếu
+- **Evidence level:** Code
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- [PR #34](https://github.com/DatTran26/khachsan-di-dong/pull/34): Code only
+- [PR #36](https://github.com/DatTran26/khachsan-di-dong/pull/36): Code only
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

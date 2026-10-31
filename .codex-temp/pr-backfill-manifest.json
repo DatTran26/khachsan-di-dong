@@ -1,0 +1,232 @@
+[
+  {
+    "number": 34,
+    "old_title": "feat(app): [2/13] Skeleton tải lần đầu, mức bố cục tablet, chip giãn theo cỡ chữ",
+    "new_title": "feat(ui): [S1-UX] loading skeletons and tablet layout foundation",
+    "wbs_candidates": [
+      "S1-HOANG-002",
+      "S1-HOANG-003"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-34.txt"
+  },
+  {
+    "number": 35,
+    "old_title": "feat(app): [3/13] Ghi chú khi mất mạng, banner live region, token cho widget dùng chung",
+    "new_title": "feat(ui): [S1-UX] offline guidance and shared accessibility tokens",
+    "wbs_candidates": [
+      "S1-HOANG-003",
+      "S1-HOANG-010"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-35.txt"
+  },
+  {
+    "number": 36,
+    "old_title": "feat(app): [4/13] Thanh điều hướng dọc cho tablet, báo kết nối lại, khung web giãn theo cỡ chữ",
+    "new_title": "feat(shell): [S1-UX] responsive navigation and reconnect feedback",
+    "wbs_candidates": [
+      "S1-HOANG-002",
+      "S3-HOANG-007"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-36.txt"
+  },
+  {
+    "number": 37,
+    "old_title": "feat(app): [5/13] Tổng quan và Phòng: skeleton, kéo-làm-mới, giữ từ khóa tìm kiếm",
+    "new_title": "feat(dashboard): [S3-DASH] loading, refresh and room-search persistence",
+    "wbs_candidates": [
+      "S3-HOANG-002",
+      "S3-HOANG-003",
+      "S3-HOANG-009"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-37.txt"
+  },
+  {
+    "number": 38,
+    "old_title": "feat(app): [6/13] Phòng: nút xóa tìm kiếm, bảng web; nhận phòng chọn nhanh số đêm",
+    "new_title": "feat(rooms): [S1-ROOM][S2-STAY] room controls and check-in shortcuts",
+    "wbs_candidates": [
+      "S1-HOANG-007",
+      "S1-HOANG-008",
+      "S2-HOANG-001"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-38.txt"
+  },
+  {
+    "number": 39,
+    "old_title": "feat(app): [7/13] Form kiểm tra lỗi khi rời ô; Lưu trú: skeleton, làm mới, ghi chú mất mạng",
+    "new_title": "feat(app): [S1-ROOM][S2-STAY][S2-MNT] form validation and offline list UX",
+    "wbs_candidates": [
+      "S1-HOANG-012",
+      "S2-HOANG-009"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-39.txt"
+  },
+  {
+    "number": 40,
+    "old_title": "feat(app): [8/13] Lưu trú: nhãn nút trả phòng; Bảo trì: skeleton, làm mới, nút 48",
+    "new_title": "feat(operations): [S2-STAY][S2-MNT] checkout and maintenance task UX",
+    "wbs_candidates": [
+      "S2-HOANG-002",
+      "S2-HOANG-006",
+      "S2-HOANG-007"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-40.txt"
+  },
+  {
+    "number": 41,
+    "old_title": "feat(app): [9/13] Dọn phòng: skeleton, nút 48 trên điện thoại, thẻ việc đọc liền một câu",
+    "new_title": "feat(housekeeping): [S2-HK] task list readability and mobile interaction",
+    "wbs_candidates": [
+      "S2-HOANG-003",
+      "S2-HOANG-004"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-41.txt"
+  },
+  {
+    "number": 42,
+    "old_title": "feat(app): [10/13] Tài khoản và Nhật ký: skeleton, làm mới, nhãn thao tác, kiểm tra form",
+    "new_title": "feat(admin): [S1-USER][S2-AUDIT] accounts and audit-screen UX",
+    "wbs_candidates": [
+      "S1-BAO-005",
+      "S1-BAO-011",
+      "S2-BAO-012"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-42.txt"
+  },
+  {
+    "number": 43,
+    "old_title": "feat(app): [11/13] Đăng nhập lưu qua autofill, không tràn; token cho màn AI/ảnh/loại phòng",
+    "new_title": "feat(app): [S1-AUTH][S3-AI] autofill and supporting-screen responsive UX",
+    "wbs_candidates": [
+      "S1-HOANG-005",
+      "S3-HOANG-005"
+    ],
+    "classification": "Code only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-43.txt"
+  },
+  {
+    "number": 44,
+    "old_title": "test(app): [12/13] Test: fake notifier, widget dùng chung và từng nhóm màn",
+    "new_title": "test(app): [S1-UX][S2-UX] shared-widget and feature-screen coverage",
+    "wbs_candidates": [
+      "S1-HOANG-014",
+      "S1-HOANG-015",
+      "S2-HOANG-010"
+    ],
+    "classification": "Test source, CI evidence pending",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-44.txt"
+  },
+  {
+    "number": 45,
+    "old_title": "test(app): [13/13] Test ma trận bố cục 3 bề rộng × chữ 200% và tài liệu design system",
+    "new_title": "test(ui): [S3-UX][S4-UAT] layout matrix and design-system checks",
+    "wbs_candidates": [
+      "S3-HOANG-007",
+      "S3-HOANG-011",
+      "S4-HOANG-003",
+      "S4-HOANG-006"
+    ],
+    "classification": "Test/docs, manual accessibility pending",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-45.txt"
+  },
+  {
+    "number": 46,
+    "old_title": "ci: add App CI for Flutter (analyze, test, build web)",
+    "new_title": "ci(app): [S4-DEVOPS] Flutter analyze, test and web-build workflow",
+    "wbs_candidates": [
+      "S4-DAT-003"
+    ],
+    "classification": "CI configuration + passing check",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-46.txt"
+  },
+  {
+    "number": 47,
+    "old_title": "docs(plan): add risk register and communication management workbooks",
+    "new_title": "docs(project): [S4-PM] risk register and communication workbooks",
+    "wbs_candidates": [
+      "S4-DAT-001"
+    ],
+    "classification": "Reviewed artefact only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-47.txt"
+  },
+  {
+    "number": 48,
+    "old_title": "docs(plan): add ui/ux upgrade execution plan and phase specifications",
+    "new_title": "docs(ui): [S3-UX] five-phase UI/UX upgrade specification",
+    "wbs_candidates": [
+      "S3-HOANG-007",
+      "S3-HOANG-011"
+    ],
+    "classification": "Plan only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-48.txt"
+  },
+  {
+    "number": 49,
+    "old_title": "docs(qa): add ui/ux upgrade qa verification report and engineering journal",
+    "new_title": "docs(qa): [S3-UX] automated QA report and unresolved manual checks",
+    "wbs_candidates": [
+      "S3-HOANG-008",
+      "S3-HOANG-011",
+      "S4-HOANG-003",
+      "S4-HOANG-006"
+    ],
+    "classification": "Historical QA report, gaps remain",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-49.txt"
+  },
+  {
+    "number": 50,
+    "old_title": "docs(plan): add dashboard compact room tile ux redesign plan and 1devtool config",
+    "new_title": "docs(dashboard): [S3-DASH] compact PMS room-tile redesign plan",
+    "wbs_candidates": [
+      "S3-HOANG-001",
+      "S3-HOANG-002",
+      "S3-HOANG-007"
+    ],
+    "classification": "Plan only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-50.txt"
+  },
+  {
+    "number": 51,
+    "old_title": "feat(ux): add dashboard compact room tile visual mockups and interactive html prototype",
+    "new_title": "docs(dashboard): [S3-DASH] room-tile mockups and interactive prototype",
+    "wbs_candidates": [
+      "S3-HOANG-001",
+      "S3-HOANG-002"
+    ],
+    "classification": "Prototype only",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-51.txt"
+  },
+  {
+    "number": 52,
+    "old_title": "feat(app): trien khai o phong solid pms va ket noi du lieu stays tren dashboard",
+    "new_title": "feat(dashboard): [S3-DASH] live stays-connected PMS room tiles",
+    "wbs_candidates": [
+      "S3-HOANG-001",
+      "S3-HOANG-002",
+      "S3-HOANG-003"
+    ],
+    "classification": "Code + tests/CI; UAT pending",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-52.txt"
+  },
+  {
+    "number": 53,
+    "old_title": "feat(app): login photo slideshow and double-tap guard on task buttons",
+    "new_title": "feat(app): [S1-AUTH][S2-OPS] login slideshow and duplicate-action guard",
+    "wbs_candidates": [
+      "S1-HOANG-005",
+      "S2-HOANG-004",
+      "S2-HOANG-007"
+    ],
+    "classification": "Code + CI; UAT pending",
+    "body_file": "D:\\Projects\\KhachSanDiDong\\.codex-temp\\pr-backfill-bodies\\pr-53.txt"
+  }
+]

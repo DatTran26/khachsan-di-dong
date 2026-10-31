@@ -1,0 +1,34 @@
+## Backfilled delivery record
+
+- **WBS task candidates:** `S3-HOANG-001`, `S3-HOANG-002`, `S3-HOANG-003`
+- **Evidence classification:** Code + tests/CI; UAT pending
+- **Verified merge:** `develop` on 2026-10-26
+- **Acceptance boundary:** UAT/sign-off của Đạt vẫn đang chờ. Không chuyển task WBS sang Đã xong chỉ từ code hoặc CI.
+- **WBS Issue links:** [S3-HOANG-001 #204](https://github.com/DatTran26/khachsan-di-dong/issues/204); [S3-HOANG-002 #205](https://github.com/DatTran26/khachsan-di-dong/issues/205); [S3-HOANG-003 #206](https://github.com/DatTran26/khachsan-di-dong/issues/206)
+
+Các mã WBS ở trên là phạm vi ứng viên đối chiếu từ file thay đổi và mô tả PR. Chúng không tự xác nhận rằng task đã hoàn thành.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Outcome
+
+Trien khai giao dien o phong Solid PMS truc quan chuan 5 trang thai van hanh khach san (Trong, O dem, O tieng, Qua gio, Can don), ket noi du lieu `staysProvider` vao Dashboard va bo sung `FakeStays` cho bo widget tests.
+
+- `c65eb2b` feat(app): trien khai o phong solid pms truc quan cho 5 truong hop thuc te
+- `f7b799a` feat(app): connect stays provider to dashboard grid and update widget test fakes
+
+## Branch
+
+- Source: `feat/dashboard-solid-room-tile-pms`
+- Target: `develop`
+
+## Checks
+
+- [x] Khong commit secrets, tokens hay tep .env
+- [x] Nhanh ca nhan khong tro truc tiep vao `main` (Gitflow target `develop`)
+- [x] `flutter test`: 127/127 tests passed
+- [x] `flutter analyze lib test`: 0 issues found
+- [x] Da gan review cho cac thanh vien cong tac (`NgoQuocBao24405`, `HoangKim72`)
+
+</details>

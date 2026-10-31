@@ -1,0 +1,41 @@
+## Backfilled delivery record
+
+- **WBS task candidates:** `S1-BAO-005`, `S1-BAO-011`, `S2-BAO-012`
+- **Evidence classification:** Code only
+- **Verified merge:** `develop` on 2026-10-16
+- **Acceptance boundary:** Không dùng PR này làm UAT/sign-off. Chỉ chuyển task WBS sang Đã xong sau khi có acceptance evidence phù hợp.
+- **WBS Issue links:** [S1-BAO-005 #111](https://github.com/DatTran26/khachsan-di-dong/issues/111); [S1-BAO-011 #118](https://github.com/DatTran26/khachsan-di-dong/issues/118); [S2-BAO-012 #162](https://github.com/DatTran26/khachsan-di-dong/issues/162)
+
+Các mã WBS ở trên là phạm vi ứng viên đối chiếu từ file thay đổi và mô tả PR. Chúng không tự xác nhận rằng task đã hoàn thành.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Outcome
+
+Phần 10/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:
+
+- `efc87bf` feat(app): add accounts skeleton, refresh and offline note
+- `004673e` feat(app): label account actions and validate the account form
+- `be9b257` feat(app): add audit log skeleton, refresh and load-more labels
+
+## Branch
+
+- Source: `feat/ui-ux-10-accounts-audit`
+- Target: `feat/ui-ux-09-housekeeping` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)
+
+## Checks
+
+- [x] No secrets committed
+- [x] Personal branch is not targeting `main`
+- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`
+
+## Notes
+
+- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/41
+- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).
+- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+</details>

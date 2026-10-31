@@ -1,0 +1,34 @@
+## Outcome
+
+Layout dashboard Web: header KPI, lưới 50 phòng, chú giải màu semantic
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S3-HOANG-001`
+- **Sprint:** S3
+- **Workstream:** UI dashboard, AI summary, responsive và accessibility
+- **Owner:** Hoàng
+- **KT / reviewer:** Đạt
+- **Estimate:** 5 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-12 đến 2026-10-13
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Bằng chứng visual QA
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** Code + test/CI
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- [PR #50](https://github.com/DatTran26/khachsan-di-dong/pull/50): Plan only
+- [PR #51](https://github.com/DatTran26/khachsan-di-dong/pull/51): Prototype only
+- [PR #52](https://github.com/DatTran26/khachsan-di-dong/pull/52): Code + tests/CI; UAT pending
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

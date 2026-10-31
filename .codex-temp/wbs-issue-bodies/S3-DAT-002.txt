@@ -1,0 +1,32 @@
+## Outcome
+
+Chốt fixture 50 phòng và số đếm kỳ vọng cho dashboard
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S3-DAT-002`
+- **Sprint:** S3
+- **Workstream:** Chốt KPI dashboard và hợp đồng AI summary
+- **Owner:** Đạt
+- **KT / reviewer:** Bảo
+- **Estimate:** 2 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-21 đến 2026-09-21
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** docs/qa/dashboard-fixture.md
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

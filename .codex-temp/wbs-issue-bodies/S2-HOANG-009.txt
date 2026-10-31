@@ -1,0 +1,32 @@
+## Outcome
+
+UX conflict và reconnect: cảnh báo dữ liệu cũ, refresh, retry không ghi trùng
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S2-HOANG-009`
+- **Sprint:** S2
+- **Workstream:** Flutter Web và Android cho nhận trả, dọn phòng, bảo trì, nhật ký
+- **Owner:** Hoàng
+- **KT / reviewer:** Đạt
+- **Estimate:** 3 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-02 đến 2026-10-02
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** UI conflict
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** Code
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- [PR #39](https://github.com/DatTran26/khachsan-di-dong/pull/39): Code only
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

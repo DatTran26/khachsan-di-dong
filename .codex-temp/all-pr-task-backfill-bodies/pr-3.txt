@@ -1,0 +1,48 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** Flutter hotel operations client baseline
+- **Evidence treatment:** Code; broad client baseline
+- **Historical state:** Merged into `develop`
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+Add the complete Flutter app scaffold for KhachSanDiDong (Sprint 1). Covers all backend-supported features in one shot so the team can review and iterate from a working baseline.
+
+Screens and features included:
+- Login with phone/password, 10-digit validation, backend error passthrough
+- Forced password-change flow on first login (mustChangePassword flag)
+- Voluntary password change from the app shell menu
+- Dashboard: real-time room grid (colour-coded by 3-axis status) + stats row (occupied, ready, needs cleaning, out-of-service, overdue, occupancy rate)
+- Room catalog: card grid with 3-axis status display, floor/occupancy/cleaning/ service filters, manager edit stub
+- Account management (MANAGER/RECEPTIONIST): list, create with temp-password dialog, edit, lock/unlock, reset-password — all with version field for optimistic locking and 409 VERSION_CONFLICT handling
+- Offline banner (persistent orange) and reconnected banner (green, auto-hides)
+- Session revocation via Socket.IO session:revoked event → auto logout
+- Role-based routing: STAFF cannot access /tai-khoan; unauthenticated users redirect to /dang-nhap; mustChangePassword gate before any other screen
+
+Tech choices follow project docs:
+- Riverpod (StateNotifier) for all state; no code-gen used in MVP
+- go_router with redirect guards for auth and role gating
+- Dio with Bearer token interceptor and ApiException mapping
+- socket_io_client connected with { auth: { token } } per backend contract
+- Material 3 with project colour palette (#1565C0 primary, #00897B secondary, status colours per UI spec)
+
+## Outcome
+
+## Branch
+
+- Source:
+- Target: `develop` (personal/feature) or `main` (release/hotfix only)
+
+## Checks
+
+- [ ] No secrets committed
+- [ ] Personal branch is not targeting `main`
+- [ ] Tests / hygiene considered
+
+## Notes
+
+
+</details>

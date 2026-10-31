@@ -1,0 +1,32 @@
+## Outcome
+
+Viết lệnh báo hỏng: tạo maintenance task, chuyển phòng ngừng phục vụ, audit và emit
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S2-BAO-010`
+- **Sprint:** S2
+- **Workstream:** Check-in, check-out, housekeeping, maintenance, audit log và Socket.IO
+- **Owner:** Bảo
+- **KT / reviewer:** Hoàng
+- **Estimate:** 4 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-30 đến 2026-10-01
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Test báo hỏng
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

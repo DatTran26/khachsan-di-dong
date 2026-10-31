@@ -1,0 +1,32 @@
+## Outcome
+
+Dựng Socket.IO: xác thực kết nối và event cập nhật phòng kèm payload version
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S1-BAO-014`
+- **Sprint:** S1
+- **Workstream:** Backend: Express, Prisma, auth, RBAC, danh mục phòng, Socket.IO
+- **Owner:** Bảo
+- **KT / reviewer:** Hoàng
+- **Estimate:** 4 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-22 đến 2026-09-22
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Minh chứng hai client
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Cần đối chiếu
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

@@ -1,0 +1,41 @@
+## Backfilled delivery record
+
+- **WBS task candidates:** `S3-HOANG-007`, `S3-HOANG-011`, `S4-HOANG-003`, `S4-HOANG-006`
+- **Evidence classification:** Test/docs, manual accessibility pending
+- **Verified merge:** `develop` on 2026-10-16
+- **Acceptance boundary:** Không dùng PR này làm UAT/sign-off. Chỉ chuyển task WBS sang Đã xong sau khi có acceptance evidence phù hợp.
+- **WBS Issue links:** [S3-HOANG-007 #213](https://github.com/DatTran26/khachsan-di-dong/issues/213); [S3-HOANG-011 #212](https://github.com/DatTran26/khachsan-di-dong/issues/212); [S4-HOANG-003 #232](https://github.com/DatTran26/khachsan-di-dong/issues/232); [S4-HOANG-006 #234](https://github.com/DatTran26/khachsan-di-dong/issues/234)
+
+Các mã WBS ở trên là phạm vi ứng viên đối chiếu từ file thay đổi và mô tả PR. Chúng không tự xác nhận rằng task đã hoàn thành.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Outcome
+
+Phần 13/13 của đợt nâng cấp UI/UX app Flutter (tách nhỏ từ #32). Gồm 3 commit:
+
+- `e433738` test(app): check every screen at three widths and 200% text
+- `81158d0` docs: add app design system guide
+- `08dfb3c` docs: link the design system guide from the README
+
+## Branch
+
+- Source: `feat/ui-ux-13-matrix-docs`
+- Target: `feat/ui-ux-12-tests` (chuỗi PR xếp chồng — merge lần lượt từ PR 1/13)
+
+## Checks
+
+- [x] No secrets committed
+- [x] Personal branch is not targeting `main`
+- [x] Tests / hygiene considered — mỗi commit đều qua `flutter analyze`; đỉnh chuỗi (13/13) qua `flutter test` 127/127 và `flutter build web`
+
+## Notes
+
+- Xếp chồng trên PR trước: https://github.com/DatTran26/khachsan-di-dong/pull/44
+- Merge theo thứ tự 1 → 13. Sau khi merge một PR vào `develop`, đổi base PR kế tiếp sang `develop` (GitHub tự làm khi xóa nhánh đã merge).
+- Chỉ thay đổi tầng giao diện, test và tài liệu — không đổi API, provider, model hay route.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+</details>

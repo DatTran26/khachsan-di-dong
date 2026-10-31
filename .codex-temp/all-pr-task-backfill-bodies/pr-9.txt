@@ -1,0 +1,23 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** Release 0.1.0 delivery baseline
+- **Evidence treatment:** Release record
+- **Historical state:** Merged into `main`
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Summary
+- Cat `release/0.1.0` tu `develop` (`50c0f21`, PR #8) va gan tag dau tien `v0.1.0`.
+- Them `CHANGELOG.md` va `docs/releases/0.1.0.md`.
+- Gop `main` vao release: giu muc tieu 30 phien dong thoi tu develop va cau gia dinh co dang truc tu main. Mot conflict o `auth-roles-spec.md`.
+
+## Test plan
+- [ ] Backend CI tren develop da xanh (run 37154859559). Khong chay lai suite local trong lan cat release nay.
+- [ ] Sau khi merge, `main` chua `CHANGELOG.md` va `docs/releases/0.1.0.md`.
+- [ ] Tag `v0.1.0` tro toi commit merge tren `main`.
+- [ ] `develop` nhan lai commit release de khong lech changelog.
+
+</details>

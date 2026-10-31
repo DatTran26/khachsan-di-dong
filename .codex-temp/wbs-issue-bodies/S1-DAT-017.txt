@@ -1,0 +1,32 @@
+## Outcome
+
+Xác định sponsor, người quyết định và stakeholder: quản lý, lễ tân, buồng phòng, bảo trì, giảng viên
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S1-DAT-017`
+- **Sprint:** S1
+- **Workstream:** Khảo sát, kickoff, phỏng vấn, AS-IS/TO-BE, requirement và sign-off
+- **Owner:** Đạt
+- **KT / reviewer:** Team
+- **Estimate:** 1 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-08 đến 2026-09-08
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Stakeholder map có người duyệt phạm vi
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Cần đối chiếu
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

@@ -1,0 +1,24 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** Theme, navigation and hotel operational screens
+- **Evidence treatment:** Code; broad UI and operations scope
+- **Historical state:** Merged into `develop`
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Nội dung
+- `setup.cmd` / `dev.cmd` (+ `scripts/*.ps1`): cài đặt lần đầu và chạy hằng ngày bằng 1 lệnh
+- FE Flutter giao diện Champagne Gold theo thiết kế đã duyệt
+- Sửa trạng thái việc dọn cho khớp API; điều hướng đúng quyền (nhân viên không vào Tổng quan)
+- Nhận/trả phòng chỉ cho lễ tân; màn Nhật ký thay đổi (trước đây để trống)
+
+## Cách chạy sau khi merge
+git pull origin develop
+.\setup.cmd      # lần đầu
+.\dev.cmd        # hằng ngày
+
+
+</details>

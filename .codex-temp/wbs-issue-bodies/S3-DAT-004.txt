@@ -1,0 +1,32 @@
+## Outcome
+
+Viết 20 kịch bản red-team AI và tiêu chí chấp nhận fallback
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S3-DAT-004`
+- **Sprint:** S3
+- **Workstream:** Chốt KPI dashboard và hợp đồng AI summary
+- **Owner:** Đạt
+- **KT / reviewer:** Hoàng
+- **Estimate:** 3 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-22 đến 2026-09-22
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** docs/qa/ai-evaluation.md
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

@@ -1,0 +1,32 @@
+## Outcome
+
+Viết ERD, state machine, flow, use case, user story và wireframe ASCII cho 9 feature
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S1-DAT-003`
+- **Sprint:** S1
+- **Workstream:** Artefact nghiệp vụ Đạt đã có bằng chứng trong repository
+- **Owner:** Đạt
+- **KT / reviewer:** Team
+- **Estimate:** 36 giờ, chuẩn hóa 5 ngày
+- **Mốc tham chiếu:** 2026-09-15 đến 2026-09-21
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** SRS, use case, user story, wireframe
+- **Acceptance bắt buộc:** Reviewer phê duyệt artefact
+
+## Evidence hiện tại
+
+- **Actual status:** Cần xác minh
+- **Evidence level:** No evidence
+- **Nguồn baseline:** docs/features/**/srs, usecases, userstories, ascii-wireframe
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Reviewer/khách hàng phê duyệt artefact.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

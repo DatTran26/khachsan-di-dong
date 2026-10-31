@@ -1,0 +1,33 @@
+## Outcome
+
+Màn Android việc bảo trì: nhận, bắt đầu, hoàn tất, mở lại
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S2-HOANG-007`
+- **Sprint:** S2
+- **Workstream:** Flutter Web và Android cho nhận trả, dọn phòng, bảo trì, nhật ký
+- **Owner:** Hoàng
+- **KT / reviewer:** Bảo
+- **Estimate:** 4 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-10-01 đến 2026-10-01
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** UI maintenance task
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** Code + test/CI
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- [PR #40](https://github.com/DatTran26/khachsan-di-dong/pull/40): Code only
+- [PR #53](https://github.com/DatTran26/khachsan-di-dong/pull/53): Code + CI; UAT pending
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

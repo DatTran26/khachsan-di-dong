@@ -1,0 +1,32 @@
+## Outcome
+
+Viết service đủ điều kiện check-in: một nguồn sự thật và mã lý do từ chối
+
+## Kế hoạch và ownership
+
+- **WBS ID:** `S2-BAO-005`
+- **Sprint:** S2
+- **Workstream:** Check-in, check-out, housekeeping, maintenance, audit log và Socket.IO
+- **Owner:** Bảo
+- **KT / reviewer:** Đạt
+- **Estimate:** 3 giờ, chuẩn hóa 1 ngày
+- **Mốc tham chiếu:** 2026-09-25 đến 2026-09-25
+
+## Đầu ra và acceptance
+
+- **Đầu ra:** Test reason code
+- **Acceptance bắt buộc:** Evidence kỹ thuật và review/UAT theo loại task
+
+## Evidence hiện tại
+
+- **Actual status:** Kế hoạch
+- **Evidence level:** No evidence
+- **Nguồn baseline:** chưa có trong repository tại 24/09/2026
+- Chưa có PR/commit được map vào task này.
+
+## Điều kiện chuyển Đã xong
+
+- [ ] Evidence phù hợp được gắn vào Issue và evidence register.
+- [ ] Review hoặc UAT/sign-off phù hợp đã được xác nhận.
+
+PR link ở trên có thể chỉ là evidence candidate. Không chuyển task sang `Done` chỉ vì PR đã merge.

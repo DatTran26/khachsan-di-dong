@@ -1,0 +1,61 @@
+## Backfilled task record
+
+- **Task name tổng hợp:** UI/UX upgrade parent scope; split into #33–#45
+- **Evidence treatment:** Closed without merge; superseded by split PRs
+- **Historical state:** Closed without merge
+- **WBS link status:** Đây là PR lịch sử có phạm vi hỗn hợp hoặc trước khi tách 178 task lá. Không tự gán một WBS Issue cụ thể nếu không đủ bằng chứng từ file/commit.
+- **Acceptance boundary:** Merge, code hoặc CI chỉ là delivery evidence. Chỉ task WBS có acceptance evidence phù hợp mới được chuyển `Done`.
+
+<details>
+<summary>Historical PR description</summary>
+
+## Outcome
+
+Mọi màn của app Flutter dùng chung một bộ token (màu, chữ, khoảng cách, vùng chạm) thay cho giá trị viết cứng. Lần tải đầu hiện skeleton thay vòng xoay, mọi danh sách kéo được để làm mới, và app dùng tốt ở điện thoại 360px, tablet 600–899px, web ≥900px kể cả khi cỡ chữ hệ thống 200%. Bảng màu Champagne Gold giữ nguyên.
+
+| Chỉ số (trong `app/lib`) | Trước | Sau |
+|---|---|---|
+| `Color(0x…)` ngoài `app_theme.dart` | 35 | 0 |
+| `fontSize:` trong `features/` | 57 | 0 |
+| Spinner tải cả trang | 8 | 0 |
+| Màn danh sách có kéo-làm-mới | 3/7 | 7/7 |
+
+Thay đổi người dùng thấy:
+- Tablet có `NavigationRail`; thanh bên và thanh đầu trang web giãn theo cỡ chữ.
+- Nhận phòng có nút chọn nhanh "1/2/3 đêm" (chọn ngày trả: 7 → 4 chạm). Báo hỏng từ chi tiết phòng tự focus ô mô tả (4 → 3 chạm).
+- Mất mạng: nút ghi bị khóa **kèm** câu giải thích (`OfflineActionNote`); có lại mạng thì báo "Đã kết nối lại".
+- Nút trên điện thoại cao ≥ 48dp; nút lặp trong danh sách có nhãn đọc rõ đối tượng ("Trả phòng 103"); thẻ việc dọn được đọc liền một câu.
+- Form kiểm tra lỗi khi rời ô; đăng nhập/đổi mật khẩu lưu được qua autofill.
+
+Lỗi tìm ra và sửa trong lúc làm:
+- 14 chỗ tràn giao diện ở cỡ chữ 200% (thanh đầu trang, thanh bên, chip trạng thái, lọc tầng, `EmptyState`, đầu màn Bảo trì, thẻ việc dọn, bảng Phòng, màn đăng nhập) — bắt bằng test ma trận bố cục mới.
+- Ô tìm kiếm màn Phòng trống khi quay lại màn dù bộ lọc vẫn đang áp.
+- `OverdueBadge` bị trình đọc màn hình đọc lặp "Quá hạn".
+
+Hợp nhất với Sprint 3: `develop` đã tự làm lọc bằng thẻ số liệu, sửa màu "Sẵn sàng", cuộn ngang `SegmentedPills` và tách hàm nút Dọn phòng. Khi giải xung đột, PR giữ cấu trúc của `develop` rồi áp token / vùng chạm 48 / skeleton lên trên. Màn mới (AI summary, ảnh nghiệm thu, loại phòng) cũng được chuyển sang token và skeleton.
+
+Tài liệu: [`docs/_shared/design-system.md`](docs/_shared/design-system.md) (token, bố cục, component, checklist trợ năng), đã link từ `README.md`.
+
+## Branch
+
+- Source: `develop-dat`
+- Target: `develop`
+
+## Checks
+
+- [x] No secrets committed
+- [x] Personal branch is not targeting `main`
+- [x] Tests / hygiene considered — `flutter analyze`: no issues · `flutter test`: 127/127 pass (gồm test của `develop`) · `flutter build web`: OK
+
+## Notes
+
+- Không đổi API, provider, model hay route — chỉ tầng giao diện + test + tài liệu.
+- Màu thay đổi duy nhất có chủ đích là xanh "Sẵn sàng" (đã theo giá trị `#2D7B31` của `develop`).
+- Theo kế hoạch ban đầu, phần Lưu trú/Bảo trì là của @NgoQuocBao24405 và Dọn phòng/Tài khoản/Nhật ký/Đăng nhập là của @HoangKim72 — nhờ hai bạn review kỹ các file đó.
+- Lệch có chủ đích so với kế hoạch: form tạo tài khoản không bật autofill (sẽ điền nhầm thông tin của chính quản lý); Nhật ký giữ dropdown lọc để không đổi bố cục PR #8.
+- Còn cần kiểm thủ công trên thiết bị: TalkBack trên Android (luồng nhân viên dọn phòng), chỉ dùng bàn phím trên Chrome (luồng lễ tân), so ảnh chụp trước/sau các màn PR #8.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+
+</details>
