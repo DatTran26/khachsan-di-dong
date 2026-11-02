@@ -31,6 +31,10 @@ Future<void> _pumpShell(WidgetTester tester, Size size,
 }
 
 void main() {
+  test('trạng thái phòng mới khóa ghi cho tới khi realtime sẵn sàng', () {
+    expect(const RoomsState().isConnected, isFalse);
+  });
+
   group('AppShell chọn bố cục theo bề rộng', () {
     testWidgets('điện thoại 360px: thanh điều hướng dưới', (tester) async {
       await _pumpShell(tester, const Size(360, 800),

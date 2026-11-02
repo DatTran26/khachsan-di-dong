@@ -71,7 +71,7 @@ class RoomsState {
     this.isLoading = false,
     this.error,
     this.filter = const RoomsFilter(),
-    this.isConnected = true,
+    this.isConnected = false,
     this.lastUpdated,
   });
 
@@ -145,18 +145,30 @@ class RoomsState {
 /// Danh sách phòng và các lệnh ghi (nhận/trả, phục vụ, danh mục).
 /// Constructor gắn socket rồi gọi [load].
 class RoomsNotifier extends StateNotifier<RoomsState> {
+  final ApiClient _apiClient;
+  final SocketService _socketService;
+  int _connectionGeneration = 0;
+  int _loadGeneration = 0;
+
   /// Side effect: [_setupSocket] và [load] ngay khi tạo.
-  RoomsNotifier() : super(const RoomsState()) {
+  RoomsNotifier({ApiClient? client, SocketService? realtime})
+      : _apiClient = client ?? apiClient,
+        _socketService = realtime ?? socketService,
+        super(const RoomsState()) {
     _setupSocket();
-    load();
+    if (_socketService.isConnected) {
+      _synchronizeAfterConnect();
+    } else {
+      load();
+    }
   }
 
   /// Gắn callback phòng tạo/sửa/xóa và đổi kết nối. Ghi đè callback toàn cục của [socketService].
   void _setupSocket() {
-    socketService.onRoomUpdated = _handleRoomUpdated;
-    socketService.onRoomCreated = _handleRoomCreated;
-    socketService.onRoomDeleted = _handleRoomDeleted;
-    socketService.onConnectionChanged = _handleConnectionChanged;
+    _socketService.onRoomUpdated = _handleRoomUpdated;
+    _socketService.onRoomCreated = _handleRoomCreated;
+    _socketService.onRoomDeleted = _handleRoomDeleted;
+    _socketService.onConnectionChanged = _handleConnectionChanged;
   }
 
   /// Thay phòng trong state nếu payload mới hơn [Room.version]. Bỏ qua id lạ hoặc version cũ.
@@ -186,28 +198,59 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     state = state.copyWith(rooms: newRooms, lastUpdated: DateTime.now());
   }
 
-  /// Ghi [RoomsState.isConnected]. Khi nối lại thì gọi [load] để kéo bản đầy đủ.
+  /// Mất kết nối thì khóa ghi ngay. Khi nối lại, chỉ mở khóa sau khi tải bản đầy đủ
+  /// thành công và socket vẫn còn kết nối.
   void _handleConnectionChanged(bool connected) {
-    state = state.copyWith(isConnected: connected);
-    if (connected) load();
+    if (!connected) {
+      _connectionGeneration++;
+      state = state.copyWith(isConnected: false);
+      return;
+    }
+    _synchronizeAfterConnect();
+  }
+
+  Future<void> _synchronizeAfterConnect() async {
+    final generation = ++_connectionGeneration;
+    state = state.copyWith(isConnected: false);
+    final refreshed = await _loadRooms();
+    if (generation != _connectionGeneration || !_socketService.isConnected) {
+      return;
+    }
+    if (refreshed) state = state.copyWith(isConnected: true);
   }
 
   /// GET `/rooms`. [ApiException] ghi lỗi vào state, không ném tiếp.
   Future<void> load() async {
+    final connectionGeneration = _connectionGeneration;
+    final refreshed = await _loadRooms();
+    if (refreshed &&
+        connectionGeneration == _connectionGeneration &&
+        _socketService.isConnected &&
+        !state.isConnected) {
+      state = state.copyWith(isConnected: true);
+    }
+  }
+
+  Future<bool> _loadRooms() async {
+    final generation = ++_loadGeneration;
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final res = await apiClient.get('/rooms');
+      final res = await _apiClient.get('/rooms');
       final list = (res['data'] as List)
           .cast<Map<String, dynamic>>()
           .map(Room.fromJson)
           .toList();
+      if (generation != _loadGeneration) return false;
       state = state.copyWith(
         rooms: list,
         isLoading: false,
         lastUpdated: DateTime.now(),
       );
+      return true;
     } on ApiException catch (e) {
+      if (generation != _loadGeneration) return false;
       state = state.copyWith(isLoading: false, error: e.message);
+      return false;
     }
   }
 
@@ -240,7 +283,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     if (expectedCheckout != null) {
       body['expectedCheckout'] = expectedCheckout.toIso8601String();
     }
-    final res = await apiClient.post('/rooms/$roomId/check-in', body: body);
+    final res = await _apiClient.post('/rooms/$roomId/check-in', body: body);
     return res['data'] as Map<String, dynamic>;
   }
 
@@ -249,7 +292,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     required String roomId,
     required int version,
   }) async {
-    final res = await apiClient
+    final res = await _apiClient
         .post('/rooms/$roomId/check-out', body: {'version': version});
     return res['data'] as Map<String, dynamic>;
   }
@@ -264,13 +307,13 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
   }) async {
     final body = <String, dynamic>{'version': version, 'reason': reason};
     if (confirmOccupied) body['confirmOccupied'] = true;
-    await apiClient.post('/rooms/$roomId/out-of-service', body: body);
+    await _apiClient.post('/rooms/$roomId/out-of-service', body: body);
   }
 
   /// POST `/rooms/{id}/back-in-service` với [version]. Ném [ApiException] nếu còn việc sửa mở.
   Future<void> backInService(
       {required String roomId, required int version}) async {
-    await apiClient
+    await _apiClient
         .post('/rooms/$roomId/back-in-service', body: {'version': version});
   }
 
@@ -280,7 +323,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     required int floor,
     required String roomTypeId,
   }) async {
-    final res = await apiClient.post('/rooms', body: {
+    final res = await _apiClient.post('/rooms', body: {
       'number': number,
       'floor': floor,
       'roomTypeId': roomTypeId,
@@ -295,7 +338,7 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     required int to,
     required String roomTypeId,
   }) async {
-    final res = await apiClient.post('/rooms/bulk', body: {
+    final res = await _apiClient.post('/rooms/bulk', body: {
       'floor': floor,
       'from': from,
       'to': to,
@@ -317,14 +360,14 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
     if (number != null) body['number'] = number;
     if (floor != null) body['floor'] = floor;
     if (roomTypeId != null) body['roomTypeId'] = roomTypeId;
-    final res = await apiClient.patch('/rooms/$roomId', body: body);
+    final res = await _apiClient.patch('/rooms/$roomId', body: body);
     return res['data'] as Map<String, dynamic>;
   }
 
   /// DELETE `/rooms/{id}` kèm [version] trong body. Ném [ApiException] nếu phòng đã có lịch sử.
   Future<void> deleteRoom(
       {required String roomId, required int version}) async {
-    await apiClient.delete('/rooms/$roomId', body: {'version': version});
+    await _apiClient.delete('/rooms/$roomId', body: {'version': version});
   }
 }
 
