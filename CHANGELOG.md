@@ -4,6 +4,23 @@ Những thay đổi đáng ghi nhận của Khách Sạn Di Động. Phiên bả
 
 ## [Unreleased]
 
+Chưa có thay đổi được ghi nhận.
+
+## [0.3.0] - 2026-11-02
+
+Bản phát hành gồm các thay đổi app, backend và CI đã có từ mốc 0.2.0. App `0.3.0+3`, server `0.3.0`.
+
+### Added
+
+- App: ô phòng PMS trực quan cho các tình huống vận hành, thao tác nhanh/check-in và tìm phòng trên dashboard, slideshow ảnh ở màn đăng nhập, skeleton tải lại dùng chung, cùng các kiểm thử responsive/accessibility.
+- Backend: gắn request ID cho lượt tạo tóm tắt AI để truy vết log và audit; bổ sung fixture dashboard và kiểm thử liên quan housekeeping.
+- CI: workflow Flutter chạy analyze, test và build Web trên push/PR; PR xếp chồng được kiểm lại khi đổi nhánh đích.
+
+### Changed
+
+- App đọc địa chỉ backend từ `API_URL` cho cả REST và Socket.IO; bản Android khai báo quyền `INTERNET` cho build release.
+- Giao diện app dùng design token, trạng thái tải/lỗi/offline và touch target nhất quán hơn trên Web, tablet và màn hình chữ lớn.
+
 ### Fixed
 
 - Hết phiên hoặc bị thu hồi phiên khi socket đang nối lại không còn kẹt banner "Mất kết nối" và khóa nút ghi trong khi mạng vẫn bình thường: app bắt lỗi handshake (`SESSION_EXPIRED`, `SESSION_INVALID`, `ACCOUNT_LOCKED`) và đưa về màn đăng nhập.
@@ -11,6 +28,7 @@ Những thay đổi đáng ghi nhận của Khách Sạn Di Động. Phiên bả
 - Đăng xuất chủ động không chạy hai lần và không hiện nhầm câu "phiên đã kết thúc" ở màn đăng nhập.
 - Đổi tài khoản không còn thấy dữ liệu và trạng thái kết nối của phiên trước.
 - Không còn gửi request thiếu token (chắc chắn 401) từ màn cũ ngay sau khi đăng xuất.
+- Lượt gọi AI luôn bị chặn theo trần chi phí mỗi lượt; việc chờ xác nhận không còn bị tính là quá hạn trên dashboard.
 
 ## [0.2.0] - 2026-10-14
 
@@ -60,5 +78,6 @@ Bản gắn tag đầu tiên. App `0.1.0+1`, server `0.1.0`. Nội dung là toà
 - Lễ tân quản lý được tài khoản không phải quản lý.
 - Mục tiêu phiên đồng thời trong tài liệu nâng từ 10 lên 30.
 
+[0.3.0]: https://github.com/DatTran26/khachsan-di-dong/releases/tag/v0.3.0
 [0.2.0]: https://github.com/DatTran26/khachsan-di-dong/releases/tag/v0.2.0
 [0.1.0]: https://github.com/DatTran26/khachsan-di-dong/releases/tag/v0.1.0
