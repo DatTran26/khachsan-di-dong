@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/realtime/socket_service.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/room.dart';
 
 /// Bộ lọc danh sách phòng trên client. Không gửi lên API.
@@ -329,6 +330,9 @@ class RoomsNotifier extends StateNotifier<RoomsState> {
 
 /// Danh sách phòng dùng chung. Một [RoomsNotifier], socket gắn trong constructor.
 final roomsProvider = StateNotifierProvider<RoomsNotifier, RoomsState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới: không giữ dữ liệu và cờ
+  // mất kết nối của phiên trước (socket cũ bị ngắt lúc đăng xuất làm isConnected kẹt false).
+  ref.watch(authProvider.select((s) => s.user?.id));
   return RoomsNotifier();
 });
 
