@@ -69,13 +69,17 @@ class _AuditBody extends ConsumerWidget {
       groups.putIfAbsent(_dayLabel(e.occurredAt), () => []).add(e);
     }
 
+    final reload = ref.read(auditProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.entries.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonList(count: 8, itemHeight: 64),
+    );
     Widget body;
-    if (state.isLoading && state.entries.isEmpty) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (state.error != null && state.entries.isEmpty) {
-      body = ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(auditProvider.notifier).load());
+    if (gate != null) {
+      body = gate;
     } else if (state.entries.isEmpty) {
       body = EmptyState(
         icon: Icons.history_rounded,
@@ -88,36 +92,42 @@ class _AuditBody extends ConsumerWidget {
     } else {
       body = AppCard(
         padding: EdgeInsets.zero,
-        child: ListView(
-          children: [
-            for (final g in groups.entries) ...[
-              Container(
-                color: const Color(0xFFFAF8F3),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(g.key,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
-              ),
-              for (final e in g.value) ...[
-                _EntryRow(entry: e, wide: wide),
-                const Divider(height: 1),
-              ],
-            ],
-            if (state.nextCursor != null)
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Center(
-                  child: state.isLoadingMore
-                      ? const CircularProgressIndicator()
-                      : TextButton(
-                          onPressed: () =>
-                              ref.read(auditProvider.notifier).loadMore(),
-                          child: const Text('Xem thêm'),
-                        ),
+        child: RefreshIndicator(
+          onRefresh: reload,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              for (final g in groups.entries) ...[
+                Container(
+                  color: AppColors.surfaceMuted,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Text(g.key,
+                      style:
+                          AppText.meta.copyWith(fontWeight: FontWeight.w700)),
                 ),
-              ),
-          ],
+                for (final e in g.value) ...[
+                  _EntryRow(entry: e, wide: wide),
+                  const Divider(height: 1),
+                ],
+              ],
+              if (state.nextCursor != null)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Center(
+                    child: state.isLoadingMore
+                        ? const CircularProgressIndicator(
+                            semanticsLabel: 'Đang tải thêm nhật ký')
+                        : TextButton(
+                            onPressed: () =>
+                                ref.read(auditProvider.notifier).loadMore(),
+                            child: const Text('Xem thêm',
+                                semanticsLabel: 'Xem thêm nhật ký cũ hơn'),
+                          ),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -204,7 +214,7 @@ class _FilterBar extends ConsumerWidget {
                       ),
               ),
               child: Text(value == null ? 'Bất kỳ' : fmt.format(value),
-                  style: TextStyle(
+                  style: AppText.body.copyWith(
                       color: value == null ? AppColors.muted : AppColors.text)),
             ),
           ),
@@ -328,7 +338,7 @@ class _EntryRow extends StatelessWidget {
       if (!entry.isSystem)
         TextSpan(
             text: ' (${_pretty(entry.actorRoleLabel).toLowerCase()})',
-            style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+            style: AppText.caption.copyWith(color: AppColors.muted)),
     ]));
     final changes = Wrap(
       spacing: 6,
@@ -339,7 +349,7 @@ class _EntryRow extends StatelessWidget {
           MetaText(c.fieldLabel),
           StatusChip(_pretty(c.beforeLabel),
               tone: _toneFor(_pretty(c.beforeLabel)), dense: true),
-          const Icon(Icons.arrow_forward, size: 14, color: Color(0xFF948B7C)),
+          const Icon(Icons.arrow_forward, size: 14, color: AppColors.iconMuted),
           StatusChip(_pretty(c.afterLabel),
               tone: _toneFor(_pretty(c.afterLabel)), dense: true),
           const SizedBox(width: 8),

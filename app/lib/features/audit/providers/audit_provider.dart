@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/audit_entry.dart';
 
 /// Bộ lọc `GET /audit-logs`. [actorRole] là mã API (`MANAGER`, `RECEPTIONIST`, `STAFF`, `SYSTEM`) hoặc null.
@@ -152,5 +153,8 @@ class AuditNotifier extends StateNotifier<AuditState> {
 }
 
 /// Nhật ký dùng chung. Một [AuditNotifier]. Chỉ quản lý gọi được API, server trả 403 với vai trò khác.
-final auditProvider =
-    StateNotifierProvider<AuditNotifier, AuditState>((ref) => AuditNotifier());
+final auditProvider = StateNotifierProvider<AuditNotifier, AuditState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới, không giữ dữ liệu phiên trước.
+  ref.watch(authProvider.select((s) => s.user?.id));
+  return AuditNotifier();
+});

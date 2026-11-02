@@ -426,6 +426,24 @@ describe('Danh sách & quá hạn (FR-008, FR-010, SC-04, BR-002)', () => {
     expect((await taskOf(task.id)).overdueFlaggedAt).toBeNull();
   });
 
+  it('BR-002: việc đã bị cờ quá hạn, nhân viên báo xong → gỡ cờ (dashboard + DTO); bị trả lại → cờ hiện lại', async () => {
+    const { task } = await checkedOutRoom();
+    const owner = task.assignee!.id === staffA.user.id ? staffA : staffB;
+    await flagOverdueTasks(new Date(Date.now() + 61 * 60_000));
+    const overdueIds = async () =>
+      (await request(app).get('/api/dashboard/summary').set(manager.auth)).body.data.overdue.tasks.map((t: { taskId: string }) => t.taskId);
+    expect(await overdueIds()).toContain(task.id);
+
+    await act(owner, task.id, 'accept', { version: (await taskOf(task.id)).version });
+    const pending = await completeWithPhotos(owner, task.id, (await taskOf(task.id)).version);
+    expect(pending.body.data).toMatchObject({ status: 'PENDING_CONFIRM', isOverdue: false });
+    expect(await overdueIds()).not.toContain(task.id);
+
+    const returned = await act(manager, task.id, 'return', { version: pending.body.data.version, note: 'Chưa thay ga' });
+    expect(returned.body.data.isOverdue).toBe(true);
+    expect(await overdueIds()).toContain(task.id);
+  });
+
   it('dashboard: số việc quá hạn + chỉ số phòng; nhân viên không xem', async () => {
     const res = await request(app).get('/api/dashboard/summary').set(receptionist.auth);
     expect(res.status).toBe(200);

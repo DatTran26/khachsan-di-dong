@@ -149,7 +149,7 @@ class _AcceptancePhotosScreenState
 
     Widget body;
     if (data == null && state.isLoading) {
-      body = const Center(child: CircularProgressIndicator());
+      body = const SkeletonGrid(count: 6);
     } else if (data == null) {
       body = ErrorState(
           message: state.error ?? 'Chưa tải được ảnh nghiệm thu.',
@@ -294,16 +294,15 @@ class _RequiredSlot extends StatelessWidget {
                 child: done
                     ? const Icon(Icons.check, size: 15, color: Colors.white)
                     : Text('$index',
-                        style: const TextStyle(
-                            fontSize: 12.5,
+                        style: AppText.overline.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppColors.muted)),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(category.label,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                    style:
+                        AppText.bodyLg.copyWith(fontWeight: FontWeight.w600)),
               ),
               uploading
                   ? const StatusChip('Đang tải…', tone: StatusTone.gold)
@@ -381,8 +380,8 @@ class _IssueSection extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             value: hasIssue,
             onChanged: enabled ? onToggle : null,
-            title: const Text('Có bất thường',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            title: Text('Có bất thường',
+                style: AppText.bodyLg.copyWith(fontWeight: FontWeight.w600)),
             subtitle: const Text(
                 'Hỏng hóc, thiếu đồ, vết bẩn khó xử lý — chụp cận cảnh để quản lý xem.'),
           ),

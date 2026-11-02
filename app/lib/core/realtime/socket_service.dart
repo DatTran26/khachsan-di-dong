@@ -1,5 +1,7 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
+import '../api/api_config.dart';
+
 /// Callback nhận JSON phòng từ `room:updated` hoặc `room:created`.
 typedef RoomJsonCallback = void Function(Map<String, dynamic> json);
 /// Callback khi `room:deleted`. [roomId] là UUID, không phải số phòng.
@@ -16,7 +18,7 @@ typedef ConnectionCallback = void Function(bool connected);
 /// Một kết nối Socket.IO tới backend.
 ///
 /// Mọi thao tác ghi vẫn đi REST. Socket chỉ nhận sự kiện.
-/// [connect] hủy socket cũ trước khi mở socket mới. URL mặc định localhost.
+/// [connect] hủy socket cũ trước khi mở socket mới. URL mặc định [apiUrl].
 class SocketService {
   io.Socket? _socket;
 
@@ -40,12 +42,9 @@ class SocketService {
 
   /// Mở socket với [token] phiên. Handshake `auth.token`.
   ///
-  /// Bật reconnect của thư viện. Lỗi `connect_error` mà mã là
-  /// `UNAUTHENTICATED`, `SESSION_EXPIRED` hoặc `SESSION_INVALID` thì gọi
-  /// [onSessionRevoked]. Mã khác (kể cả `PASSWORD_CHANGE_REQUIRED`) thì tự
-  /// [connect] lại sau 3 giây nếu vẫn là cùng instance và chưa nối.
-  /// [url] mặc định `http://localhost:3000`, không đọc cấu hình flavor.
-  void connect(String token, {String url = 'http://localhost:3000'}) {
+  /// Bật reconnect của thư viện. Lỗi kết nối/handshake xử lý ở [_handleConnectError].
+  /// [url] mặc định [apiUrl] — cùng host với REST (`--dart-define=API_URL`).
+  void connect(String token, {String url = apiUrl}) {
     _socket?.dispose();
     _socket = io.io(
       url,
@@ -69,25 +68,12 @@ class SocketService {
       onConnectionChanged?.call(false);
     });
 
-    _socket!.onConnectError((data) {
-      _connected = false;
-      onConnectionChanged?.call(false);
-      if (data is Map && data['data'] is Map) {
-        final code = data['data']['code'] as String?;
-        if (code != null) {
-          const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID'];
-          if (authCodes.contains(code)) {
-            onSessionRevoked?.call(code, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-          } else {
-            // Lỗi từ middleware server (vd INTERNAL_ERROR) → socket.io không tự thử lại; tự thử sau 3s.
-            final socket = _socket;
-            Future.delayed(const Duration(seconds: 3), () {
-              if (identical(socket, _socket) && !_connected) socket?.connect();
-            });
-          }
-        }
-      }
-    });
+    // Lỗi tầng mạng (không tới được server) → `connect_error`, thư viện tự reconnect.
+    _socket!.onConnectError(_handleConnectError);
+    // Server từ chối handshake (middleware `io.use`) → socket_io_client 2.x phát `error`,
+    // KHÔNG phát `connect_error`. Thiếu listener này thì phiên hết hạn/bị hủy không bao giờ
+    // được báo về auth → app kẹt banner "Mất kết nối" dù mạng vẫn bình thường.
+    _socket!.on('error', _handleConnectError);
 
     _socket!.on('room:updated', (data) {
       if (data is Map<String, dynamic>) {
@@ -145,6 +131,31 @@ class SocketService {
     });
 
     _socket!.connect();
+  }
+
+  /// Xử lý lỗi kết nối/handshake. [data] từ server có dạng `{message, data: {code}}`.
+  ///
+  /// Mã phiên chết → [onSessionRevoked]. Mã khác (kể cả `PASSWORD_CHANGE_REQUIRED`)
+  /// thì tự [connect] lại sau 3 giây nếu vẫn là cùng socket và chưa nối.
+  /// Lỗi mạng không có mã → để reconnect của thư viện lo.
+  void _handleConnectError(dynamic data) {
+    _connected = false;
+    onConnectionChanged?.call(false);
+    if (data is Map && data['data'] is Map) {
+      final code = data['data']['code'] as String?;
+      if (code != null) {
+        const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID', 'ACCOUNT_LOCKED'];
+        if (authCodes.contains(code)) {
+          onSessionRevoked?.call(code, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        } else {
+          // Lỗi từ middleware server (vd INTERNAL_ERROR) → socket.io không tự thử lại; tự thử sau 3s.
+          final socket = _socket;
+          Future.delayed(const Duration(seconds: 3), () {
+            if (identical(socket, _socket) && !_connected) socket?.connect();
+          });
+        }
+      }
+    }
   }
 
   /// Đóng socket và đánh dấu ngắt. Không gọi [onConnectionChanged].

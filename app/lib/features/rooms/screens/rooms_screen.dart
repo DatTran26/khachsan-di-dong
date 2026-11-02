@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +26,9 @@ class RoomsScreen extends ConsumerStatefulWidget {
 /// Chọn phòng trên bảng rộng và mở sheet trên màn hẹp.
 class _RoomsScreenState extends ConsumerState<RoomsScreen> {
   String? _selectedId;
-  final _search = TextEditingController();
+  // Bộ lọc nằm ở provider nên còn giữ khi quay lại màn — ô tìm kiếm phải hiện đúng từ khóa đang lọc.
+  late final _search =
+      TextEditingController(text: ref.read(roomsProvider).filter.query);
 
   /// Giải phóng controller ô tìm. Không đổi bộ lọc trên provider.
   @override
@@ -48,14 +51,15 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
     final rooms = state.filtered;
     final selected = _selectedId != null ? state.byId(_selectedId!) : null;
 
-    if (state.isLoading && state.rooms.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.error != null && state.rooms.isEmpty) {
-      return ErrorState(
-          message: state.error!,
-          onRetry: () => ref.read(roomsProvider.notifier).load());
-    }
+    final reload = ref.read(roomsProvider.notifier).load;
+    final gate = initialLoadGate(
+      loading: state.isLoading,
+      error: state.error,
+      isEmpty: state.rooms.isEmpty,
+      onRetry: reload,
+      skeleton: const SkeletonGrid(),
+    );
+    if (gate != null) return gate;
 
     final toolbar = _Toolbar(
       filter: state.filter,
@@ -93,29 +97,45 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
         total: state.rooms.length,
         selectedId: _selectedId,
         onSelect: (r) => setState(() => _selectedId = r.id),
+        onRefresh: reload,
       );
     } else {
-      list = GridView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 128,
-          mainAxisExtent: RoomTile.extent(context),
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+      list = RefreshIndicator(
+        onRefresh: reload,
+        child: GridView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 128,
+            mainAxisExtent: RoomTile.extent(context),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          children: [
+            for (final r in rooms)
+              RoomTile(
+                  room: r, onTap: () => showRoomDetailSheet(context, r.id)),
+          ],
         ),
-        children: [
-          for (final r in rooms)
-            RoomTile(room: r, onTap: () => showRoomDetailSheet(context, r.id)),
-        ],
       );
     }
 
     if (!wide) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: toolbar),
+          if (rooms.isNotEmpty && rooms.length != state.rooms.length)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Semantics(
+                liveRegion: true,
+                child: MetaText(
+                    'Đang hiện ${rooms.length} / ${state.rooms.length} phòng'),
+              ),
+            ),
           Expanded(child: list),
         ],
       );
@@ -127,12 +147,22 @@ class _RoomsScreenState extends ConsumerState<RoomsScreen> {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                toolbar,
-                const SizedBox(height: 16),
-                Expanded(child: list)
+            // Bảng lấp phần còn lại dưới thanh công cụ nhưng không thấp hơn 360px; cửa sổ thấp
+            // (laptop nhỏ, phóng to, chữ hệ thống to) thì cả cột cuộn thay vì bảng bị ép tràn.
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: toolbar),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                SliverLayoutBuilder(
+                  builder: (context, c) => SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: math.max(
+                          c.viewportMainAxisExtent - c.precedingScrollExtent,
+                          360),
+                      child: list,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -189,13 +219,27 @@ class _Toolbar extends StatelessWidget {
       children: [
         SizedBox(
           width: 220,
-          child: TextField(
-            controller: search,
-            onChanged: (v) => onChanged(filter.copyWith(query: v)),
-            decoration: const InputDecoration(
-              hintText: 'Tìm số phòng…',
-              prefixIcon: Icon(Icons.search, size: 20),
-              contentPadding: EdgeInsets.symmetric(vertical: 10),
+          child: ValueListenableBuilder(
+            valueListenable: search,
+            builder: (context, value, _) => TextField(
+              controller: search,
+              textInputAction: TextInputAction.search,
+              onChanged: (v) => onChanged(filter.copyWith(query: v)),
+              decoration: InputDecoration(
+                hintText: 'Tìm số phòng…',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                suffixIcon: value.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Xóa tìm kiếm',
+                        icon: const Icon(Icons.close, size: 18),
+                        onPressed: () {
+                          search.clear();
+                          onChanged(filter.copyWith(query: ''));
+                        },
+                      ),
+              ),
             ),
           ),
         ),
@@ -243,12 +287,14 @@ class _RoomTable extends StatelessWidget {
   final int total;
   final String? selectedId;
   final ValueChanged<Room> onSelect;
+  final Future<void> Function() onRefresh;
 
   const _RoomTable(
       {required this.rooms,
       required this.total,
       required this.selectedId,
-      required this.onSelect});
+      required this.onSelect,
+      required this.onRefresh});
 
   static const _flex = [12, 12, 12, 14, 16, 10];
 
@@ -266,15 +312,14 @@ class _RoomTable extends StatelessWidget {
     Widget cell(int i, Widget child) => Expanded(
         flex: _flex[i],
         child: Align(alignment: Alignment.centerLeft, child: child));
-    const head = TextStyle(
-        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted);
+    const head = AppText.tableHead;
 
     return AppCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           Container(
-            color: const Color(0xFFFAF8F3),
+            color: AppColors.surfaceMuted,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(children: [
               cell(0, const Text('Phòng', style: head)),
@@ -287,55 +332,60 @@ class _RoomTable extends StatelessWidget {
           ),
           const Divider(height: 1, color: AppColors.border),
           Expanded(
-            child: ListView.separated(
-              itemCount: rooms.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, i) {
-                final r = rooms[i];
-                return Material(
-                  color: r.id == selectedId
-                      ? AppColors.goldTint
-                      : Colors.transparent,
-                  child: InkWell(
-                    onTap: () => onSelect(r),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      child: Row(children: [
-                        cell(
-                          0,
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(r.number,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14)),
-                                Text('Tầng ${r.floor}',
-                                    style: const TextStyle(
-                                        fontSize: 12, color: AppColors.muted)),
-                              ]),
+            child: RefreshIndicator(
+              onRefresh: onRefresh,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: rooms.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, i) {
+                  final r = rooms[i];
+                  return Semantics(
+                    selected: r.id == selectedId,
+                    child: Material(
+                      color: r.id == selectedId
+                          ? AppColors.goldTint
+                          : Colors.transparent,
+                      child: InkWell(
+                        onTap: () => onSelect(r),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          child: Row(children: [
+                            cell(
+                              0,
+                              Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(r.number,
+                                        style: AppText.body.copyWith(
+                                            fontWeight: FontWeight.w700)),
+                                    Text('Tầng ${r.floor}',
+                                        style: AppText.caption
+                                            .copyWith(color: AppColors.muted)),
+                                  ]),
+                            ),
+                            cell(1, Text(r.roomType.name, style: AppText.body)),
+                            cell(
+                                2,
+                                StatusChip(r.occupancy.label,
+                                    tone: r.occupancy.tone)),
+                            cell(
+                                3,
+                                StatusChip(r.cleaning.label,
+                                    tone: r.cleaning.tone)),
+                            cell(
+                                4,
+                                StatusChip(r.service.label,
+                                    tone: r.service.tone)),
+                            cell(5, MetaText(_when(r.updatedAt))),
+                          ]),
                         ),
-                        cell(
-                            1,
-                            Text(r.roomType.name,
-                                style: const TextStyle(fontSize: 14))),
-                        cell(
-                            2,
-                            StatusChip(r.occupancy.label,
-                                tone: r.occupancy.tone)),
-                        cell(
-                            3,
-                            StatusChip(r.cleaning.label,
-                                tone: r.cleaning.tone)),
-                        cell(4,
-                            StatusChip(r.service.label, tone: r.service.tone)),
-                        cell(5, MetaText(_when(r.updatedAt))),
-                      ]),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
           const Divider(height: 1),

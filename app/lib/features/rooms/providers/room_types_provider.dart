@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/room.dart';
 
 /// Danh sách loại phòng, cờ tải và lỗi của `GET /room-types`.
@@ -69,5 +70,7 @@ class RoomTypesNotifier extends StateNotifier<RoomTypesState> {
 
 /// Loại phòng dùng chung. Một [RoomTypesNotifier] cho đến khi không còn listener.
 final roomTypesProvider = StateNotifierProvider<RoomTypesNotifier, RoomTypesState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới, không giữ dữ liệu phiên trước.
+  ref.watch(authProvider.select((s) => s.user?.id));
   return RoomTypesNotifier();
 });

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import '../storage/token_storage.dart';
+import 'api_config.dart';
 
 /// Lỗi API đã tách từ body `{ error: { code, message, details } }` hoặc lỗi mạng.
 ///
@@ -43,8 +44,8 @@ class ApiClient {
   late final Dio _dio;
   OnUnauthenticated? onUnauthenticated;
 
-  /// [baseUrl] mặc định máy dev local. App Android emulator không đổi host này.
-  ApiClient({String baseUrl = 'http://localhost:3000/api'}) {
+  /// [baseUrl] mặc định `$apiUrl/api` (xem [apiUrl]). App Android emulator không đổi host này.
+  ApiClient({String baseUrl = '$apiUrl/api'}) {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 10),
@@ -56,6 +57,16 @@ class ApiClient {
         final token = await TokenStorage.getToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
+        } else if (options.path != '/auth/login') {
+          // Chưa có phiên (vd vừa đăng xuất, màn cũ còn tải lại dữ liệu) → chặn tại chỗ,
+          // không gửi request chắc chắn bị 401. Không gọi [onUnauthenticated]: phiên đã xóa rồi.
+          handler.reject(DioException(
+            requestOptions: options,
+            error: const ApiException(
+                code: 'UNAUTHENTICATED',
+                message: 'Vui lòng đăng nhập để tiếp tục.'),
+          ));
+          return;
         }
         handler.next(options);
       },

@@ -62,8 +62,7 @@ class GoldDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(title,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w700)),
+                  style: AppText.titleLg.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               Flexible(child: SingleChildScrollView(child: content)),
               const SizedBox(height: 20),
@@ -141,8 +140,8 @@ class _ConfirmDialogState extends State<_ConfirmDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(widget.message,
-              style: const TextStyle(
-                  fontSize: 14, color: AppColors.muted, height: 1.55)),
+              style:
+                  AppText.body.copyWith(color: AppColors.muted, height: 1.55)),
           if (_error != null) ...[
             const SizedBox(height: 12),
             Container(
@@ -150,7 +149,7 @@ class _ConfirmDialogState extends State<_ConfirmDialog> {
               decoration: BoxDecoration(
                 color: AppColors.dangerBg,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFF2C4C6)),
+                border: Border.all(color: AppColors.dangerBorder),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,8 +159,8 @@ class _ConfirmDialogState extends State<_ConfirmDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(_error!,
-                        style: const TextStyle(
-                            color: Color(0xFF8A1C21), fontSize: 13)),
+                        style:
+                            AppText.meta.copyWith(color: AppColors.dangerText)),
                   ),
                 ],
               ),

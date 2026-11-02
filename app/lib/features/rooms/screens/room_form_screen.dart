@@ -7,6 +7,7 @@ import '../providers/room_types_provider.dart';
 import '../../../core/api/api_client.dart';
 import '../../../models/room.dart';
 import '../../../shared/utils/error_handler.dart';
+import '../../../shared/widgets/ui.dart';
 
 /// Màn tạo / sửa phòng — chỉ dùng cho quản lý.
 /// Truyền [room] để vào chế độ sửa, để null để tạo mới.
@@ -124,7 +125,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
         title: Text(isEdit ? 'Sửa phòng' : 'Thêm phòng'),
       ),
       body: typesState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SkeletonList(count: 4, itemHeight: 56)
           : typesState.error != null
               ? Center(
                   child: Column(
@@ -142,6 +143,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                 )
               : Form(
                   key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: ListView(
                     // Form hẹp ở giữa trên màn rộng (web), full chiều ngang trên mobile.
                     padding: EdgeInsets.symmetric(
@@ -172,6 +174,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                       if (!_isBulk)
                         TextFormField(
                           controller: _numberCtrl,
+                          textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             labelText: 'Số phòng *',
                             hintText: 'VD: 101',
@@ -189,6 +192,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                             Expanded(
                               child: TextFormField(
                                 controller: _fromCtrl,
+                                textInputAction: TextInputAction.next,
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly
@@ -209,6 +213,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                             Expanded(
                               child: TextFormField(
                                 controller: _toCtrl,
+                                textInputAction: TextInputAction.next,
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly
@@ -232,6 +237,7 @@ class _RoomFormScreenState extends ConsumerState<RoomFormScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _floorCtrl,
+                        textInputAction: TextInputAction.next,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly

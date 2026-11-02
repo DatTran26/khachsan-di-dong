@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/user.dart';
 
 /// Danh sách tài khoản, cờ tải và lỗi của `GET /users`.
@@ -128,5 +129,7 @@ class UsersNotifier extends StateNotifier<UsersState> {
 
 /// Tài khoản dùng chung. Một [UsersNotifier] đến khi không còn listener.
 final usersProvider = StateNotifierProvider<UsersNotifier, UsersState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới, không giữ dữ liệu phiên trước.
+  ref.watch(authProvider.select((s) => s.user?.id));
   return UsersNotifier();
 });

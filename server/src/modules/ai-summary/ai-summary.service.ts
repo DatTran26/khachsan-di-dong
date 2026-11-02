@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { AiSummary, SummaryFailure, SummaryPeriod, SummarySource, User } from '@prisma/client';
 import { env } from '../../config/env.js';
 import { writeAudit } from '../../lib/audit.js';
@@ -8,9 +9,11 @@ import {
   AiFormatError,
   AiTimeoutError,
   MAX_CALL_COST_VND,
+  MAX_INPUT_TOKENS,
   SUMMARY_SCHEMA_VERSION,
   aiClient,
   costOf,
+  inputTokenBound,
   type AiOutput,
 } from './ai-summary.ai.js';
 import { ACTIVITY_LABELS, buildPeriodMetrics, type AttentionItem, type PeriodMetrics } from './ai-summary.metrics.js';
@@ -75,6 +78,23 @@ function toAiPayload(range: PeriodRange, metrics: PeriodMetrics, attention: Atte
     ),
     danh_sach_can_chu_y: attention.map((a) => a.text),
   };
+}
+
+type AiPayload = ReturnType<typeof toAiPayload> & { so_muc_can_chu_y_khong_liet_ke?: number };
+
+/**
+ * Cắt danh sách cần chú ý (bỏ từ cuối — phòng ngừng phục vụ trước, việc quá hạn giữ lâu nhất) cho tới khi gói vừa
+ * MAX_INPUT_TOKENS → chi phí thật không vượt mức đã chặn ngân sách (FR-009, NFR-003). Danh sách đầy đủ vẫn lưu
+ * theo quy tắc trong `attention.items`; AI chỉ thấy số mục bị bỏ.
+ */
+function fitPayload(payload: AiPayload): AiPayload {
+  const list = [...payload.danh_sach_can_chu_y];
+  let fitted: AiPayload = payload;
+  while (inputTokenBound(fitted) > MAX_INPUT_TOKENS && list.length > 0) {
+    list.pop();
+    fitted = { ...payload, danh_sach_can_chu_y: list, so_muc_can_chu_y_khong_liet_ke: payload.danh_sach_can_chu_y.length - list.length };
+  }
+  return fitted;
 }
 
 /**
@@ -152,15 +172,22 @@ type Outcome = {
 };
 
 /**
- * Thử bản AI. Mọi đường lỗi trả lý do để dựng báo cáo mẫu, không ném ra ngoài.
+ * Thử bản AI. Mọi đường lỗi trả lý do (log kèm mã request) để dựng báo cáo mẫu, không ném ra ngoài.
  *
  * Không có API key → `NOT_CONFIGURED`, chi phí 0, không gọi mạng.
  * Đã tiêu + chi phí tối đa một lượt vượt ngân sách → `QUOTA_EXCEEDED` trước khi gọi.
  * Timeout tính `MAX_CALL_COST_VND`. `AiServiceError` (HTTP/mạng) tính chi phí 0 dù provider có thể đã tính cước.
- * @param payload Gói `toAiPayload`.
+ * Gói vẫn vượt MAX_INPUT_TOKENS sau khi cắt → `AI_ERROR`, không gọi.
+ * @param payload Gói `toAiPayload` đã qua `fitPayload`.
+ * @param requestId Mã request ghi kèm log.
  */
-async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
+async function tryAi(payload: unknown, requestId: string): Promise<Omit<Outcome, 'source' | 'overview' | 'highlights' | 'notes'> & { output?: AiOutput }> {
   if (!env.OPENAI_API_KEY) return { calledAi: false, failureReason: 'NOT_CONFIGURED', costVnd: 0 };
+  // Cắt danh sách rồi vẫn quá cỡ (không xảy ra với dạng gói hiện tại) → không gọi, giữ đúng trần chi phí.
+  if (inputTokenBound(payload) > MAX_INPUT_TOKENS) {
+    console.warn(`[${requestId}] Gói gửi AI vượt giới hạn token đầu vào — dùng báo cáo mẫu`);
+    return { calledAi: false, failureReason: 'AI_ERROR', costVnd: 0 };
+  }
   // Chặn TRƯỚC khi gọi theo chi phí tối đa của 1 lượt → không bao giờ vượt ngân sách (FR-009, NFR-003).
   if ((await spentVnd()) + MAX_CALL_COST_VND > env.AI_BUDGET_VND) {
     return { calledAi: false, failureReason: 'QUOTA_EXCEEDED', costVnd: 0 };
@@ -169,12 +196,12 @@ async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overvi
     const { output, usage } = await aiClient.generate(payload);
     const checked = validateAiOutput(output, payload);
     if (!checked.ok) {
-      console.warn('Đầu ra AI không hợp lệ:', checked.reason);
+      console.warn(`[${requestId}] Đầu ra AI không hợp lệ:`, checked.reason);
       return { calledAi: true, failureReason: 'INVALID_OUTPUT', costVnd: costOf(usage) };
     }
     return { calledAi: true, failureReason: null, costVnd: costOf(usage), output: checked.output };
   } catch (error) {
-    console.warn('Gọi AI thất bại:', error instanceof Error ? error.message : error);
+    console.warn(`[${requestId}] Gọi AI thất bại:`, error instanceof Error ? error.message : error);
     // Quá giờ: không biết đã tốn bao nhiêu → tính mức tối đa cho an toàn ngân sách.
     if (error instanceof AiTimeoutError) return { calledAi: true, failureReason: 'TIMEOUT', costVnd: MAX_CALL_COST_VND };
     if (error instanceof AiFormatError) {
@@ -189,7 +216,7 @@ async function tryAi(payload: unknown): Promise<Omit<Outcome, 'source' | 'overvi
  * Có hoạt động mà AI không dùng được → `FALLBACK`. Ghi nhật ký `ai_summary.generated` trong cùng transaction với insert.
  * @returns DTO và `notice` (null khi bản AI hợp lệ).
  */
-async function generate(actor: User, period: SummaryPeriod, now: Date) {
+async function generate(actor: User, period: SummaryPeriod, now: Date, requestId: string) {
   const range = resolvePeriod(period, now);
   const { metrics, attention, hasActivity } = await buildPeriodMetrics(range);
 
@@ -199,8 +226,8 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
     // phục vụ đang tồn tại) để quản lý không bỏ sót — chốt 10/10/2026.
     outcome = { source: 'EMPTY', overview: MSG.summaryEmpty, highlights: [], notes: [], calledAi: false, failureReason: null, costVnd: 0 };
   } else {
-    const payload = toAiPayload(range, metrics, attention, now);
-    const ai = await tryAi(payload);
+    const payload = fitPayload(toAiPayload(range, metrics, attention, now));
+    const ai = await tryAi(payload, requestId);
     outcome = ai.output
       ? { source: 'AI', overview: ai.output.overview, highlights: ai.output.highlights, notes: ai.output.attention, ...ai }
       : { source: 'FALLBACK', ...fallbackContent(range, metrics), notes: [], ...ai };
@@ -227,7 +254,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
       },
       include: createdByInclude,
     });
-    // Mọi lượt tạo đều ghi nhật ký: ai, khi nào, kỳ nào, loại kết quả, có gọi AI không (FR-010, NFR-005).
+    // Mọi lượt tạo đều ghi nhật ký: ai, khi nào, kỳ nào, loại kết quả, có gọi AI không, mã request (FR-010, NFR-005).
     await writeAudit(tx, {
       actorId: actor.id,
       actorRole: actor.role,
@@ -239,6 +266,7 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
         { field: 'source', after: outcome.source },
         { field: 'calledAi', after: String(outcome.calledAi) },
         ...(outcome.failureReason ? [{ field: 'failureReason', after: outcome.failureReason }] : []),
+        { field: 'requestId', after: requestId },
       ],
     });
     return summary;
@@ -252,13 +280,14 @@ async function generate(actor: User, period: SummaryPeriod, now: Date) {
  * Tạo một bản tóm tắt. Cờ `running` trong bộ nhớ chặn lượt thứ hai của cùng tiến trình (409).
  * Không khóa giữa nhiều process. `finally` luôn hạ cờ, kể cả khi `generate` ném.
  * @param now Mặc định giờ gọi. Test truyền mốc cố định.
+ * @param requestId Mã request để lần log. Mặc định UUID mới.
  * @returns Kết quả `generate`.
  */
-export async function createSummary(actor: User, period: SummaryPeriod, now: Date = new Date()) {
+export async function createSummary(actor: User, period: SummaryPeriod, now: Date = new Date(), requestId: string = randomUUID()) {
   if (running) throw new AppError(409, 'SUMMARY_IN_PROGRESS', MSG.summaryInProgress);
   running = true;
   try {
-    return await generate(actor, period, now);
+    return await generate(actor, period, now, requestId);
   } finally {
     running = false;
   }
