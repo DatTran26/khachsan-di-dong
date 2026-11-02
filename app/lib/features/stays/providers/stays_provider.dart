@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/stay.dart';
 
 /// Danh sách lượt đang ở, cờ tải và lỗi gần nhất của `GET /stays`.
@@ -54,5 +55,7 @@ class StaysNotifier extends StateNotifier<StaysState> {
 
 /// Lượt lưu trú đang mở. Riverpod giữ một [StaysNotifier] cho đến khi không còn listener.
 final staysProvider = StateNotifierProvider<StaysNotifier, StaysState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới, không giữ dữ liệu phiên trước.
+  ref.watch(authProvider.select((s) => s.user?.id));
   return StaysNotifier();
 });

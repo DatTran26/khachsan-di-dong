@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/realtime/socket_service.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../models/maintenance_task.dart';
 
 /// Danh sách việc sửa, cờ tải và lỗi của `GET /maintenance/tasks`.
@@ -111,5 +112,7 @@ class MaintenanceNotifier extends StateNotifier<MaintenanceState> {
 /// Việc sửa dùng chung. Một [MaintenanceNotifier], socket gắn trong constructor.
 final maintenanceProvider =
     StateNotifierProvider<MaintenanceNotifier, MaintenanceState>((ref) {
+  // Đổi tài khoản (đăng xuất → đăng nhập) thì dựng notifier mới, không giữ dữ liệu phiên trước.
+  ref.watch(authProvider.select((s) => s.user?.id));
   return MaintenanceNotifier();
 });

@@ -59,6 +59,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Không tự xóa sau khi đọc.
   String? get revokedMessage => _revokedMessage;
 
+  /// Đang chạy [_logout]. Chặn gọi chồng: đăng xuất chủ động khiến server bắn
+  /// `session:revoked` (LOGGED_OUT) về chính thiết bị này, và 401 có thể tới cùng lúc.
+  bool _loggingOut = false;
+
   /// Nếu còn token thì gọi GET `/auth/me`. Lỗi thì xóa token và coi như chưa đăng nhập.
   /// Thành công thì nối socket trừ khi còn mật khẩu tạm.
   Future<void> _init() async {
@@ -94,7 +98,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Socket báo phiên hết. Lưu [message] vào [revokedMessage] rồi xóa phiên.
   /// [reason] không được lưu riêng.
+  /// Bỏ qua khi chính thiết bị này đang đăng xuất (không phải bị đá).
   void _handleSessionRevoked(String reason, String message) {
+    if (_loggingOut) return;
     _revokedMessage = message;
     _logout(emitRevoked: false);
   }
@@ -115,6 +121,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final token = data['token'] as String;
       final user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
       await TokenStorage.saveToken(token);
+      _revokedMessage = null;
       state = state.copyWith(user: user, isLoading: false);
       _connectSocket(token, user);
     } on ApiException catch (e) {
@@ -148,18 +155,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Đăng xuất chủ động. Luôn xóa token và ngắt socket dù POST `/auth/logout` lỗi.
   Future<void> logout() async {
+    _revokedMessage = null;
     await _logout(emitRevoked: true);
   }
 
   /// Xóa phiên cục bộ. [emitRevoked] hiện không được đọc — cả đường chủ động
   /// và đường bị đá đều vẫn gọi API logout rồi đưa state về đã khởi tạo, không user.
+  /// Gọi chồng khi đang chạy thì bỏ qua.
   Future<void> _logout({required bool emitRevoked}) async {
+    if (_loggingOut) return;
+    _loggingOut = true;
     try {
-      await apiClient.postNoContent('/auth/logout');
-    } catch (_) {}
-    await TokenStorage.clearToken();
-    socketService.disconnect();
-    state = const AuthState(initialized: true);
+      // Ngắt socket trước khi báo server: khỏi nhận lại `session:revoked` của chính mình.
+      socketService.disconnect();
+      try {
+        await apiClient.postNoContent('/auth/logout');
+      } catch (_) {}
+      await TokenStorage.clearToken();
+      state = const AuthState(initialized: true);
+    } finally {
+      _loggingOut = false;
+    }
   }
 }
 

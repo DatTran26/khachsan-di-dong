@@ -57,6 +57,16 @@ class ApiClient {
         final token = await TokenStorage.getToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
+        } else if (options.path != '/auth/login') {
+          // Chưa có phiên (vd vừa đăng xuất, màn cũ còn tải lại dữ liệu) → chặn tại chỗ,
+          // không gửi request chắc chắn bị 401. Không gọi [onUnauthenticated]: phiên đã xóa rồi.
+          handler.reject(DioException(
+            requestOptions: options,
+            error: const ApiException(
+                code: 'UNAUTHENTICATED',
+                message: 'Vui lòng đăng nhập để tiếp tục.'),
+          ));
+          return;
         }
         handler.next(options);
       },
