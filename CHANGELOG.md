@@ -2,6 +2,15 @@
 
 Những thay đổi đáng ghi nhận của Khách Sạn Di Động. Phiên bản app và server nằm ở `app/pubspec.yaml` và `server/package.json`.
 
+## [Unreleased]
+
+### Fixed
+
+- Hết phiên hoặc bị thu hồi phiên khi socket đang nối lại không còn kẹt banner "Mất kết nối" và khóa nút ghi trong khi mạng vẫn bình thường: app bắt lỗi handshake (`SESSION_EXPIRED`, `SESSION_INVALID`, `ACCOUNT_LOCKED`) và đưa về màn đăng nhập.
+- Socket nối theo `API_URL` như REST, không còn cố định `localhost:3000`.
+- Đăng xuất chủ động không chạy hai lần và không hiện nhầm câu "phiên đã kết thúc" ở màn đăng nhập.
+- Đổi tài khoản không còn thấy dữ liệu và trạng thái kết nối của phiên trước.
+
 ## [0.2.0] - 2026-10-14
 
 Bản cắt từ `develop` (`082f810`) sau tag `v0.1.0`. App `0.2.0+2`, server `0.2.0`. Gồm tính năng và sửa lỗi đã có trên `develop`, cộng ghi chú mã nguồn.
