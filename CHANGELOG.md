@@ -10,6 +10,7 @@ Những thay đổi đáng ghi nhận của Khách Sạn Di Động. Phiên bả
 - Socket nối theo `API_URL` như REST, không còn cố định `localhost:3000`.
 - Đăng xuất chủ động không chạy hai lần và không hiện nhầm câu "phiên đã kết thúc" ở màn đăng nhập.
 - Đổi tài khoản không còn thấy dữ liệu và trạng thái kết nối của phiên trước.
+- Không còn gửi request thiếu token (chắc chắn 401) từ màn cũ ngay sau khi đăng xuất.
 
 ## [0.2.0] - 2026-10-14
 
