@@ -43,8 +43,8 @@ class SocketService {
   /// Mở socket với [token] phiên. Handshake `auth.token`.
   ///
   /// Bật reconnect của thư viện. Lỗi kết nối/handshake xử lý ở [_handleConnectError].
-  /// [url] mặc định `http://localhost:3000`, không đọc cấu hình flavor.
-  void connect(String token, {String url = 'http://localhost:3000'}) {
+  /// [url] mặc định [apiUrl] — cùng host với REST (`--dart-define=API_URL`).
+  void connect(String token, {String url = apiUrl}) {
     _socket?.dispose();
     _socket = io.io(
       url,
