@@ -144,7 +144,7 @@ class SocketService {
     if (data is Map && data['data'] is Map) {
       final code = data['data']['code'] as String?;
       if (code != null) {
-        const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID'];
+        const authCodes = ['UNAUTHENTICATED', 'SESSION_EXPIRED', 'SESSION_INVALID', 'ACCOUNT_LOCKED'];
         if (authCodes.contains(code)) {
           onSessionRevoked?.call(code, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
         } else {
