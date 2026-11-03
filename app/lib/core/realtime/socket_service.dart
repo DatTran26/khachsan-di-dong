@@ -49,6 +49,9 @@ class SocketService {
     _socket = io.io(
       url,
       io.OptionBuilder()
+          // Bắt buộc: thư viện cache Manager theo URL và trả lại socket cũ (đã dispose, còn
+          // token cũ) → đăng xuất rồi đăng nhập lại sẽ bắt tay bằng token đã bị thu hồi.
+          .enableForceNew()
           .setTransports(['websocket'])
           .setAuth({'token': token})
           .setTimeout(5000)
